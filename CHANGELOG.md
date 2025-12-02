@@ -26,6 +26,10 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - La gráfica ahora se actualiza automáticamente al modificar los datos en la tabla.
 - Mejorada la estructura interna de datos para soportar propiedades de error (`xError`, `yError`).
 
+### Corregido
+- Solucionado problema donde las líneas de ajuste exponencial, logarítmico y potencial no se mostraban en la gráfica.
+- Agregada validación para evitar errores de cálculo en ajustes logarítmicos y potenciales con valores no positivos.
+
 ## [1.0.0] - 2025-12-01
 
 ### Añadido

@@ -654,6 +654,7 @@
                     serie.r2 = fit.r2;
 
                     datasets.push({
+                        type: 'line',
                         label: `${serie.name} (ajuste)`,
                         data: fit.points,
                         borderColor: serie.color,
@@ -661,7 +662,9 @@
                         showLine: true,
                         pointRadius: 0,
                         borderWidth: 2,
-                        borderDash: [5, 5]
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.4
                     });
 
                     const eqDiv = document.getElementById(`eq-${serie.id}`);
@@ -741,13 +744,22 @@
                 fitFunc = x => result.a * Math.pow(x, result.b);
             }
 
-            const minX = Math.min(...xs);
+            let minX = Math.min(...xs);
             const maxX = Math.max(...xs);
+
+            // Adjust minX for logarithmic and power functions if necessary
+            if ((type === 'logarithmic' || type === 'power') && minX <= 0) {
+                minX = 0.0001; // Avoid 0 or negative values
+            }
+
             const range = maxX - minX;
             const points = [];
 
             for (let i = 0; i <= 100; i++) {
                 const x = minX + (range * i / 100);
+                // Ensure x is valid for the function type
+                if ((type === 'logarithmic' || type === 'power') && x <= 0) continue;
+
                 points.push({ x: x, y: fitFunc(x) });
             }
 
