@@ -8,6 +8,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 ## [1.1.0] - 2025-12-01
 
 ### Añadido
+- **Gestión de Proyectos**:
+    - Guardar proyecto completo en formato JSON (series, datos, configuración).
+    - Cargar proyectos previamente guardados.
+- **Personalización de Gráfica**:
+    - Panel de configuración para título, etiquetas de ejes y límites.
+    - Control de visualización de grid.
+- **Exportación Avanzada**:
+    - Exportación a PDF (además de PNG).
 - **Análisis de Incertidumbre**:
     - Soporte para ingresar errores en X e Y (±X, ±Y).
     - Visualización de barras de error en la gráfica.
