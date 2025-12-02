@@ -743,28 +743,30 @@ function linearRegression(data) {
 
             // Calculate intercepts using the points that defined the slopes
             // mMax passes through (x1_inner, y1_inner)
-            // mMin passes through (x1_outer, y1_outer)
-
             // Note: We need to be careful which points we use depending on which slope became max/min
             // after the swap.
 
-            // Recalculate to be sure which is which
+            // Calculate both slopes
             const m1 = (yn_inner - y1_inner) / (xn_inner - x1_inner);
             const m2 = (yn_outer - y1_outer) / (xn_outer - x1_outer);
 
+            // Determine which is max and which is min
             if (m1 > m2) {
-                // m1 is max slope, passes through (x1_inner, y1_inner)
-                bMax = y1_inner - m1 * x1_inner;
-                // m2 is min slope, passes through (x1_outer, y1_outer)
-                bMin = y1_outer - m2 * x1_outer;
+                mMax = m1;
+                mMin = m2;
+                // mMax passes through inner points
+                bMax = y1_inner - mMax * x1_inner;
+                // mMin passes through outer points
+                bMin = y1_outer - mMin * x1_outer;
             } else {
-                // m2 is max slope (algebraically), passes through (x1_outer, y1_outer)
-                bMax = y1_outer - m2 * x1_outer;
-                // m1 is min slope, passes through (x1_inner, y1_inner)
-                bMin = y1_inner - m1 * x1_inner;
+                mMax = m2;
+                mMin = m1;
+                // mMax passes through outer points
+                bMax = y1_outer - mMax * x1_outer;
+                // mMin passes through inner points
+                bMin = y1_inner - mMin * x1_inner;
             }
-            mMax = Math.max(m1, m2);
-            mMin = Math.min(m1, m2);
+
         } else {
             // Negative slope logic
             // Steepest (most negative): (x1+dx, y1+dy) to (xn-dx, yn-dy)
@@ -782,16 +784,18 @@ function linearRegression(data) {
             const m1 = (yn_inner - y1_inner) / (xn_inner - x1_inner);
             const m2 = (yn_outer - y1_outer) / (xn_outer - x1_outer);
 
+            // Determine which is max and which is min
             if (m1 > m2) {
-                bMax = y1_inner - m1 * x1_inner;
-                bMin = y1_outer - m2 * x1_outer;
+                mMax = m1;
+                mMin = m2;
+                bMax = y1_inner - mMax * x1_inner;
+                bMin = y1_outer - mMin * x1_outer;
             } else {
-                bMax = y1_outer - m2 * x1_outer;
-                bMin = y1_inner - m1 * x1_inner;
+                mMax = m2;
+                mMin = m1;
+                bMax = y1_outer - mMax * x1_outer;
+                bMin = y1_inner - mMin * x1_inner;
             }
-
-            mMax = Math.max(m1, m2);
-            mMin = Math.min(m1, m2);
         }
 
         const slopeError = (mMax - mMin) / 2;
