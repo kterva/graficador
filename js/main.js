@@ -514,7 +514,9 @@ function updateChart() {
         });
 
         if (serie.fitType !== 'none' && validData.length >= 2) {
-            const fit = calculateFit(validData, serie.fitType);
+            const xLabel = chart.options.scales.x.title.text || 'X';
+            const yLabel = chart.options.scales.y.title.text || 'Y';
+            const fit = calculateFit(validData, serie.fitType, xLabel, yLabel);
             serie.equation = fit.equation;
             serie.r2 = fit.r2;
 
@@ -622,13 +624,33 @@ function updateChart() {
                 const u = fit.uncertainty;
                 const deltaM = (u.mMax - u.mMin) / 2;
 
+                // Extraer unidades de las etiquetas de los ejes
+                const xLabel = chart.options.scales.x.title.text || 'X';
+                const yLabel = chart.options.scales.y.title.text || 'Y';
+                const xUnit = extractUnit(xLabel);
+                const yUnit = extractUnit(yLabel);
+
+                // Construir unidad de la pendiente (y/x)
+                let slopeUnit = '';
+                if (yUnit && xUnit) {
+                    slopeUnit = ` ${yUnit}/${xUnit}`;
+                } else if (yUnit) {
+                    slopeUnit = ` ${yUnit}`;
+                }
+
+                // Formatear valores con cifras significativas correctas
+                const formattedMax = formatWithUncertainty(u.mMax, u.slope);
+                const formattedMin = formatWithUncertainty(u.mMin, u.slope);
+                const formattedBest = formatWithUncertainty(u.mBest, u.slope);
+                const formattedDelta = formatWithUncertainty(deltaM, u.slope);
+
                 uncertaintyHtml = `
                     <div style="margin-top: 5px; font-size: 0.9em; border-top: 1px solid #eee; padding-top: 5px;">
                         <strong>Análisis de Pendiente:</strong><br>
-                        m<sub>max</sub> = ${u.mMax.toFixed(4)}<br>
-                        m<sub>min</sub> = ${u.mMin.toFixed(4)}<br>
-                        m<sub>mejor</sub> = ${u.mBest.toFixed(4)}<br>
-                        <strong>Δm = (m<sub>max</sub> - m<sub>min</sub>) / 2 = ${deltaM.toFixed(4)}</strong>
+                        m<sub>max</sub> = ${formattedMax.value}${slopeUnit}<br>
+                        m<sub>min</sub> = ${formattedMin.value}${slopeUnit}<br>
+                        m<sub>mejor</sub> = ${formattedBest.value}${slopeUnit}<br>
+                        <strong>Δm = (m<sub>max</sub> - m<sub>min</sub>) / 2 = ${formattedDelta.value}${slopeUnit}</strong>
                     </div>
                 `;
             } else if (showUncertaintyLines && serie.fitType === 'linear') {
@@ -656,7 +678,7 @@ function updateChart() {
     chart.update();
 }
 
-function calculateFit(data, type) {
+function calculateFit(data, type, xLabel = 'X', yLabel = 'Y') {
     const xs = data.map(p => p.x);
     const ys = data.map(p => p.y);
     const n = xs.length;
@@ -671,11 +693,25 @@ function calculateFit(data, type) {
         const a = result.a;
         const b = result.b;
 
+        // Extraer unidades
+        const xUnit = extractUnit(xLabel);
+        const yUnit = extractUnit(yLabel);
+        let slopeUnit = '';
+        if (yUnit && xUnit) {
+            slopeUnit = ` ${yUnit}/${xUnit}`;
+        } else if (yUnit) {
+            slopeUnit = ` ${yUnit}`;
+        }
+        let interceptUnit = yUnit ? ` ${yUnit}` : '';
+
         let eqStr = `y = ${a.toFixed(4)}x + ${b.toFixed(4)}`;
         if (result.uncertainty) {
+            const formattedA = formatWithUncertainty(a, result.uncertainty.slope);
+            const formattedB = formatWithUncertainty(b, result.uncertainty.intercept);
+
             eqStr += `<br><span style="font-size:0.9em; color:#666">
-                        m = ${a.toFixed(4)} ± ${result.uncertainty.slope.toFixed(4)}<br>
-                        b = ${b.toFixed(4)} ± ${result.uncertainty.intercept.toFixed(4)}
+                        m = ${formattedA.value} ± ${formattedA.uncertainty}${slopeUnit}<br>
+                        b = ${formattedB.value} ± ${formattedB.uncertainty}${interceptUnit}
                     </span>`;
         }
 
