@@ -38,6 +38,13 @@ let chart = null;
  */
 const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22'];
 
+// Estado de herramientas de cálculo
+let showTangent = false;
+let tangentX = 0;
+let showArea = false;
+let areaX1 = 0;
+let areaX2 = 0;
+
 // ============================================
 // PLUGIN DE BARRAS DE ERROR
 // ============================================
@@ -619,6 +626,113 @@ function updateChart() {
             const eqDiv = document.getElementById(`eq-${serie.id}`);
             eqDiv.style.display = 'block';
 
+            // ============================================
+            // VISUALIZACIÓN DE HERRAMIENTAS DE CÁLCULO
+            // ============================================
+
+            const coeffs = getRegressionCoeffs(validData, serie.fitType);
+
+            // 1. TANGENTE (DERIVADA)
+            if (showTangent && coeffs) {
+                const slope = calculateDerivative(tangentX, coeffs, serie.fitType);
+
+                // Calcular puntos para dibujar un segmento de tangente
+                // Longitud visual aproximada: 20% del rango X
+                let minX = chart.scales.x ? chart.scales.x.min : validData[0].x;
+                let maxX = chart.scales.x ? chart.scales.x.max : validData[validData.length - 1].x;
+                const rangeX = maxX - minX;
+                const deltaX = rangeX * 0.15;
+
+                // y - y0 = m(x - x0) -> y = m(x - x0) + y0
+                // Necesitamos y0 = f(x0)
+                let y0 = 0;
+                if (serie.fitType === 'linear') {
+                    y0 = coeffs.a * tangentX + coeffs.b;
+                } else if (serie.fitType === 'poly2') {
+                    y0 = coeffs[0] * tangentX * tangentX + coeffs[1] * tangentX + coeffs[2];
+                }
+
+                const x1 = tangentX - deltaX;
+                const x2 = tangentX + deltaX;
+                const y1 = slope * (x1 - tangentX) + y0;
+                const y2 = slope * (x2 - tangentX) + y0;
+
+                datasets.push({
+                    type: 'line',
+                    label: 'Tangente',
+                    data: [{ x: x1, y: y1 }, { x: x2, y: y2 }],
+                    borderColor: '#e74c3c', // Rojo brillante
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    showLine: true,
+                    fill: false,
+                    borderDash: [5, 5]
+                });
+
+                // Punto de tangencia
+                datasets.push({
+                    type: 'scatter',
+                    label: 'Punto Tangente',
+                    data: [{ x: tangentX, y: y0 }],
+                    backgroundColor: '#e74c3c',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                });
+
+                // Actualizar display
+                const tangentDisplay = document.getElementById('tangentDisplay');
+                if (tangentDisplay) {
+                    tangentDisplay.innerHTML = `
+                            <strong>x = ${tangentX.toFixed(4)}</strong><br>
+                            y = ${y0.toFixed(4)}<br>
+                            Pendiente (dy/dx) = ${slope.toFixed(4)}
+                        `;
+                }
+            }
+
+            // 2. ÁREA (INTEGRAL)
+            if (showArea && coeffs) {
+                const area = calculateIntegral(areaX1, areaX2, coeffs, serie.fitType);
+
+                // Crear dataset para sombrear área
+                // Generar puntos densos entre x1 y x2
+                const areaPoints = [];
+                const steps = 50;
+                const stepSize = (areaX2 - areaX1) / steps;
+
+                for (let i = 0; i <= steps; i++) {
+                    const x = areaX1 + i * stepSize;
+                    let y = 0;
+                    if (serie.fitType === 'linear') {
+                        y = coeffs.a * x + coeffs.b;
+                    } else if (serie.fitType === 'poly2') {
+                        y = coeffs[0] * x * x + coeffs[1] * x + coeffs[2];
+                    }
+                    areaPoints.push({ x, y });
+                }
+
+                datasets.push({
+                    type: 'line',
+                    label: 'Área',
+                    data: areaPoints,
+                    borderColor: 'transparent',
+                    backgroundColor: 'rgba(108, 92, 231, 0.3)', // Violeta semitransparente
+                    borderWidth: 0,
+                    pointRadius: 0,
+                    fill: 'origin', // Llenar hasta el eje X
+                    showLine: true
+                });
+
+                // Actualizar display
+                const areaDisplay = document.getElementById('areaDisplay');
+                if (areaDisplay) {
+                    areaDisplay.innerHTML = `
+                            <strong>Intervalo: [${areaX1.toFixed(4)}, ${areaX2.toFixed(4)}]</strong><br>
+                            Área (∫y dx) = ${area.toFixed(4)}
+                        `;
+                }
+            }
+
             let uncertaintyHtml = '';
             if (fit.uncertainty && fit.uncertainty.mMax !== undefined) {
                 const u = fit.uncertainty;
@@ -675,7 +789,153 @@ function updateChart() {
     });
 
     chart.data.datasets = datasets;
+    chart.zoom(0.8); // Alejar 20%
+}
+
+function downloadChart() {
+    const link = document.createElement('a');
+    link.download = 'grafica.png';
+    link.href = document.getElementById('myChart').toDataURL('image/png');
+    link.click();
+}
+
+function downloadChartPNG() {
+    downloadChart();
+}
+
+function downloadChartPDF() {
+    const { jsPDF } = window.jspdf;
+    const canvas = document.getElementById('myChart');
+
+    // Crear PDF con orientación landscape si el gráfico es ancho
+    const orientation = canvas.width > canvas.height ? 'l' : 'p';
+    const pdf = new jsPDF(orientation, 'mm', 'a4');
+
+    const imgData = canvas.toDataURL('image/png', 1.0);
+
+    // Calcular dimensiones para ajustar a la página A4
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+
+    const imgWidth = pageWidth - 2 * margin;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
+    pdf.save('grafica.pdf');
+}
+
+// ============================================
+// HERRAMIENTAS DE CÁLCULO (DERIVADA E INTEGRAL)
+// ============================================
+
+function toggleTangent() {
+    showTangent = document.getElementById('showTangent').checked;
+    const controls = document.getElementById('tangentControls');
+    controls.style.display = showTangent ? 'block' : 'none';
+
+    if (showTangent) {
+        // Inicializar slider con rango de datos
+        if (chart && chart.scales.x) {
+            const min = chart.scales.x.min;
+            const max = chart.scales.x.max;
+            const slider = document.getElementById('tangentSlider');
+            const input = document.getElementById('tangentXInput');
+
+            slider.min = min;
+            slider.max = max;
+            slider.step = (max - min) / 100;
+
+            if (tangentX === 0) tangentX = (min + max) / 2;
+            slider.value = tangentX;
+            input.value = tangentX.toFixed(4);
+        }
+    }
     chart.update();
+}
+
+function updateTangentFromSlider() {
+    tangentX = parseFloat(document.getElementById('tangentSlider').value);
+    document.getElementById('tangentXInput').value = tangentX.toFixed(4);
+    chart.update();
+}
+
+function updateTangentFromInput() {
+    tangentX = parseFloat(document.getElementById('tangentXInput').value);
+    document.getElementById('tangentSlider').value = tangentX;
+    chart.update();
+}
+
+function toggleArea() {
+    showArea = document.getElementById('showArea').checked;
+    const controls = document.getElementById('areaControls');
+    controls.style.display = showArea ? 'block' : 'none';
+
+    if (showArea) {
+        // Inicializar inputs con rango de datos
+        if (chart && chart.scales.x) {
+            const min = chart.scales.x.min;
+            const max = chart.scales.x.max;
+
+            if (areaX1 === 0) areaX1 = min;
+            if (areaX2 === 0) areaX2 = max;
+
+            document.getElementById('areaX1').value = areaX1.toFixed(4);
+            document.getElementById('areaX2').value = areaX2.toFixed(4);
+        }
+    }
+    chart.update();
+}
+
+function calculateArea() {
+    areaX1 = parseFloat(document.getElementById('areaX1').value);
+    areaX2 = parseFloat(document.getElementById('areaX2').value);
+    chart.update();
+}
+
+/**
+ * Calcula la derivada (pendiente) en un punto x
+ */
+function calculateDerivative(x, coeffs, type) {
+    if (type === 'linear') {
+        // y = ax + b -> y' = a
+        return coeffs.a;
+    } else if (type === 'poly2') {
+        // y = ax^2 + bx + c -> y' = 2ax + b
+        // coeffs = [a, b, c]
+        return 2 * coeffs[0] * x + coeffs[1];
+    }
+    return 0;
+}
+
+/**
+ * Calcula la integral definida entre x1 y x2
+ */
+function calculateIntegral(x1, x2, coeffs, type) {
+    if (type === 'linear') {
+        // y = ax + b -> ∫y = (a/2)x^2 + bx
+        const F = (x) => (coeffs.a / 2) * x * x + coeffs.b * x;
+        return F(x2) - F(x1);
+    } else if (type === 'poly2') {
+        // y = ax^2 + bx + c -> ∫y = (a/3)x^3 + (b/2)x^2 + cx
+        const F = (x) => (coeffs[0] / 3) * Math.pow(x, 3) + (coeffs[1] / 2) * x * x + coeffs[2] * x;
+        return F(x2) - F(x1);
+    }
+    return 0;
+}
+
+/**
+ * Obtiene coeficientes numéricos de la regresión
+ */
+function getRegressionCoeffs(data, type) {
+    if (type === 'linear') {
+        return linearRegression(data); // Retorna {a, b, ...}
+    } else if (type === 'poly2') {
+        const xs = data.map(p => p.x);
+        const ys = data.map(p => p.y);
+        return polynomialRegression(xs, ys, 2); // Retorna [a, b, c]
+    }
+    return null;
 }
 
 function calculateFit(data, type, xLabel = 'X', yLabel = 'Y') {
