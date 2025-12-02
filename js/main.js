@@ -133,7 +133,13 @@ function initChart() {
                     pan: {
                         enabled: true,
                         mode: 'xy',
-                        threshold: 10 // Mínimo movimiento para activar pan
+                        modifierKey: null, // No requiere tecla modificadora, solo arrastrar
+                        onPanStart: function ({ chart }) {
+                            chart.canvas.style.cursor = 'grabbing';
+                        },
+                        onPanComplete: function ({ chart }) {
+                            chart.canvas.style.cursor = 'grab';
+                        }
                     },
                     limits: {
                         x: { min: 'original', max: 'original', minRange: 1 }, // Límites basados en datos originales
@@ -1025,6 +1031,16 @@ function resetZoom() {
     document.getElementById('maxY').value = '';
 
     chart.update();
+}
+
+function zoomIn() {
+    if (!chart) return;
+    chart.zoom(1.2); // Acercar 20%
+}
+
+function zoomOut() {
+    if (!chart) return;
+    chart.zoom(0.8); // Alejar 20%
 }
 
 function downloadChart() {
