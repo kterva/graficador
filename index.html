@@ -125,35 +125,86 @@
                     <h3 style="margin-bottom: 10px; color: #27ae60;">📍 Punto de Intersección</h3>
                     <div id="intersection-content"></div>
                 </div>
+
+                <!-- Herramientas de Cálculo -->
+                <div class="card" style="margin-top: 20px; border-left: 5px solid #6c5ce7;">
+                    <h3 style="color: #6c5ce7;">🧮 Herramientas de Cálculo</h3>
+
+                    <!-- Control de Tangente -->
+                    <div class="config-group"
+                        style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
+                        <label
+                            style="display: flex; align-items: center; font-weight: bold; margin-bottom: 10px; cursor: pointer;">
+                            <input type="checkbox" id="showTangent" onchange="toggleTangent()">
+                            <span style="margin-left: 8px;">📉 Mostrar Tangente (Derivada)</span>
+                        </label>
+                        <div id="tangentControls" style="display: none; padding-left: 20px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                                <label for="tangentSlider" style="margin-right: 10px;">Posición X:</label>
+                                <input type="range" id="tangentSlider" style="flex-grow: 1; margin-right: 10px;"
+                                    oninput="updateTangentFromSlider()">
+                                <input type="number" id="tangentXInput" style="width: 80px; padding: 5px;" step="any"
+                                    onchange="updateTangentFromInput()">
+                            </div>
+                            <div id="tangentDisplay"
+                                style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; border: 1px solid #ddd;">
+                                Selecciona un punto para ver la derivada...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Control de Área -->
+                    <div class="config-group">
+                        <label
+                            style="display: flex; align-items: center; font-weight: bold; margin-bottom: 10px; cursor: pointer;">
+                            <input type="checkbox" id="showArea" onchange="toggleArea()">
+                            <span style="margin-left: 8px;">∫ Mostrar Área (Integral)</span>
+                        </label>
+                        <div id="areaControls" style="display: none; padding-left: 20px;">
+                            <div
+                                style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                                <label>Desde x₁: <input type="number" id="areaX1" style="width: 80px; padding: 5px;"
+                                        step="any"></label>
+                                <label>Hasta x₂: <input type="number" id="areaX2" style="width: 80px; padding: 5px;"
+                                        step="any"></label>
+                                <button class="btn btn-secondary" onclick="calculateArea()"
+                                    style="background-color: #6c5ce7; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer;">Calcular
+                                    Área</button>
+                            </div>
+                            <div id="areaDisplay"
+                                style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; border: 1px solid #ddd;">
+                                Define el rango y pulsa Calcular...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pie de página -->
+                <footer
+                    style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd; text-align: center; color: #666;">
+                    <p style="margin: 5px 0;">
+                        <strong>Graficador de Funciones</strong> | Desarrollado por <strong>Leonardo Trujillo</strong>
+                    </p>
+                    <p style="margin: 5px 0; font-size: 14px;">
+                        📜 Software libre bajo licencia GPL v3 |
+                        <a href="https://github.com/kterva/graficador" target="_blank"
+                            style="color: #3498db; text-decoration: none;">
+                            🔗 Ver código fuente en GitHub
+                        </a>
+                    </p>
+                    <p style="margin: 5px 0; font-size: 13px; color: #999;">
+                        ¡Contribuciones y sugerencias son bienvenidas! 🚀
+                    </p>
+                </footer>
             </div>
-        </div>
 
-        <!-- Pie de página -->
-        <footer
-            style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd; text-align: center; color: #666;">
-            <p style="margin: 5px 0;">
-                <strong>Graficador de Funciones</strong> | Desarrollado por <strong>Leonardo Trujillo</strong>
-            </p>
-            <p style="margin: 5px 0; font-size: 14px;">
-                📜 Software libre bajo licencia GPL v3 |
-                <a href="https://github.com/kterva/graficador" target="_blank"
-                    style="color: #3498db; text-decoration: none;">
-                    🔗 Ver código fuente en GitHub
-                </a>
-            </p>
-            <p style="margin: 5px 0; font-size: 13px; color: #999;">
-                ¡Contribuciones y sugerencias son bienvenidas! 🚀
-            </p>
-        </footer>
-    </div>
-
-    <!-- JavaScript externo -->
-    <script src="js/state.js"></script>
-    <script src="js/axis_arrows_plugin.js"></script>
-    <script src="js/project_manager.js"></script>
-    <script src="js/chart_config.js"></script>
-    <script src="js/export_manager.js"></script>
-    <script src="js/main.js"></script>
+            <!-- JavaScript externo -->
+            <script src="js/state.js"></script>
+            <script src="js/axis_arrows_plugin.js"></script>
+            <script src="js/project_manager.js"></script>
+            <script src="js/chart_config.js"></script>
+            <script src="js/export_manager.js"></script>
+            <script src="js/main.js"></script>
 </body>
 
 </html>
