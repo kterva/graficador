@@ -14,7 +14,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Personalización de Gráfica**:
     - Panel de configuración para título, etiquetas de ejes y límites.
     - Control de visualización de grid.
-    - **Ejes con flechas estilo física**: Los ejes ahora tienen flechas en sus extremos con etiquetas de magnitudes al lado.
+    - **Ejes con flechas estilo física**: Los ejes X e Y ahora tienen flechas en sus extremos y etiquetas de magnitudes.
+- **Introducción Visual**: Sección de bienvenida en la página principal que explica las capacidades del graficador.
 - **Diseño Responsive**:
     - Interfaz optimizada para dispositivos móviles (celulares y tablets).
     - Tablas con desplazamiento horizontal y botones táctiles mejorados.
