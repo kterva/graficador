@@ -141,14 +141,28 @@ function initChart() {
                     type: 'linear',
                     position: 'bottom',
                     title: {
-                        display: true,
+                        display: false, // Ocultamos el título original, lo dibujará el plugin
                         text: 'X'
+                    },
+                    grid: {
+                        display: true,
+                        drawBorder: false // Ocultar borde del eje
+                    },
+                    ticks: {
+                        display: true // Mantener los números
                     }
                 },
                 y: {
                     title: {
-                        display: true,
+                        display: false, // Ocultamos el título original, lo dibujará el plugin
                         text: 'Y'
+                    },
+                    grid: {
+                        display: true,
+                        drawBorder: false // Ocultar borde del eje
+                    },
+                    ticks: {
+                        display: true // Mantener los números
                     }
                 }
             }

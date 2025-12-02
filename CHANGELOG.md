@@ -14,6 +14,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Personalización de Gráfica**:
     - Panel de configuración para título, etiquetas de ejes y límites.
     - Control de visualización de grid.
+    - **Ejes con flechas estilo física**: Los ejes ahora tienen flechas en sus extremos con etiquetas de magnitudes al lado.
 - **Exportación Avanzada**:
     - Exportación a PDF (además de PNG).
 - **Análisis de Incertidumbre**:
