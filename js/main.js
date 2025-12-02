@@ -645,8 +645,22 @@ function calculateFit(data, type) {
         fitFunc = x => result.a * Math.pow(x, result.b);
     }
 
-    let minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
+    // Calculate range including errors to ensure lines cover the error boxes
+    let minX = Infinity;
+    let maxX = -Infinity;
+
+    for (let i = 0; i < n; i++) {
+        const x = xs[i];
+        const xErr = data[i].xError || 0;
+        if (x - xErr < minX) minX = x - xErr;
+        if (x + xErr > maxX) maxX = x + xErr;
+    }
+
+    // Fallback if no data
+    if (minX === Infinity) {
+        minX = Math.min(...xs);
+        maxX = Math.max(...xs);
+    }
 
     // Adjust minX for logarithmic and power functions if necessary
     if ((type === 'logarithmic' || type === 'power') && minX <= 0) {
