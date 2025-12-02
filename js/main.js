@@ -439,6 +439,7 @@ function handleFileSelect(serieId, input) {
 
 function updateChart() {
     const datasets = [];
+    const showUncertaintyLines = document.getElementById('showUncertaintyLines').checked;
 
     series.forEach(serie => {
         const validData = serie.data.filter(p => p.x !== '' && p.y !== '').map(p => ({
@@ -479,12 +480,60 @@ function updateChart() {
                 tension: 0.4
             });
 
+            // Add uncertainty lines if enabled and available
+            if (showUncertaintyLines && fit.uncertainty && fit.maxSlopePoints && fit.minSlopePoints) {
+                datasets.push({
+                    type: 'line',
+                    label: `${serie.name} (m máx)`,
+                    data: fit.maxSlopePoints,
+                    borderColor: serie.color,
+                    backgroundColor: 'transparent',
+                    showLine: true,
+                    pointRadius: 0,
+                    borderWidth: 1,
+                    borderDash: [2, 2],
+                    fill: false,
+                    tension: 0
+                });
+                datasets.push({
+                    type: 'line',
+                    label: `${serie.name} (m mín)`,
+                    data: fit.minSlopePoints,
+                    borderColor: serie.color,
+                    backgroundColor: 'transparent',
+                    showLine: true,
+                    pointRadius: 0,
+                    borderWidth: 1,
+                    borderDash: [2, 2],
+                    fill: false,
+                    tension: 0
+                });
+            }
+
             const eqDiv = document.getElementById(`eq-${serie.id}`);
             eqDiv.style.display = 'block';
+
+            let uncertaintyHtml = '';
+            if (fit.uncertainty && fit.uncertainty.mMax !== undefined) {
+                const u = fit.uncertainty;
+                const deltaM = (u.mMax - u.mMin) / 2;
+
+                uncertaintyHtml = `
+                    <div style="margin-top: 5px; font-size: 0.9em; border-top: 1px solid #eee; padding-top: 5px;">
+                        <strong>Análisis de Pendiente:</strong><br>
+                        m<sub>max</sub> = ${u.mMax.toFixed(4)}<br>
+                        m<sub>min</sub> = ${u.mMin.toFixed(4)}<br>
+                        m<sub>mejor</sub> = ${u.mBest.toFixed(4)}<br>
+                        <strong>Δm = (m<sub>max</sub> - m<sub>min</sub>) / 2 = ${deltaM.toFixed(4)}</strong>
+                    </div>
+                `;
+            }
+
             eqDiv.innerHTML = `
                         <strong>Ecuación:</strong> ${fit.equation}
                         <button class="help-btn" onclick="toggleHelp(${serie.id}, '${serie.fitType}')">?</button>
                         <br><strong>R² =</strong> ${fit.r2.toFixed(6)}
+                        ${uncertaintyHtml}
                         <div class="help-text" id="help-${serie.id}"></div>
                     `;
         } else {
@@ -566,6 +615,8 @@ function calculateFit(data, type) {
 
     const range = maxX - minX;
     const points = [];
+    const maxSlopePoints = [];
+    const minSlopePoints = [];
 
     for (let i = 0; i <= 100; i++) {
         const x = minX + (range * i / 100);
@@ -573,9 +624,15 @@ function calculateFit(data, type) {
         if ((type === 'logarithmic' || type === 'power') && x <= 0) continue;
 
         points.push({ x: x, y: fitFunc(x) });
+
+        // Generate points for max/min slope lines if uncertainty exists
+        if (uncertainty && uncertainty.mMax !== undefined) {
+            maxSlopePoints.push({ x: x, y: uncertainty.mMax * x + uncertainty.bMax });
+            minSlopePoints.push({ x: x, y: uncertainty.mMin * x + uncertainty.bMin });
+        }
     }
 
-    return { equation, r2, points, uncertainty };
+    return { equation, r2, points, uncertainty, maxSlopePoints, minSlopePoints };
 }
 
 function linearRegression(data) {
@@ -646,31 +703,34 @@ function linearRegression(data) {
             const xn_outer = pn.x + pn.xError;
             const yn_outer = pn.y + pn.yError;
 
-            mMax = (yn_inner - y1_inner) / (xn_inner - x1_inner); // Will be more negative
-            mMin = (yn_outer - y1_outer) / (xn_outer - x1_outer); // Will be less negative
+            mMax = (yn_inner - y1_inner) / (xn_inner - x1_inner); // Steepest (more negative)
+            mMin = (yn_outer - y1_outer) / (xn_outer - x1_outer); // Flattest (less negative)
         }
 
         // Ensure mMax is actually the larger value algebraically
-        if (mMax < mMin) [mMax, mMin] = [mMin, mMax];
+        if (mMax < mMin) {
+            [mMax, mMin] = [mMin, mMax];
+        }
 
-        const dm = (mMax - mMin) / 2;
+        // Calculate intercepts passing through centroid
+        const bMax = yBar - mMax * xBar;
+        const bMin = yBar - mMin * xBar;
 
-        // Calculate intercept uncertainty
-        // b = yBar - m * xBar
-        // db = |xBar| * dm (simplified approximation centered at centroid)
-        // Or better: calculate bMax and bMin corresponding to mMax and mMin passing through centroid
-        // bMax = yBar - mMin * xBar (if xBar > 0) ... this gets complex.
-        // Let's use the range of intercepts from the max/min lines.
-        // Line Max: y - yBar = mMax(x - xBar) => b1 = yBar - mMax*xBar
-        // Line Min: y - yBar = mMin(x - xBar) => b2 = yBar - mMin*xBar
-        const b1 = yBar - mMax * xBar;
-        const b2 = yBar - mMin * xBar;
-        const db = Math.abs(b1 - b2) / 2;
+        const slopeError = (mMax - mMin) / 2;
+        const interceptError = Math.abs(bMax - bMin) / 2;
 
-        uncertainty = { dm, db, mMax, mMin };
+        uncertainty = {
+            slope: slopeError,
+            intercept: interceptError,
+            mMax: mMax,
+            mMin: mMin,
+            bMax: bMax,
+            bMin: bMin,
+            mBest: slope
+        };
     }
 
-    return { slope, intercept, r2, uncertainty };
+    return { a: slope, b: intercept, r2, uncertainty };
 }
 
 function polynomialRegression(xs, ys, degree) {
