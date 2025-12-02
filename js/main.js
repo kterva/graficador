@@ -564,14 +564,14 @@ function calculateFit(data, type) {
 
     if (type === 'linear') {
         const result = linearRegression(data);
-        const a = result.slope;
-        const b = result.intercept;
+        const a = result.a;
+        const b = result.b;
 
         let eqStr = `y = ${a.toFixed(4)}x + ${b.toFixed(4)}`;
         if (result.uncertainty) {
             eqStr += `<br><span style="font-size:0.9em; color:#666">
-                        m = ${a.toFixed(4)} ± ${result.uncertainty.dm.toFixed(4)}<br>
-                        b = ${b.toFixed(4)} ± ${result.uncertainty.db.toFixed(4)}
+                        m = ${a.toFixed(4)} ± ${result.uncertainty.slope.toFixed(4)}<br>
+                        b = ${b.toFixed(4)} ± ${result.uncertainty.intercept.toFixed(4)}
                     </span>`;
         }
 
