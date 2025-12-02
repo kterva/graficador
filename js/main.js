@@ -693,8 +693,30 @@ function linearRegression(data) {
             const xn_outer = pn.x + pn.xError;
             const yn_outer = pn.y - pn.yError;
 
-            mMax = (yn_inner - y1_inner) / (xn_inner - x1_inner);
-            mMin = (yn_outer - y1_outer) / (xn_outer - x1_outer);
+            // Calculate intercepts using the points that defined the slopes
+            // mMax passes through (x1_inner, y1_inner)
+            // mMin passes through (x1_outer, y1_outer)
+
+            // Note: We need to be careful which points we use depending on which slope became max/min
+            // after the swap.
+
+            // Recalculate to be sure which is which
+            const m1 = (yn_inner - y1_inner) / (xn_inner - x1_inner);
+            const m2 = (yn_outer - y1_outer) / (xn_outer - x1_outer);
+
+            let bMax, bMin;
+
+            if (m1 > m2) {
+                // m1 is max slope, passes through (x1_inner, y1_inner)
+                bMax = y1_inner - m1 * x1_inner;
+                // m2 is min slope, passes through (x1_outer, y1_outer)
+                bMin = y1_outer - m2 * x1_outer;
+            } else {
+                // m2 is max slope (algebraically), passes through (x1_outer, y1_outer)
+                bMax = y1_outer - m2 * x1_outer;
+                // m1 is min slope, passes through (x1_inner, y1_inner)
+                bMin = y1_inner - m1 * x1_inner;
+            }
         } else {
             // Negative slope logic
             // Steepest (most negative): (x1+dx, y1+dy) to (xn-dx, yn-dy)
@@ -709,18 +731,22 @@ function linearRegression(data) {
             const xn_outer = pn.x + pn.xError;
             const yn_outer = pn.y + pn.yError;
 
-            mMax = (yn_inner - y1_inner) / (xn_inner - x1_inner); // Steepest (more negative)
-            mMin = (yn_outer - y1_outer) / (xn_outer - x1_outer); // Flattest (less negative)
-        }
+            const m1 = (yn_inner - y1_inner) / (xn_inner - x1_inner);
+            const m2 = (yn_outer - y1_outer) / (xn_outer - x1_outer);
 
-        // Ensure mMax is actually the larger value algebraically
-        if (mMax < mMin) {
-            [mMax, mMin] = [mMin, mMax];
-        }
+            let bMax, bMin;
 
-        // Calculate intercepts passing through centroid
-        const bMax = yBar - mMax * xBar;
-        const bMin = yBar - mMin * xBar;
+            if (m1 > m2) {
+                bMax = y1_inner - m1 * x1_inner;
+                bMin = y1_outer - m2 * x1_outer;
+            } else {
+                bMax = y1_outer - m2 * x1_outer;
+                bMin = y1_inner - m1 * x1_inner;
+            }
+
+            mMax = Math.max(m1, m2);
+            mMin = Math.min(m1, m2);
+        }
 
         const slopeError = (mMax - mMin) / 2;
         const interceptError = Math.abs(bMax - bMin) / 2;
