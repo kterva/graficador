@@ -468,14 +468,14 @@ function updateChart() {
 
             datasets.push({
                 type: 'line',
-                label: `${serie.name} (ajuste)`,
+                label: `Ajuste: ${serie.name}`,
                 data: fit.points,
-                borderColor: serie.color,
+                borderColor: '#000000',  // Negro
                 backgroundColor: 'transparent',
                 showLine: true,
                 pointRadius: 0,
                 borderWidth: 2,
-                borderDash: [5, 5],
+                borderDash: [],  // Línea continua
                 fill: false,
                 tension: 0.4
             });
@@ -484,27 +484,27 @@ function updateChart() {
             if (showUncertaintyLines && fit.uncertainty && fit.maxSlopePoints && fit.maxSlopePoints.length > 0) {
                 datasets.push({
                     type: 'line',
-                    label: `${serie.name} (m máx)`,
+                    label: `Pendiente Máxima (m=${fit.uncertainty.mMax.toFixed(4)})`,
                     data: fit.maxSlopePoints,
-                    borderColor: serie.color,
+                    borderColor: '#dc3545',  // Rojo
                     backgroundColor: 'transparent',
                     showLine: true,
                     pointRadius: 0,
-                    borderWidth: 1,
-                    borderDash: [2, 2],
+                    borderWidth: 1.5,
+                    borderDash: [],  // Línea continua
                     fill: false,
                     tension: 0
                 });
                 datasets.push({
                     type: 'line',
-                    label: `${serie.name} (m mín)`,
+                    label: `Pendiente Mínima (m=${fit.uncertainty.mMin.toFixed(4)})`,
                     data: fit.minSlopePoints,
-                    borderColor: serie.color,
+                    borderColor: '#007bff',  // Azul
                     backgroundColor: 'transparent',
                     showLine: true,
                     pointRadius: 0,
-                    borderWidth: 1,
-                    borderDash: [2, 2],
+                    borderWidth: 1.5,
+                    borderDash: [],  // Línea continua
                     fill: false,
                     tension: 0
                 });

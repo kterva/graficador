@@ -24,8 +24,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
     - **Autoajuste inteligente**: El botón "Restablecer Zoom" ahora recalcula los límites para mostrar todos los puntos, incluso si se cambiaron manualmente.
 - **Análisis de Incertidumbre Avanzado**:
     - **Cálculo de Pendiente**: Para ajustes lineales, se muestra el cálculo de $m_{max}$, $m_{min}$ y $\Delta m$ basado en las barras de error.
-    - **Visualización Gráfica**: Opción para mostrar las líneas de pendiente máxima y mínima directamente en la gráfica.
+    - **Visualización Gráfica**: Líneas de pendiente máxima (roja) y mínima (azul) continuas con valores en la leyenda.
     - **Cajas de Error**: Se visualizan los rectángulos de error de los puntos extremos para confirmar la alineación de las pendientes.
+    - **Línea de Ajuste**: Negra y continua para mejor contraste con las líneas de incertidumbre.
 - **Exportación Avanzada**:
     - Exportación a PDF (además de PNG).
 - **Análisis de Incertidumbre**:
