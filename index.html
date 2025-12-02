@@ -78,10 +78,18 @@
                         </div>
 
                         <div style="margin-top: 10px;">
-                            <label><input type="checkbox" id="showGridX" checked onchange="updateChartConfig()"> Grid
-                                X</label>
-                            <label><input type="checkbox" id="showGridY" checked onchange="updateChartConfig()"> Grid
-                                Y</label>
+                            <div class="config-group">
+                                <label>
+                                    <input type="checkbox" id="showGrid" checked onchange="updateChartConfig()"> Mostrar
+                                    Cuadrícula
+                                </label>
+                            </div>
+                            <div class="config-group">
+                                <label>
+                                    <input type="checkbox" id="showUncertaintyLines" onchange="updateChart()"> Mostrar
+                                    Incertidumbre (Pendiente Máx/Mín)
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
