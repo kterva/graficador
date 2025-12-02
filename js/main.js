@@ -120,15 +120,24 @@ function initChart() {
                     zoom: {
                         wheel: {
                             enabled: true,
+                            speed: 0.05, // Reducir velocidad (default 0.1)
                         },
                         pinch: {
                             enabled: true
                         },
                         mode: 'xy',
+                        drag: {
+                            enabled: false, // Deshabilitar drag zoom para evitar conflictos con pan
+                        }
                     },
                     pan: {
                         enabled: true,
                         mode: 'xy',
+                        threshold: 10 // Mínimo movimiento para activar pan
+                    },
+                    limits: {
+                        x: { min: 'original', max: 'original', minRange: 1 }, // Límites basados en datos originales
+                        y: { min: 'original', max: 'original', minRange: 1 }
                     }
                 },
                 legend: {
@@ -858,7 +867,22 @@ function toggleHelp(serieId, fitType) {
 }
 
 function resetZoom() {
+    if (!chart) return;
     chart.resetZoom();
+
+    // Forzar actualización de escalas para ajustar a los datos
+    chart.options.scales.x.min = null;
+    chart.options.scales.x.max = null;
+    chart.options.scales.y.min = null;
+    chart.options.scales.y.max = null;
+
+    // Actualizar inputs de configuración si están abiertos
+    document.getElementById('minX').value = '';
+    document.getElementById('maxX').value = '';
+    document.getElementById('minY').value = '';
+    document.getElementById('maxY').value = '';
+
+    chart.update();
 }
 
 function downloadChart() {

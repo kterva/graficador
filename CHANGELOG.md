@@ -18,6 +18,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Diseño Responsive**:
     - Interfaz optimizada para dispositivos móviles (celulares y tablets).
     - Tablas con desplazamiento horizontal y botones táctiles mejorados.
+- **Mejoras de Usabilidad**:
+    - **Zoom controlado**: Sensibilidad reducida para mayor precisión.
+    - **Autoajuste inteligente**: El botón "Restablecer Zoom" ahora recalcula los límites para mostrar todos los puntos, incluso si se cambiaron manualmente.
 - **Exportación Avanzada**:
     - Exportación a PDF (además de PNG).
 - **Análisis de Incertidumbre**:
