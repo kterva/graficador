@@ -922,9 +922,15 @@
             return solution;
         }
 
+        // Helper function for non-linear regressions that need to call linearRegression with arrays
+        function linearRegressionArrays(xs, ys) {
+            const data = xs.map((x, i) => ({ x, y: ys[i], xError: 0, yError: 0 }));
+            return linearRegression(data);
+        }
+
         function exponentialRegression(xs, ys) {
             const lnYs = ys.map(y => Math.log(y));
-            const result = linearRegression(xs, lnYs);
+            const result = linearRegressionArrays(xs, lnYs);
             const a = Math.exp(result.intercept);
             const b = result.slope;
 
@@ -936,7 +942,7 @@
 
         function logarithmicRegression(xs, ys) {
             const lnXs = xs.map(x => Math.log(x));
-            const result = linearRegression(lnXs, ys);
+            const result = linearRegressionArrays(lnXs, ys);
             const a = result.slope;
             const b = result.intercept;
 
@@ -949,7 +955,7 @@
         function powerRegression(xs, ys) {
             const lnXs = xs.map(x => Math.log(x));
             const lnYs = ys.map(y => Math.log(y));
-            const result = linearRegression(lnXs, lnYs);
+            const result = linearRegressionArrays(lnXs, lnYs);
             const a = Math.exp(result.intercept);
             const b = result.slope;
 
