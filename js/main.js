@@ -480,8 +480,8 @@ function updateChart() {
                 tension: 0.4
             });
 
-            // Add uncertainty lines if enabled and available
-            if (showUncertaintyLines && fit.uncertainty && fit.maxSlopePoints && fit.minSlopePoints) {
+            // Add uncertainty lines and error boxes if enabled and available
+            if (showUncertaintyLines && fit.uncertainty && fit.maxSlopePoints && fit.maxSlopePoints.length > 0) {
                 datasets.push({
                     type: 'line',
                     label: `${serie.name} (m máx)`,
@@ -508,6 +508,40 @@ function updateChart() {
                     fill: false,
                     tension: 0
                 });
+
+                // Draw Error Boxes for Endpoints to visualize the method
+                if (validData.length >= 2) {
+                    const sortedData = [...validData].sort((a, b) => a.x - b.x);
+                    const p1 = sortedData[0];
+                    const pn = sortedData[sortedData.length - 1];
+
+                    const boxPoints = [p1, pn];
+
+                    boxPoints.forEach((p, idx) => {
+                        // Create a rectangle for the error box
+                        // Top-Left, Top-Right, Bottom-Right, Bottom-Left, Top-Left
+                        const boxData = [
+                            { x: p.x - p.xError, y: p.y + p.yError },
+                            { x: p.x + p.xError, y: p.y + p.yError },
+                            { x: p.x + p.xError, y: p.y - p.yError },
+                            { x: p.x - p.xError, y: p.y - p.yError },
+                            { x: p.x - p.xError, y: p.y + p.yError }
+                        ];
+
+                        datasets.push({
+                            type: 'line',
+                            label: `Caja Error ${idx === 0 ? 'Inicial' : 'Final'}`,
+                            data: boxData,
+                            borderColor: 'rgba(100, 100, 100, 0.5)',
+                            backgroundColor: 'rgba(100, 100, 100, 0.1)',
+                            showLine: true,
+                            pointRadius: 0,
+                            borderWidth: 1,
+                            fill: true,
+                            tension: 0
+                        });
+                    });
+                }
             }
 
             const eqDiv = document.getElementById(`eq-${serie.id}`);
