@@ -15,6 +15,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
     - Panel de configuración para título, etiquetas de ejes y límites.
     - Control de visualización de grid.
     - **Ejes con flechas estilo física**: Los ejes ahora tienen flechas en sus extremos con etiquetas de magnitudes al lado.
+- **Diseño Responsive**:
+    - Interfaz optimizada para dispositivos móviles (celulares y tablets).
+    - Tablas con desplazamiento horizontal y botones táctiles mejorados.
 - **Exportación Avanzada**:
     - Exportación a PDF (además de PNG).
 - **Análisis de Incertidumbre**:
