@@ -234,3 +234,155 @@ select {
     font-size: 12px;
     display: none;
 }
+
+/* ============================================
+   RESPONSIVE - DISPOSITIVOS MÓVILES
+   ============================================ */
+
+@media (max-width: 768px) {
+
+    /* Ajustar padding del body */
+    body {
+        padding: 10px;
+    }
+
+    /* Ajustar padding del container */
+    .container {
+        padding: 15px;
+    }
+
+    /* Título más pequeño */
+    h1 {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    /* Layout en columna única */
+    .layout {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    /* Paneles con menos padding */
+    .panel {
+        padding: 15px;
+    }
+
+    .panel h2 {
+        font-size: 16px;
+    }
+
+    /* Botones más grandes para táctil */
+    .btn {
+        padding: 10px 15px;
+        font-size: 16px;
+        margin: 5px 2px;
+    }
+
+    .btn-remove-serie {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    /* Header de serie en columna */
+    .serie-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .serie-header>div {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        width: 100%;
+    }
+
+    /* Tablas con scroll horizontal */
+    .serie-section table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    /* Inputs de tabla más grandes */
+    input[type="number"] {
+        min-width: 60px;
+        font-size: 16px;
+        /* Evita zoom en iOS */
+    }
+
+    /* Gráfica más pequeña en móvil */
+    .chart-container {
+        height: 400px;
+    }
+
+    /* Controles en columna */
+    .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .controls input[type="text"],
+    .controls input[type="number"] {
+        width: 100% !important;
+        font-size: 16px;
+    }
+
+    .controls label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    /* Panel de configuración */
+    #config-panel-content>div {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Footer más compacto */
+    footer {
+        font-size: 12px;
+    }
+
+    footer p {
+        margin: 8px 0 !important;
+    }
+
+    /* Select más grande */
+    select {
+        font-size: 16px;
+        padding: 10px;
+    }
+
+    /* Color input más grande */
+    .color-input {
+        width: 60px;
+        height: 40px;
+    }
+}
+
+/* Para pantallas muy pequeñas (< 480px) */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 18px;
+    }
+
+    .container {
+        padding: 10px;
+    }
+
+    .btn {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+
+    .chart-container {
+        height: 300px;
+    }
+
+    /* Ecuaciones con texto más pequeño */
+    .equation-display {
+        font-size: 11px;
+    }
+}
