@@ -632,7 +632,7 @@ function calculateFit(data, type) {
         points.push({ x: x, y: fitFunc(x) });
 
         // Generate points for max/min slope lines if uncertainty exists
-        if (uncertainty && uncertainty.mMax !== undefined) {
+        if (uncertainty && uncertainty.mMax !== undefined && isFinite(uncertainty.mMax) && isFinite(uncertainty.mMin)) {
             maxSlopePoints.push({ x: x, y: uncertainty.mMax * x + uncertainty.bMax });
             minSlopePoints.push({ x: x, y: uncertainty.mMin * x + uncertainty.bMin });
         }
@@ -676,7 +676,7 @@ function linearRegression(data) {
         // Min Slope: Flattest possible line between error boxes of endpoints
 
         // Case 1: Positive slope
-        let mMax, mMin;
+        let mMax, mMin, bMax, bMin;
 
         if (slope >= 0) {
             // Steepest: (x1+dx, y1-dy) to (xn-dx, yn+dy)
@@ -704,8 +704,6 @@ function linearRegression(data) {
             const m1 = (yn_inner - y1_inner) / (xn_inner - x1_inner);
             const m2 = (yn_outer - y1_outer) / (xn_outer - x1_outer);
 
-            let bMax, bMin;
-
             if (m1 > m2) {
                 // m1 is max slope, passes through (x1_inner, y1_inner)
                 bMax = y1_inner - m1 * x1_inner;
@@ -717,6 +715,8 @@ function linearRegression(data) {
                 // m1 is min slope, passes through (x1_inner, y1_inner)
                 bMin = y1_inner - m1 * x1_inner;
             }
+            mMax = Math.max(m1, m2);
+            mMin = Math.min(m1, m2);
         } else {
             // Negative slope logic
             // Steepest (most negative): (x1+dx, y1+dy) to (xn-dx, yn-dy)
@@ -733,8 +733,6 @@ function linearRegression(data) {
 
             const m1 = (yn_inner - y1_inner) / (xn_inner - x1_inner);
             const m2 = (yn_outer - y1_outer) / (xn_outer - x1_outer);
-
-            let bMax, bMin;
 
             if (m1 > m2) {
                 bMax = y1_inner - m1 * x1_inner;
