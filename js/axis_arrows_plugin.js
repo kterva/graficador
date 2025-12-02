@@ -28,7 +28,8 @@ const axisArrowsPlugin = {
         // ============================================
         // FLECHA EJE X (horizontal, apunta a la derecha)
         // ============================================
-        const xAxisY = yScale.getPixelForValue(0) || chartArea.bottom;
+        // Dibujar siempre en el borde inferior del chartArea
+        const xAxisY = chartArea.bottom;
         const xStart = chartArea.left;
         const xEnd = chartArea.right;
         const arrowSize = 10;
@@ -57,7 +58,8 @@ const axisArrowsPlugin = {
         // ============================================
         // FLECHA EJE Y (vertical, apunta hacia arriba)
         // ============================================
-        const yAxisX = xScale.getPixelForValue(0) || chartArea.left;
+        // Dibujar siempre en el borde izquierdo del chartArea
+        const yAxisX = chartArea.left;
         const yStart = chartArea.bottom;
         const yEnd = chartArea.top;
 

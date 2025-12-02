@@ -105,6 +105,44 @@ const errorBarsPlugin = {
 
 Chart.register(errorBarsPlugin);
 
+// ============================================
+// FUNCIONES AUXILIARES PARA UNIDADES Y FORMATO
+// ============================================
+
+/**
+ * Extrae la unidad de una etiqueta de eje
+ * Ej: "Tiempo (s)" -> "s", "Velocidad (m/s)" -> "m/s"
+ */
+function extractUnit(label) {
+    const match = label.match(/\(([^)]+)\)/);
+    return match ? match[1] : '';
+}
+
+/**
+ * Calcula el número de cifras significativas basado en la incertidumbre
+ * Regla: La incertidumbre se redondea a 1-2 cifras significativas,
+ * y el valor se redondea al mismo decimal.
+ */
+function formatWithUncertainty(value, uncertainty) {
+    if (!uncertainty || uncertainty === 0) {
+        return value.toFixed(4); // Sin incertidumbre, usar 4 decimales
+    }
+
+    // Encontrar el orden de magnitud de la incertidumbre
+    const orderOfMagnitude = Math.floor(Math.log10(Math.abs(uncertainty)));
+
+    // Redondear incertidumbre a 1 cifra significativa
+    const uncertaintyRounded = Math.round(uncertainty / Math.pow(10, orderOfMagnitude)) * Math.pow(10, orderOfMagnitude);
+
+    // Determinar decimales necesarios
+    const decimals = Math.max(0, -orderOfMagnitude);
+
+    return {
+        value: value.toFixed(decimals),
+        uncertainty: uncertaintyRounded.toFixed(decimals)
+    };
+}
+
 function initChart() {
     const ctx = document.getElementById('myChart').getContext('2d');
     chart = new Chart(ctx, {
@@ -115,6 +153,14 @@ function initChart() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    top: 30,
+                    right: 80,  // Espacio para etiqueta del eje X
+                    bottom: 20,
+                    left: 20
+                }
+            },
             plugins: {
                 zoom: {
                     zoom: {
@@ -488,9 +534,27 @@ function updateChart() {
 
             // Add uncertainty lines and error boxes if enabled and available
             if (showUncertaintyLines && fit.uncertainty && fit.maxSlopePoints && fit.maxSlopePoints.length > 0) {
+                // Extraer unidades de las etiquetas de los ejes
+                const xLabel = chart.options.scales.x.title.text || 'X';
+                const yLabel = chart.options.scales.y.title.text || 'Y';
+                const xUnit = extractUnit(xLabel);
+                const yUnit = extractUnit(yLabel);
+
+                // Construir unidad de la pendiente (y/x)
+                let slopeUnit = '';
+                if (yUnit && xUnit) {
+                    slopeUnit = ` ${yUnit}/${xUnit}`;
+                } else if (yUnit) {
+                    slopeUnit = ` ${yUnit}`;
+                }
+
+                // Formatear valores con cifras significativas correctas
+                const formattedMax = formatWithUncertainty(fit.uncertainty.mMax, fit.uncertainty.slope);
+                const formattedMin = formatWithUncertainty(fit.uncertainty.mMin, fit.uncertainty.slope);
+
                 datasets.push({
                     type: 'line',
-                    label: `Pendiente Máxima (m=${fit.uncertainty.mMax.toFixed(4)})`,
+                    label: `Pendiente Máxima (m=${formattedMax.value}${slopeUnit})`,
                     data: fit.maxSlopePoints,
                     borderColor: '#dc3545',  // Rojo
                     backgroundColor: 'transparent',
@@ -503,7 +567,7 @@ function updateChart() {
                 });
                 datasets.push({
                     type: 'line',
-                    label: `Pendiente Mínima (m=${fit.uncertainty.mMin.toFixed(4)})`,
+                    label: `Pendiente Mínima (m=${formattedMin.value}${slopeUnit})`,
                     data: fit.minSlopePoints,
                     borderColor: '#007bff',  // Azul
                     backgroundColor: 'transparent',
