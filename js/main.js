@@ -527,6 +527,12 @@ function updateChart() {
                         <strong>Δm = (m<sub>max</sub> - m<sub>min</sub>) / 2 = ${deltaM.toFixed(4)}</strong>
                     </div>
                 `;
+            } else if (showUncertaintyLines && serie.fitType === 'linear') {
+                uncertaintyHtml = `
+                    <div style="margin-top: 5px; font-size: 0.9em; color: #e67e22; border-top: 1px solid #eee; padding-top: 5px;">
+                        ⚠️ Para ver el análisis de incertidumbre, debes ingresar valores de error (Δx o Δy) en la tabla de datos.
+                    </div>
+                `;
             }
 
             eqDiv.innerHTML = `
