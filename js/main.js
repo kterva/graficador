@@ -1553,7 +1553,7 @@ function loadTestData(type) {
     series.push(serie);
 
     // Actualizar UI
-    renderSeriesUI();
+    renderSeries();
     updateChart();
 
     console.log(`Datos de prueba cargados: ${type}`);
