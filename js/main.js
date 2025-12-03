@@ -635,8 +635,13 @@ function updateChart() {
             /* console.log('UpdateChart Debug:', {
                 showTangent, tangentX,
                 showArea, areaX1, areaX2,
-                coeffs, fitType: serie.fitType
-            }); */
+                coeffs, fitType: serie.fitType,
+                validDataLength: validData.length
+            });
+
+            if (!coeffs) {
+                console.error('Coeffs is null for fitType:', serie.fitType);
+            } */
 
             // 1. TANGENTE (DERIVADA)
             if (showTangent && coeffs) {
@@ -895,19 +900,19 @@ function toggleTangent() {
         slider.value = tangentX;
         input.value = tangentX.toFixed(4);
     }
-    chart.update();
+    updateChart();
 }
 
 function updateTangentFromSlider() {
     tangentX = parseFloat(document.getElementById('tangentSlider').value);
     document.getElementById('tangentXInput').value = tangentX.toFixed(4);
-    chart.update();
+    updateChart();
 }
 
 function updateTangentFromInput() {
     tangentX = parseFloat(document.getElementById('tangentXInput').value);
     document.getElementById('tangentSlider').value = tangentX;
-    chart.update();
+    updateChart();
 }
 
 function toggleArea() {
@@ -927,13 +932,13 @@ function toggleArea() {
         document.getElementById('areaX1').value = areaX1.toFixed(4);
         document.getElementById('areaX2').value = areaX2.toFixed(4);
     }
-    chart.update();
+    updateChart();
 }
 
 function calculateArea() {
     areaX1 = parseFloat(document.getElementById('areaX1').value);
     areaX2 = parseFloat(document.getElementById('areaX2').value);
-    chart.update();
+    updateChart();
 }
 
 /**
