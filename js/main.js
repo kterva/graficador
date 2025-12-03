@@ -800,7 +800,7 @@ function updateChart() {
     });
 
     chart.data.datasets = datasets;
-    chart.zoom(0.8); // Alejar 20%
+    chart.update();
 }
 
 function downloadChart() {
