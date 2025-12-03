@@ -15,7 +15,7 @@
 // ============================================
 
 // Flag de desarrollo: true para activar herramientas de prueba, false para producción
-const IS_DEVELOPMENT = true;
+const IS_DEVELOPMENT = false;
 
 /**
  * Array de series de datos del usuario
