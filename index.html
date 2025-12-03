@@ -200,6 +200,165 @@
                     </div>
                 </div>
 
+                <!-- Botón de Ayuda Flotante -->
+                <button id="helpButton" onclick="toggleHelpModal()" style="position: fixed; top: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; 
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; 
+                    font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; 
+                    transition: all 0.3s ease;">
+                    ?
+                </button>
+
+                <!-- Modal de Ayuda -->
+                <div id="helpModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                    background: rgba(0,0,0,0.7); z-index: 2000; overflow-y: auto;">
+                    <div style="max-width: 800px; margin: 50px auto; background: white; border-radius: 15px; 
+                        box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: slideDown 0.3s ease;">
+
+                        <!-- Header -->
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; 
+                            padding: 25px; border-radius: 15px 15px 0 0; position: relative;">
+                            <h2 style="margin: 0; font-size: 28px;">📚 Centro de Ayuda</h2>
+                            <p style="margin: 5px 0 0 0; opacity: 0.9;">Guía completa del Graficador</p>
+                            <button onclick="toggleHelpModal()" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); 
+                                border: none; color: white; font-size: 24px; width: 35px; height: 35px; 
+                                border-radius: 50%; cursor: pointer; transition: all 0.3s;">
+                                ×
+                            </button>
+                        </div>
+
+                        <!-- Pestañas -->
+                        <div style="display: flex; border-bottom: 2px solid #eee; background: #f8f9fa;">
+                            <button class="help-tab active" onclick="switchHelpTab('quick')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; 
+                                font-weight: bold; transition: all 0.3s; border-bottom: 3px solid transparent;">
+                                🚀 Inicio Rápido
+                            </button>
+                            <button class="help-tab" onclick="switchHelpTab('tools')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; 
+                                font-weight: bold; transition: all 0.3s; border-bottom: 3px solid transparent;">
+                                🛠️ Herramientas
+                            </button>
+                            <button class="help-tab" onclick="switchHelpTab('tips')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; 
+                                font-weight: bold; transition: all 0.3s; border-bottom: 3px solid transparent;">
+                                💡 Consejos
+                            </button>
+                        </div>
+
+                        <!-- Contenido -->
+                        <div style="padding: 30px; max-height: 500px; overflow-y: auto;">
+
+                            <!-- Pestaña: Inicio Rápido -->
+                            <div id="help-quick" class="help-content">
+                                <h3 style="color: #667eea; margin-top: 0;">🎯 Primeros Pasos</h3>
+
+                                <div
+                                    style="background: #f0f7ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+                                    <strong>1. Ingresa tus datos</strong>
+                                    <p style="margin: 5px 0 0 0;">Completa la tabla con valores de X e Y. Opcionalmente
+                                        agrega incertidumbres (ΔX, ΔY).</p>
+                                </div>
+
+                                <div
+                                    style="background: #f0f7ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+                                    <strong>2. Selecciona el tipo de ajuste</strong>
+                                    <p style="margin: 5px 0 0 0;">Elige entre: Lineal, Cuadrática, Exponencial,
+                                        Logarítmica o Potencial.</p>
+                                </div>
+
+                                <div
+                                    style="background: #f0f7ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+                                    <strong>3. Haz clic en "Graficar"</strong>
+                                    <p style="margin: 5px 0 0 0;">¡Listo! Verás tu gráfica con la línea de ajuste y la
+                                        ecuación.</p>
+                                </div>
+
+                                <div
+                                    style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                                    <strong>💡 Tip:</strong> Usa los botones de "Datos de Prueba" (en develop) para
+                                    cargar ejemplos rápidamente.
+                                </div>
+                            </div>
+
+                            <!-- Pestaña: Herramientas -->
+                            <div id="help-tools" class="help-content" style="display: none;">
+                                <h3 style="color: #667eea; margin-top: 0;">🛠️ Herramientas Disponibles</h3>
+
+                                <div style="margin-bottom: 20px;">
+                                    <h4 style="color: #764ba2; margin-bottom: 10px;">📊 Análisis de Incertidumbre</h4>
+                                    <p>Activa "Mostrar Incertidumbre" para ver las líneas de pendiente máxima y mínima
+                                        basadas en las barras de error.</p>
+                                </div>
+
+                                <div style="margin-bottom: 20px;">
+                                    <h4 style="color: #764ba2; margin-bottom: 10px;">📉 Tangente (Derivada)</h4>
+                                    <p>Mueve el slider para ver la línea tangente en cualquier punto y su pendiente
+                                        (derivada).</p>
+                                </div>
+
+                                <div style="margin-bottom: 20px;">
+                                    <h4 style="color: #764ba2; margin-bottom: 10px;">∫ Área (Integral)</h4>
+                                    <p>Define un intervalo [x₁, x₂] para calcular el área bajo la curva (integral
+                                        definida).</p>
+                                </div>
+
+                                <div style="margin-bottom: 20px;">
+                                    <h4 style="color: #764ba2; margin-bottom: 10px;">🔍 Zoom y Pan</h4>
+                                    <p><strong>Zoom:</strong> Rueda del mouse o botones +/-<br>
+                                        <strong>Pan:</strong> Clic y arrastra<br>
+                                        <strong>Restablecer:</strong> Botón "Restablecer Zoom"
+                                    </p>
+                                </div>
+
+                                <div style="margin-bottom: 20px;">
+                                    <h4 style="color: #764ba2; margin-bottom: 10px;">💾 Exportación</h4>
+                                    <p>Descarga tu gráfica en formato PNG o PDF con un clic.</p>
+                                </div>
+                            </div>
+
+                            <!-- Pestaña: Consejos -->
+                            <div id="help-tips" class="help-content" style="display: none;">
+                                <h3 style="color: #667eea; margin-top: 0;">💡 Consejos y Trucos</h3>
+
+                                <div
+                                    style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #4caf50;">
+                                    <strong>✅ Mejores prácticas:</strong>
+                                    <ul style="margin: 10px 0 0 20px; padding: 0;">
+                                        <li>Usa al menos 5 puntos para ajustes confiables</li>
+                                        <li>Verifica que R² esté cerca de 1 para buen ajuste</li>
+                                        <li>Agrega incertidumbres para análisis más precisos</li>
+                                    </ul>
+                                </div>
+
+                                <div
+                                    style="background: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #ff9800;">
+                                    <strong>⚠️ Errores comunes:</strong>
+                                    <ul style="margin: 10px 0 0 20px; padding: 0;">
+                                        <li>Elegir tipo de ajuste incorrecto (ej: lineal para datos cuadráticos)</li>
+                                        <li>Datos con valores negativos en ajustes logarítmicos/potenciales</li>
+                                        <li>Muy pocos puntos para ajustes complejos</li>
+                                    </ul>
+                                </div>
+
+                                <div
+                                    style="background: #f3e5f5; padding: 15px; border-radius: 8px; border-left: 4px solid #9c27b0;">
+                                    <strong>🎨 Personalización:</strong>
+                                    <p style="margin: 10px 0 0 0;">Usa el panel "Configuración de Gráfica" para cambiar
+                                        títulos, etiquetas de ejes y límites.</p>
+                                </div>
+
+                                <div
+                                    style="background: #e1f5fe; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #03a9f4;">
+                                    <strong>⌨️ Atajos rápidos:</strong>
+                                    <ul style="margin: 10px 0 0 20px; padding: 0;">
+                                        <li><strong>Scroll:</strong> Zoom in/out</li>
+                                        <li><strong>Arrastrar:</strong> Mover gráfica</li>
+                                        <li><strong>Doble clic:</strong> Restablecer zoom</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Pie de página -->
                 <footer
                     style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd; text-align: center; color: #666;">

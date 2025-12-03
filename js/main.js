@@ -1559,5 +1559,63 @@ function loadTestData(type) {
     console.log(`Datos de prueba cargados: ${type}`);
 }
 
+// ============================================
+// SISTEMA DE AYUDA
+// ============================================
+
+function toggleHelpModal() {
+    const modal = document.getElementById('helpModal');
+    if (modal.style.display === 'none' || modal.style.display === '') {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden'; // Prevenir scroll del body
+    } else {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function switchHelpTab(tabName) {
+    // Ocultar todos los contenidos
+    const contents = document.querySelectorAll('.help-content');
+    contents.forEach(content => content.style.display = 'none');
+
+    // Remover clase active de todas las pestañas
+    const tabs = document.querySelectorAll('.help-tab');
+    tabs.forEach(tab => {
+        tab.classList.remove('active');
+        tab.style.borderBottom = '3px solid transparent';
+        tab.style.color = '#666';
+    });
+
+    // Mostrar contenido seleccionado
+    document.getElementById(`help-${tabName}`).style.display = 'block';
+
+    // Activar pestaña seleccionada
+    event.target.classList.add('active');
+    event.target.style.borderBottom = '3px solid #667eea';
+    event.target.style.color = '#667eea';
+}
+
+// Cerrar modal al hacer clic fuera
+document.addEventListener('click', function (event) {
+    const modal = document.getElementById('helpModal');
+    if (modal && event.target === modal) {
+        toggleHelpModal();
+    }
+});
+
+// Efecto hover en botón de ayuda
+document.addEventListener('DOMContentLoaded', function () {
+    const helpBtn = document.getElementById('helpButton');
+    if (helpBtn) {
+        helpBtn.addEventListener('mouseenter', function () {
+            this.style.transform = 'scale(1.1) rotate(15deg)';
+        });
+        helpBtn.addEventListener('mouseleave', function () {
+            this.style.transform = 'scale(1) rotate(0deg)';
+        });
+    }
+});
+
 initChart();
 addSerie();
