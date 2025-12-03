@@ -384,6 +384,22 @@
             <script src="js/project_manager.js"></script>
             <script src="js/chart_config.js"></script>
             <script src="js/export_manager.js"></script>
+
+            <!-- Flag de desarrollo: cambiar a false para producción -->
+            <script>
+                window.IS_DEVELOPMENT = false;
+            </script>
+
+            <!-- Carga condicional de herramientas de desarrollo -->
+            <script>
+                // Cargar dev-tools.js solo si IS_DEVELOPMENT está definido y es true
+                if (typeof window.IS_DEVELOPMENT !== 'undefined' && window.IS_DEVELOPMENT) {
+                    const script = document.createElement('script');
+                    script.src = 'js/dev-tools.js';
+                    document.head.appendChild(script);
+                }
+            </script>
+
             <script src="js/main.js"></script>
 </body>
 
