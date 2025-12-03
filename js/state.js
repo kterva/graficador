@@ -9,13 +9,13 @@
 const AppState = {
     // Series de datos del usuario
     series: [],
-    
+
     // Instancia del gráfico de Chart.js
     chart: null,
-    
+
     // Contador para IDs únicos de series
     nextId: 1,
-    
+
     // Configuración de la gráfica
     config: {
         title: 'Gráfica de Datos',
