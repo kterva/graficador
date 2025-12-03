@@ -386,3 +386,37 @@ select {
         font-size: 11px;
     }
 }
+
+/* ============================================
+   SISTEMA DE AYUDA
+   ============================================ */
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.help-tab.active {
+    border-bottom: 3px solid #667eea !important;
+    color: #667eea !important;
+}
+
+.help-tab:hover {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+/* Cursor para gráfica con pan habilitado */
+#myChart {
+    cursor: grab;
+}
+
+#myChart:active {
+    cursor: grabbing;
+}
