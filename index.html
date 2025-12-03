@@ -58,6 +58,14 @@
                     onchange="importProject()">
                 <button class="btn btn-primary" onclick="exportProject()">💾 Guardar Proyecto</button>
                 <button class="btn btn-success" onclick="triggerImportProject()">📂 Cargar Proyecto</button>
+                <button class="btn btn-secondary" onclick="togglePresentationMode()" title="Modo presentación (Alt+P)"
+                    style="background-color: #9b59b6; border: none;">
+                    📺 Presentación
+                </button>
+                <button class="btn btn-secondary" onclick="copyShareURL()" title="Generar URL compartible"
+                    style="background-color: #3498db; border: none;">
+                    🔗 Compartir
+                </button>
             </div>
         </header>
 
@@ -337,6 +345,14 @@
                     font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; 
                     transition: all 0.3s ease;">
             ?
+        </button>
+
+        <!-- Botón de Tour Guiado Flotante -->
+        <button id="tourButton" onclick="startTour()" title="Iniciar tour guiado" style="position: fixed; top: 80px; right: 20px; width: 50px; height: 50px; border-radius: 50%; 
+                    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; border: none; 
+                    font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; 
+                    transition: all 0.3s ease;">
+            🎓
         </button>
 
         <!-- Modal de Ayuda -->

@@ -17,6 +17,9 @@
 import { initChart, updateChart, resetZoom, zoomIn, zoomOut } from './chart-manager.js';
 import { AppState } from './state.js';
 import { initKeyboardShortcuts } from './keyboard-shortcuts.js';
+import { togglePresentationMode, initPresentationMode } from './presentation-mode.js';
+import { copyShareURL, closeShareModal, copyShareURLAgain, initShareManager } from './share-manager.js';
+import { initTour } from './tour-guide.js';
 import {
     addSerie,
     removeSerie,
@@ -82,6 +85,10 @@ window.updateAxisUnit = updateAxisUnit;
 window.toggleToolsMenu = toggleToolsMenu;
 window.openErrorPropagationModal = openErrorPropagationModal;
 window.closeErrorPropagationModal = closeErrorPropagationModal;
+window.togglePresentationMode = togglePresentationMode;
+window.copyShareURL = copyShareURL;
+window.closeShareModal = closeShareModal;
+window.copyShareURLAgain = copyShareURLAgain;
 
 // ============================================
 // INICIALIZACIÓN DE LA APLICACIÓN
@@ -93,6 +100,9 @@ window.closeErrorPropagationModal = closeErrorPropagationModal;
 document.addEventListener('DOMContentLoaded', () => {
     initChart();
     initKeyboardShortcuts();
+    initPresentationMode();
+    initShareManager(); // Cargar datos desde URL si existe
+    initTour(); // Inicializar tour guiado
     // Configurar event listeners globales
     setupGlobalEventListeners();
 
