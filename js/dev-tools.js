@@ -4,20 +4,25 @@
  * ============================================
  * 
  * Este archivo contiene funciones y datos exclusivos para desarrollo.
- * Solo se carga cuando IS_DEVELOPMENT = true en main.js
+ * Solo se carga cuando IS_DEVELOPMENT = true en index.html
  * 
  * @author Graficador Team
- * @version 1.0.0
+ * @version 2.0.0
  */
+
+// Importar módulos necesarios
+import { AppState } from './state.js';
+import { updateChart } from './chart-manager.js';
+import { renderSeries } from './ui-handlers.js';
 
 /**
  * Carga datos de prueba predefinidos para agilizar el testing
  * @param {string} type - Tipo de datos: 'linear', 'quadratic', 'exponential', 'logarithmic', 'power', 'uncertainty'
  */
-function loadTestData(type) {
+export function loadTestData(type) {
     // Limpiar series existentes
-    series = [];
-    serieCounter = 1;
+    AppState.series = [];
+    AppState.nextId = 1;
 
     const testSets = {
         linear: {
@@ -89,20 +94,23 @@ function loadTestData(type) {
     };
 
     const testData = testSets[type];
-    if (!testData) return;
+    if (!testData) {
+        console.error(`Tipo de datos de prueba desconocido: ${type}`);
+        return;
+    }
 
     // Crear nueva serie con datos de prueba
     const serie = {
-        id: 1,
+        id: AppState.nextId++,
         name: testData.name,
-        color: colors[0],
+        color: AppState.colors[0],
         data: testData.data,
         fitType: testData.fitType,
         equation: '',
         r2: 0
     };
 
-    series.push(serie);
+    AppState.series.push(serie);
 
     // Actualizar UI
     renderSeries();
@@ -111,4 +119,7 @@ function loadTestData(type) {
     console.log(`🧪 Datos de prueba cargados: ${type}`);
 }
 
-console.log('🔧 Herramientas de desarrollo cargadas');
+// Exponer función al scope global para onclick
+window.loadTestData = loadTestData;
+
+console.log('🔧 Herramientas de desarrollo cargadas (modular)');
