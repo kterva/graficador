@@ -1012,15 +1012,18 @@ function calculateFit(data, type, xLabel = 'X', yLabel = 'Y') {
         }
         let interceptUnit = yUnit ? ` ${yUnit}` : '';
 
-        let eqStr = `y = ${a.toFixed(4)}x + ${b.toFixed(4)}`;
+        let eqStr = '';
         if (result.uncertainty) {
             const formattedA = formatWithUncertainty(a, result.uncertainty.slope);
             const formattedB = formatWithUncertainty(b, result.uncertainty.intercept);
 
+            eqStr = `y = ${formattedA.value}x + ${formattedB.value}`;
             eqStr += `<br><span style="font-size:0.9em; color:#666">
                         m = ${formattedA.value} ± ${formattedA.uncertainty}${slopeUnit}<br>
                         b = ${formattedB.value} ± ${formattedB.uncertainty}${interceptUnit}
                     </span>`;
+        } else {
+            eqStr = `y = ${a.toFixed(4)}x + ${b.toFixed(4)}`;
         }
 
         equation = eqStr;
