@@ -198,44 +198,43 @@ function initChart() {
                         x: { minRange: 0.1 },
                         y: { minRange: 0.1 }
                     }
+                },
+                legend: {
+                    display: true,
+                    position: 'top'
                 }
             },
-            legend: {
-                display: true,
-                position: 'top'
-            }
-        },
-        scales: {
-            x: {
-                type: 'linear',
-                position: 'bottom',
-                title: {
-                    display: false, // Ocultamos el título original, lo dibujará el plugin
-                    text: 'X'
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    title: {
+                        display: false, // Ocultamos el título original, lo dibujará el plugin
+                        text: 'X'
+                    },
+                    grid: {
+                        display: true,
+                        drawBorder: false // Ocultar borde del eje
+                    },
+                    ticks: {
+                        display: true // Mantener los números
+                    }
                 },
-                grid: {
-                    display: true,
-                    drawBorder: false // Ocultar borde del eje
-                },
-                ticks: {
-                    display: true // Mantener los números
-                }
-            },
-            y: {
-                title: {
-                    display: false, // Ocultamos el título original, lo dibujará el plugin
-                    text: 'Y'
-                },
-                grid: {
-                    display: true,
-                    drawBorder: false // Ocultar borde del eje
-                },
-                ticks: {
-                    display: true // Mantener los números
+                y: {
+                    title: {
+                        display: false, // Ocultamos el título original, lo dibujará el plugin
+                        text: 'Y'
+                    },
+                    grid: {
+                        display: true,
+                        drawBorder: false // Ocultar borde del eje
+                    },
+                    ticks: {
+                        display: true // Mantener los números
+                    }
                 }
             }
         }
-    }
     });
 }
 
