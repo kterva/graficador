@@ -9,7 +9,7 @@
  */
 
 import { AppState } from './state.js';
-import { updateChart } from './chart-manager.js';
+import { updateChart, renderSeries } from './main.js';
 
 /**
  * Configuración del tour
@@ -260,7 +260,7 @@ export function startTour() {
  * Crea la UI del tour
  */
 function createTourUI() {
-    // Crear overlay semi-transparente que permite ver la página
+    // Crear overlay muy transparente que permite ver la página claramente
     tourState.overlay = document.createElement('div');
     tourState.overlay.id = 'tour-overlay';
     tourState.overlay.style.cssText = `
@@ -269,7 +269,7 @@ function createTourUI() {
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.3);
+        background: rgba(0, 0, 0, 0.15);
         z-index: 9998;
         pointer-events: none;
     `;
@@ -400,25 +400,35 @@ function highlightElement(selector) {
     const element = document.querySelector(selector);
     if (!element) return;
 
-    const rect = element.getBoundingClientRect();
+    // Hacer scroll hacia el elemento
+    element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'center'
+    });
 
-    const highlight = document.createElement('div');
-    highlight.id = 'tour-highlight';
-    highlight.style.cssText = `
-        position: fixed;
-        top: ${rect.top - 5}px;
-        left: ${rect.left - 5}px;
-        width: ${rect.width + 10}px;
-        height: ${rect.height + 10}px;
-        border: 3px solid #667eea;
-        border-radius: 8px;
-        z-index: 9997;
-        pointer-events: none;
-        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
-        animation: pulse 2s infinite;
-    `;
+    // Esperar un poco para que el scroll termine
+    setTimeout(() => {
+        const rect = element.getBoundingClientRect();
 
-    document.body.appendChild(highlight);
+        const highlight = document.createElement('div');
+        highlight.id = 'tour-highlight';
+        highlight.style.cssText = `
+            position: fixed;
+            top: ${rect.top - 8}px;
+            left: ${rect.left - 8}px;
+            width: ${rect.width + 16}px;
+            height: ${rect.height + 16}px;
+            border: 4px solid #667eea;
+            border-radius: 8px;
+            z-index: 9997;
+            pointer-events: none;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.15), 0 0 20px rgba(102, 126, 234, 0.5);
+            animation: pulse 2s infinite;
+        `;
+
+        document.body.appendChild(highlight);
+    }, 300);
 }
 
 /**
@@ -532,8 +542,15 @@ export function initTour() {
         style.id = 'tour-styles';
         style.textContent = `
             @keyframes pulse {
-                0%, 100% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 0 0 rgba(102, 126, 234, 0.7); }
-                50% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 0 10px rgba(102, 126, 234, 0); }
+                0%, 100% { 
+                    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.15), 
+                                0 0 20px rgba(102, 126, 234, 0.5); 
+                }
+                50% { 
+                    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.15), 
+                                0 0 30px rgba(102, 126, 234, 0.8),
+                                0 0 40px rgba(102, 126, 234, 0.4); 
+                }
             }
             
             @keyframes slideInUp {
@@ -574,13 +591,17 @@ function loadLinearDataForTour() {
 
     AppState.series.push(serie);
 
-    // Actualizar UI - usar funciones globales
-    if (typeof window.renderSeries === 'function') {
-        window.renderSeries();
-    }
-
-    // Actualizar gráfica
+    // Actualizar UI y Gráfica
+    renderSeries();
     updateChart();
+
+    // Scroll al panel de series para mostrar que se cargaron
+    setTimeout(() => {
+        const seriesContainer = document.getElementById('seriesContainer');
+        if (seriesContainer) {
+            seriesContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 100);
 
     console.log('✓ Datos lineales cargados para el tour');
 }
@@ -610,13 +631,17 @@ function loadQuadraticDataForTour() {
 
     AppState.series.push(serie);
 
-    // Actualizar UI
-    if (typeof window.renderSeries === 'function') {
-        window.renderSeries();
-    }
-
-    // Actualizar gráfica
+    // Actualizar UI y Gráfica
+    renderSeries();
     updateChart();
+
+    // Scroll al panel de series
+    setTimeout(() => {
+        const seriesContainer = document.getElementById('seriesContainer');
+        if (seriesContainer) {
+            seriesContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 100);
 
     console.log('✓ Datos cuadráticos cargados para el tour');
 }
