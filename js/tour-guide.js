@@ -8,6 +8,9 @@
  * @module tour-guide
  */
 
+import { AppState } from './state.js';
+import { updateChart } from './chart-manager.js';
+
 /**
  * Configuración del tour
  */
@@ -257,7 +260,7 @@ export function startTour() {
  * Crea la UI del tour
  */
 function createTourUI() {
-    // Crear overlay
+    // Crear overlay semi-transparente que permite ver la página
     tourState.overlay = document.createElement('div');
     tourState.overlay.id = 'tour-overlay';
     tourState.overlay.style.cssText = `
@@ -266,7 +269,7 @@ function createTourUI() {
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.3);
         z-index: 9998;
         pointer-events: none;
     `;
@@ -281,7 +284,8 @@ function createTourUI() {
         padding: 25px;
         box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         z-index: 9999;
-        max-width: 450px;
+        max-width: 500px;
+        min-width: 400px;
         pointer-events: auto;
     `;
 
@@ -555,34 +559,28 @@ function loadLinearDataForTour() {
         { x: 5, y: 11, dx: 0.1, dy: 0.2 }
     ];
 
-    // Crear serie si no existe
-    if (!window.AppState) {
-        console.error('AppState no disponible');
-        return;
-    }
-
     // Limpiar series existentes
-    window.AppState.series = [];
-    window.AppState.serieCounter = 0;
+    AppState.series = [];
+    AppState.serieCounter = 0;
 
     // Agregar nueva serie
     const serie = {
-        id: window.AppState.serieCounter++,
+        id: AppState.serieCounter++,
         name: 'Datos Lineales',
         data: linearData,
         color: '#3498db',
         fitType: 'linear'
     };
 
-    window.AppState.series.push(serie);
+    AppState.series.push(serie);
 
-    // Actualizar UI
+    // Actualizar UI - usar funciones globales
     if (typeof window.renderSeries === 'function') {
         window.renderSeries();
     }
-    if (typeof window.updateChart === 'function') {
-        window.updateChart();
-    }
+
+    // Actualizar gráfica
+    updateChart();
 
     console.log('✓ Datos lineales cargados para el tour');
 }
@@ -601,29 +599,24 @@ function loadQuadraticDataForTour() {
         { x: 5, y: 16, dx: 0.1, dy: 0.4 }
     ];
 
-    if (!window.AppState) {
-        console.error('AppState no disponible');
-        return;
-    }
-
     // Agregar segunda serie
     const serie = {
-        id: window.AppState.serieCounter++,
+        id: AppState.serieCounter++,
         name: 'Datos Cuadráticos',
         data: quadraticData,
         color: '#e74c3c',
         fitType: 'polynomial2'
     };
 
-    window.AppState.series.push(serie);
+    AppState.series.push(serie);
 
     // Actualizar UI
     if (typeof window.renderSeries === 'function') {
         window.renderSeries();
     }
-    if (typeof window.updateChart === 'function') {
-        window.updateChart();
-    }
+
+    // Actualizar gráfica
+    updateChart();
 
     console.log('✓ Datos cuadráticos cargados para el tour');
 }
