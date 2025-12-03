@@ -57,6 +57,27 @@
                 </div>
 
                 <!-- Panel de Configuración -->
+
+                <!-- Panel de Desarrollo (solo en rama develop) -->
+                <div class="panel" style="margin-top: 20px; border: 2px solid #ff6b6b; background: #fff5f5;">
+                    <h3 style="color: #ff6b6b;">🧪 Datos de Prueba (DEV)</h3>
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px;">
+                        <button class="btn btn-secondary" onclick="loadTestData('linear')"
+                            style="background: #4ecdc4;">📈 Lineal</button>
+                        <button class="btn btn-secondary" onclick="loadTestData('quadratic')"
+                            style="background: #95e1d3;">📊 Cuadrática</button>
+                        <button class="btn btn-secondary" onclick="loadTestData('exponential')"
+                            style="background: #f38181;">📉 Exponencial</button>
+                        <button class="btn btn-secondary" onclick="loadTestData('logarithmic')"
+                            style="background: #aa96da;">📐 Logarítmica</button>
+                        <button class="btn btn-secondary" onclick="loadTestData('power')" style="background: #fcbad3;">⚡
+                            Potencial</button>
+                        <button class="btn btn-secondary" onclick="loadTestData('uncertainty')"
+                            style="background: #a8e6cf;">🎯 Con Incertidumbre</button>
+                    </div>
+                </div>
+
                 <div class="panel" style="margin-top: 20px; border: 1px solid #ddd;">
                     <h3 style="cursor: pointer; user-select: none;" onclick="toggleConfigPanel()">⚙️ Configuración de
                         Gráfica (▼)</h3>
