@@ -14,6 +14,9 @@
 // VARIABLES GLOBALES Y ESTADO
 // ============================================
 
+// Flag de desarrollo: true para activar herramientas de prueba, false para producción
+const IS_DEVELOPMENT = true;
+
 /**
  * Array de series de datos del usuario
  * @type {Array<Serie>}
@@ -1466,6 +1469,8 @@ function downloadChart() {
 // ============================================
 
 function loadTestData(type) {
+    if (typeof IS_DEVELOPMENT === 'undefined' || !IS_DEVELOPMENT) return;
+
     // Limpiar series existentes
     series = [];
     serieCounter = 1;
@@ -1620,5 +1625,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+// ============================================
+// INICIALIZACIÓN DE DESARROLLO
+// ============================================
+
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof IS_DEVELOPMENT !== 'undefined' && IS_DEVELOPMENT) {
+        // Mostrar panel de datos de prueba
+        const devPanel = document.getElementById('dev-panel');
+        if (devPanel) devPanel.style.display = 'block';
+
+        // Mostrar tip de ayuda de desarrollo
+        const devTip = document.getElementById('help-dev-tip');
+        if (devTip) devTip.style.display = 'block';
+
+        console.log('🔧 Modo Desarrollo Activado');
+    }
+});
+
 initChart();
 addSerie();
+
