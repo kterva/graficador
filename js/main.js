@@ -632,6 +632,12 @@ function updateChart() {
 
             const coeffs = getRegressionCoeffs(validData, serie.fitType);
 
+            /* console.log('UpdateChart Debug:', {
+                showTangent, tangentX,
+                showArea, areaX1, areaX2,
+                coeffs, fitType: serie.fitType
+            }); */
+
             // 1. TANGENTE (DERIVADA)
             if (showTangent && coeffs) {
                 const slope = calculateDerivative(tangentX, coeffs, serie.fitType);
@@ -829,27 +835,65 @@ function downloadChartPDF() {
 // HERRAMIENTAS DE CÁLCULO (DERIVADA E INTEGRAL)
 // ============================================
 
+function getDataRange() {
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let hasData = false;
+
+    if (chart && chart.data && chart.data.datasets) {
+        chart.data.datasets.forEach(dataset => {
+            // Ignorar datasets generados (ajustes, tangentes, etc.)
+            if (dataset.label && (dataset.label.includes('Ajuste') || dataset.label.includes('Tangente') || dataset.label.includes('Área') || dataset.label.includes('Pendiente'))) {
+                return;
+            }
+
+            if (dataset.data && dataset.data.length > 0) {
+                dataset.data.forEach(p => {
+                    if (p.x !== undefined && p.x !== null) {
+                        const val = parseFloat(p.x);
+                        if (!isNaN(val)) {
+                            if (val < minX) minX = val;
+                            if (val > maxX) maxX = val;
+                            hasData = true;
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    if (!hasData) {
+        // Fallback a escalas si no hay datos crudos
+        if (chart && chart.scales && chart.scales.x) {
+            return { min: chart.scales.x.min || 0, max: chart.scales.x.max || 10 };
+        }
+        return { min: 0, max: 10 };
+    }
+
+    return { min: minX, max: maxX };
+}
+
 function toggleTangent() {
     showTangent = document.getElementById('showTangent').checked;
     const controls = document.getElementById('tangentControls');
     controls.style.display = showTangent ? 'block' : 'none';
 
     if (showTangent) {
-        // Inicializar slider con rango de datos
-        if (chart && chart.scales.x) {
-            const min = chart.scales.x.min;
-            const max = chart.scales.x.max;
-            const slider = document.getElementById('tangentSlider');
-            const input = document.getElementById('tangentXInput');
+        const { min, max } = getDataRange();
+        const slider = document.getElementById('tangentSlider');
+        const input = document.getElementById('tangentXInput');
 
-            slider.min = min;
-            slider.max = max;
-            slider.step = (max - min) / 100;
+        slider.min = min;
+        slider.max = max;
+        slider.step = (max - min) / 100;
 
-            if (tangentX === 0) tangentX = (min + max) / 2;
-            slider.value = tangentX;
-            input.value = tangentX.toFixed(4);
+        // Solo inicializar si está fuera de rango o es 0
+        if (tangentX < min || tangentX > max || tangentX === 0) {
+            tangentX = (min + max) / 2;
         }
+
+        slider.value = tangentX;
+        input.value = tangentX.toFixed(4);
     }
     chart.update();
 }
@@ -872,17 +916,16 @@ function toggleArea() {
     controls.style.display = showArea ? 'block' : 'none';
 
     if (showArea) {
-        // Inicializar inputs con rango de datos
-        if (chart && chart.scales.x) {
-            const min = chart.scales.x.min;
-            const max = chart.scales.x.max;
+        const { min, max } = getDataRange();
 
-            if (areaX1 === 0) areaX1 = min;
-            if (areaX2 === 0) areaX2 = max;
-
-            document.getElementById('areaX1').value = areaX1.toFixed(4);
-            document.getElementById('areaX2').value = areaX2.toFixed(4);
+        // Solo inicializar si son 0 o están invertidos
+        if (areaX1 === 0 && areaX2 === 0) {
+            areaX1 = min;
+            areaX2 = max;
         }
+
+        document.getElementById('areaX1').value = areaX1.toFixed(4);
+        document.getElementById('areaX2').value = areaX2.toFixed(4);
     }
     chart.update();
 }
