@@ -94,6 +94,9 @@ window.copyShareURLAgain = copyShareURLAgain;
 // INICIALIZACIÓN DE LA APLICACIÓN
 // ============================================
 
+// Exponer AppState globalmente para depuración y acceso desde otros módulos (como el tour)
+window.AppState = AppState;
+
 /**
  * Inicializa la aplicación cuando el DOM está listo
  */
