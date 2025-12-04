@@ -783,7 +783,7 @@ export function closeDimensionalAnalysisModal() {
  */
 function populateDimensionalCatalog() {
     // Importar dinámicamente el módulo de análisis dimensional
-    import('./dimensional-analysis.js').then(module => {
+    import(`./dimensional-analysis.js?v=${Date.now()}`).then(module => {
         const { MAGNITUDE_INFO } = module;
         const catalog = document.getElementById('dimCatalog');
 
@@ -819,7 +819,7 @@ export function analyzeDimension() {
     }
 
     // Importar dinámicamente el módulo de análisis dimensional
-    import('./dimensional-analysis.js').then(module => {
+    import(`./dimensional-analysis.js?v=${Date.now()}`).then(module => {
         const { parseExpression, identifyMagnitude, suggestUnitsForDimension } = module;
 
         try {
@@ -842,7 +842,7 @@ export function analyzeDimension() {
             dimMagnitude.textContent = magnitude || 'Magnitud no identificada';
 
             const units = suggestUnitsForDimension(dimension);
-            dimUnits.textContent = units.length > 0 ? units.join(', ') : 'No hay unidades sugeridas';
+            dimUnits.textContent = units.length > 0 ? units.join(', ') : 'No hay unidades del S.I. para esta dimensión';
 
             resultDiv.style.display = 'block';
 
