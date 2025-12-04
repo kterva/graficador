@@ -118,8 +118,22 @@ export class Dimension {
     }
 
     /**
-     * Convierte la dimensión a string legible
-     * @returns {string} Representación en formato [L^a·M^b·T^c...]
+     * Convierte un número a superíndice Unicode
+     * @param {number} n - Número a convertir
+     * @returns {string} Número en superíndice
+     */
+    static toSuperscript(n) {
+        const superscripts = {
+            '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+            '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+            '-': '⁻', '+': '⁺'
+        };
+        return String(n).split('').map(char => superscripts[char] || char).join('');
+    }
+
+    /**
+     * Convierte la dimensión a string legible con superíndices Unicode
+     * @returns {string} Representación en formato [L·M^a·T^b...]
      */
     toString() {
         if (this.isDimensionless()) {
@@ -127,13 +141,13 @@ export class Dimension {
         }
 
         const parts = [];
-        if (this.L !== 0) parts.push(`L${this.L !== 1 ? `^${this.L}` : ''}`);
-        if (this.M !== 0) parts.push(`M${this.M !== 1 ? `^${this.M}` : ''}`);
-        if (this.T !== 0) parts.push(`T${this.T !== 1 ? `^${this.T}` : ''}`);
-        if (this.I !== 0) parts.push(`I${this.I !== 1 ? `^${this.I}` : ''}`);
-        if (this.Theta !== 0) parts.push(`Θ${this.Theta !== 1 ? `^${this.Theta}` : ''}`);
-        if (this.N !== 0) parts.push(`N${this.N !== 1 ? `^${this.N}` : ''}`);
-        if (this.J !== 0) parts.push(`J${this.J !== 1 ? `^${this.J}` : ''}`);
+        if (this.L !== 0) parts.push(`L${this.L !== 1 ? Dimension.toSuperscript(this.L) : ''}`);
+        if (this.M !== 0) parts.push(`M${this.M !== 1 ? Dimension.toSuperscript(this.M) : ''}`);
+        if (this.T !== 0) parts.push(`T${this.T !== 1 ? Dimension.toSuperscript(this.T) : ''}`);
+        if (this.I !== 0) parts.push(`I${this.I !== 1 ? Dimension.toSuperscript(this.I) : ''}`);
+        if (this.Theta !== 0) parts.push(`Θ${this.Theta !== 1 ? Dimension.toSuperscript(this.Theta) : ''}`);
+        if (this.N !== 0) parts.push(`N${this.N !== 1 ? Dimension.toSuperscript(this.N) : ''}`);
+        if (this.J !== 0) parts.push(`J${this.J !== 1 ? Dimension.toSuperscript(this.J) : ''}`);
 
         return `[${parts.join('·')}]`;
     }
