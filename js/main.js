@@ -47,7 +47,10 @@ import {
     updateAxisUnit,
     toggleToolsMenu,
     openErrorPropagationModal,
-    closeErrorPropagationModal
+    closeErrorPropagationModal,
+    openDimensionalAnalysisModal,
+    closeDimensionalAnalysisModal,
+    analyzeDimension
 } from './ui-handlers.js';
 
 // ============================================
@@ -89,6 +92,9 @@ window.togglePresentationMode = togglePresentationMode;
 window.copyShareURL = copyShareURL;
 window.closeShareModal = closeShareModal;
 window.copyShareURLAgain = copyShareURLAgain;
+window.openDimensionalAnalysisModal = openDimensionalAnalysisModal;
+window.closeDimensionalAnalysisModal = closeDimensionalAnalysisModal;
+window.analyzeDimension = analyzeDimension;
 
 // ============================================
 // INICIALIZACIÓN DE LA APLICACIÓN
