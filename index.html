@@ -46,6 +46,12 @@
                             onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
                             📐 Propagación de Errores
                         </button>
+                        <button onclick="openDimensionalAnalysisModal()" role="menuitem"
+                            aria-label="Abrir análisis dimensional" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
+                            cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee;"
+                            onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+                            🔬 Análisis Dimensional
+                        </button>
                         <button onclick="alert('Plantillas próximamente...')" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
                             cursor: pointer; transition: background 0.2s; color: #999;"
                             onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
@@ -626,6 +632,77 @@
                     <strong>💡 Recordatorio:</strong> Las cifras significativas son todas las cifras seguras de una
                     medida más la primera afectada de error.
                 </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Modal de Análisis Dimensional -->
+    <div id="dimensionalAnalysisModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 800px;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                        color: white; padding: 20px; border-radius: 12px 12px 0 0; margin: -20px -20px 20px -20px;">
+                <h2 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                    🔬 Análisis Dimensional
+                </h2>
+            </div>
+
+            <div style="display: grid; gap: 20px;">
+                <!-- Calculadora de dimensiones -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                    <h3 style="margin-top: 0;">Calculadora de Dimensiones</h3>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="font-weight: bold; display: block; margin-bottom: 5px;">Expresión:</label>
+                        <input type="text" id="dimExpression" placeholder="ej: velocidad * tiempo"
+                            style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em;">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            Operadores: * (multiplicar), / (dividir), ^ (potencia)
+                        </small>
+                    </div>
+
+                    <button class="btn btn-secondary" onclick="analyzeDimension()" style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                        color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; 
+                        font-weight: bold; font-size: 1.1em; transition: transform 0.2s;"
+                        onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        Analizar
+                    </button>
+
+                    <div id="dimResult"
+                        style="margin-top: 20px; display: none; background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #667eea;">
+                        <h4 style="margin-top: 0;">Resultado:</h4>
+                        <p><strong>Dimensión:</strong> <span id="dimValue"
+                                style="font-family: monospace; color: #667eea;"></span></p>
+                        <p><strong>Magnitud:</strong> <span id="dimMagnitude"></span></p>
+                        <p><strong>Unidades sugeridas:</strong> <span id="dimUnits"></span></p>
+                    </div>
+                </div>
+
+                <!-- Catálogo de magnitudes -->
+                <div>
+                    <h3>Catálogo de Magnitudes Físicas</h3>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #667eea; color: white;">
+                                    <th style="padding: 10px; text-align: left;">Magnitud</th>
+                                    <th style="padding: 10px; text-align: left;">Símbolo</th>
+                                    <th style="padding: 10px; text-align: left;">Dimensión</th>
+                                    <th style="padding: 10px; text-align: left;">Unidades</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dimCatalog">
+                                <!-- Se llenará dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Botón cerrar -->
+                <button class="btn btn-secondary" onclick="closeDimensionalAnalysisModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; 
+                    border-radius: 6px; cursor: pointer;">
+                    Cerrar
+                </button>
             </div>
         </div>
     </div>

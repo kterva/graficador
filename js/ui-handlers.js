@@ -740,3 +740,117 @@ export function closeErrorPropagationModal() {
     const resultDiv = document.getElementById('errorPropagationResult');
     resultDiv.style.display = 'none';
 }
+
+// ============================================
+// ANÁLISIS DIMENSIONAL
+// ============================================
+
+/**
+ * Abre el modal de análisis dimensional
+ */
+export function openDimensionalAnalysisModal() {
+    const modal = document.getElementById('dimensionalAnalysisModal');
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+
+    // Cerrar el menú de herramientas
+    const menu = document.getElementById('toolsMenu');
+    menu.style.display = 'none';
+
+    // Llenar catálogo si está vacío
+    const catalog = document.getElementById('dimCatalog');
+    if (catalog.children.length === 0) {
+        populateDimensionalCatalog();
+    }
+}
+
+/**
+ * Cierra el modal de análisis dimensional
+ */
+export function closeDimensionalAnalysisModal() {
+    const modal = document.getElementById('dimensionalAnalysisModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+
+    // Limpiar resultado
+    const resultDiv = document.getElementById('dimResult');
+    resultDiv.style.display = 'none';
+    document.getElementById('dimExpression').value = '';
+}
+
+/**
+ * Llena el catálogo de magnitudes físicas
+ */
+function populateDimensionalCatalog() {
+    // Importar dinámicamente el módulo de análisis dimensional
+    import('./dimensional-analysis.js').then(module => {
+        const { MAGNITUDE_INFO } = module;
+        const catalog = document.getElementById('dimCatalog');
+
+        let html = '';
+        let isEven = false;
+
+        for (const [name, info] of Object.entries(MAGNITUDE_INFO)) {
+            const bgColor = isEven ? '#f8f9fa' : 'white';
+            html += `
+                <tr style="background: ${bgColor};">
+                    <td style="padding: 10px;">${name}</td>
+                    <td style="padding: 10px; font-family: monospace;">${info.symbol}</td>
+                    <td style="padding: 10px; font-family: monospace; color: #667eea;">${info.dimension.toString()}</td>
+                    <td style="padding: 10px;">${info.units.join(', ')}</td>
+                </tr>
+            `;
+            isEven = !isEven;
+        }
+
+        catalog.innerHTML = html;
+    });
+}
+
+/**
+ * Analiza una expresión dimensional
+ */
+export function analyzeDimension() {
+    const expression = document.getElementById('dimExpression').value.trim();
+
+    if (!expression) {
+        alert('Por favor, ingresa una expresión');
+        return;
+    }
+
+    // Importar dinámicamente el módulo de análisis dimensional
+    import('./dimensional-analysis.js').then(module => {
+        const { parseExpression, identifyMagnitude, suggestUnitsForDimension } = module;
+
+        try {
+            const dimension = parseExpression(expression);
+
+            if (!dimension) {
+                alert('No se pudo analizar la expresión. Verifica la sintaxis.');
+                return;
+            }
+
+            // Mostrar resultado
+            const resultDiv = document.getElementById('dimResult');
+            const dimValue = document.getElementById('dimValue');
+            const dimMagnitude = document.getElementById('dimMagnitude');
+            const dimUnits = document.getElementById('dimUnits');
+
+            dimValue.textContent = dimension.toString();
+
+            const magnitude = identifyMagnitude(dimension);
+            dimMagnitude.textContent = magnitude || 'Magnitud no identificada';
+
+            const units = suggestUnitsForDimension(dimension);
+            dimUnits.textContent = units.length > 0 ? units.join(', ') : 'No hay unidades sugeridas';
+
+            resultDiv.style.display = 'block';
+
+            // Scroll al resultado
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch (error) {
+            console.error('Error al analizar dimensión:', error);
+            alert('Error al analizar la expresión: ' + error.message);
+        }
+    });
+}
