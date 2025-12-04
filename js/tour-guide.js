@@ -576,28 +576,34 @@ function loadLinearDataForTour() {
         { x: 5, y: 11, dx: 0.1, dy: 0.2 }
     ];
 
+    // Usar AppState global si está disponible, sino el importado
+    const state = window.AppState || AppState;
+
     // Limpiar series existentes
-    AppState.series = [];
-    AppState.serieCounter = 0;
+    state.series = [];
+    state.serieCounter = 0;
 
     // Agregar nueva serie
     const serie = {
-        id: AppState.serieCounter++,
+        id: state.serieCounter++,
         name: 'Datos Lineales',
         data: linearData,
         color: '#3498db',
         fitType: 'linear'
     };
 
-    AppState.series.push(serie);
+    state.series.push(serie);
 
     // Actualizar UI y Gráfica
-    renderSeries();
-    updateChart();
+    if (typeof renderSeries === 'function') renderSeries();
+    else if (typeof window.renderSeries === 'function') window.renderSeries();
+
+    if (typeof updateChart === 'function') updateChart();
+    else if (typeof window.updateChart === 'function') window.updateChart();
 
     // Scroll al panel de series para mostrar que se cargaron
     setTimeout(() => {
-        const seriesContainer = document.getElementById('seriesContainer');
+        const seriesContainer = document.getElementById('series-container'); // Corregido ID
         if (seriesContainer) {
             seriesContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
@@ -620,24 +626,30 @@ function loadQuadraticDataForTour() {
         { x: 5, y: 16, dx: 0.1, dy: 0.4 }
     ];
 
+    // Usar AppState global si está disponible, sino el importado
+    const state = window.AppState || AppState;
+
     // Agregar segunda serie
     const serie = {
-        id: AppState.serieCounter++,
+        id: state.serieCounter++,
         name: 'Datos Cuadráticos',
         data: quadraticData,
         color: '#e74c3c',
         fitType: 'polynomial2'
     };
 
-    AppState.series.push(serie);
+    state.series.push(serie);
 
     // Actualizar UI y Gráfica
-    renderSeries();
-    updateChart();
+    if (typeof renderSeries === 'function') renderSeries();
+    else if (typeof window.renderSeries === 'function') window.renderSeries();
+
+    if (typeof updateChart === 'function') updateChart();
+    else if (typeof window.updateChart === 'function') window.updateChart();
 
     // Scroll al panel de series
     setTimeout(() => {
-        const seriesContainer = document.getElementById('seriesContainer');
+        const seriesContainer = document.getElementById('series-container'); // Corregido ID
         if (seriesContainer) {
             seriesContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
