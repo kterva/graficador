@@ -197,102 +197,93 @@ export const DIMENSIONS = {
 };
 
 /**
- * Mapeo de unidades a sus dimensiones
+ * Mapeo de unidades del SI a sus dimensiones
  */
 export const UNIT_DIMENSIONS = {
-    // Longitud
+    // Longitud (metro)
     'm': DIMENSIONS.length,
-    'cm': DIMENSIONS.length,
-    'mm': DIMENSIONS.length,
-    'km': DIMENSIONS.length,
 
-    // Tiempo
+    // Tiempo (segundo)
     's': DIMENSIONS.time,
-    'ms': DIMENSIONS.time,
-    'min': DIMENSIONS.time,
-    'h': DIMENSIONS.time,
 
-    // Masa
+    // Masa (kilogramo)
     'kg': DIMENSIONS.mass,
-    'g': DIMENSIONS.mass,
-    'mg': DIMENSIONS.mass,
 
-    // Temperatura
+    // Temperatura (kelvin)
     'K': DIMENSIONS.temperature,
-    'C': DIMENSIONS.temperature,
-    'F': DIMENSIONS.temperature,
 
-    // Velocidad
+    // Velocidad (metro por segundo)
     'm/s': DIMENSIONS.velocity,
-    'cm/s': DIMENSIONS.velocity,
-    'km/h': DIMENSIONS.velocity,
 
-    // Aceleración
+    // Aceleración (metro por segundo cuadrado)
     'm/s²': DIMENSIONS.acceleration,
-    'cm/s²': DIMENSIONS.acceleration,
 
-    // Fuerza
+    // Fuerza (newton)
     'N': DIMENSIONS.force,
-    'kN': DIMENSIONS.force,
 
-    // Energía
+    // Energía (joule)
     'J': DIMENSIONS.energy,
-    'kJ': DIMENSIONS.energy,
-    'cal': DIMENSIONS.energy,
-    'eV': DIMENSIONS.energy,
 
-    // Potencia
+    // Potencia (watt)
     'W': DIMENSIONS.power,
-    'kW': DIMENSIONS.power,
 
-    // Presión
+    // Presión (pascal)
     'Pa': DIMENSIONS.pressure,
-    'kPa': DIMENSIONS.pressure,
-    'bar': DIMENSIONS.pressure,
-    'atm': DIMENSIONS.pressure,
 
-    // Corriente
+    // Corriente (ampere)
     'A': DIMENSIONS.current,
-    'mA': DIMENSIONS.current,
 
-    // Voltaje
+    // Voltaje (volt)
     'V': DIMENSIONS.voltage,
-    'mV': DIMENSIONS.voltage,
-    'kV': DIMENSIONS.voltage,
 
-    // Resistencia
+    // Resistencia (ohm)
     'Ω': DIMENSIONS.resistance,
-    'kΩ': DIMENSIONS.resistance,
-    'MΩ': DIMENSIONS.resistance,
+
+    // Carga (coulomb)
+    'C': DIMENSIONS.charge,
+
+    // Capacitancia (farad)
+    'F': DIMENSIONS.capacitance,
+
+    // Inductancia (henry)
+    'H': DIMENSIONS.inductance,
+
+    // Cantidad de sustancia (mol)
+    'mol': DIMENSIONS.amountOfSubstance,
+
+    // Intensidad luminosa (candela)
+    'cd': DIMENSIONS.luminousIntensity,
 };
 
 /**
- * Información sobre magnitudes físicas
+ * Información sobre magnitudes físicas (solo unidades del SI)
  */
 export const MAGNITUDE_INFO = {
     // Cinemática
-    'Posición': { dimension: DIMENSIONS.length, units: ['m', 'cm', 'km'], symbol: 'x' },
-    'Velocidad': { dimension: DIMENSIONS.velocity, units: ['m/s', 'km/h'], symbol: 'v' },
+    'Posición': { dimension: DIMENSIONS.length, units: ['m'], symbol: 'x' },
+    'Velocidad': { dimension: DIMENSIONS.velocity, units: ['m/s'], symbol: 'v' },
     'Aceleración': { dimension: DIMENSIONS.acceleration, units: ['m/s²'], symbol: 'a' },
-    'Tiempo': { dimension: DIMENSIONS.time, units: ['s', 'min', 'h'], symbol: 't' },
+    'Tiempo': { dimension: DIMENSIONS.time, units: ['s'], symbol: 't' },
 
     // Dinámica
-    'Masa': { dimension: DIMENSIONS.mass, units: ['kg', 'g'], symbol: 'm' },
-    'Fuerza': { dimension: DIMENSIONS.force, units: ['N', 'kN'], symbol: 'F' },
-    'Energía': { dimension: DIMENSIONS.energy, units: ['J', 'kJ', 'eV'], symbol: 'E' },
-    'Potencia': { dimension: DIMENSIONS.power, units: ['W', 'kW'], symbol: 'P' },
-    'Presión': { dimension: DIMENSIONS.pressure, units: ['Pa', 'kPa', 'atm'], symbol: 'p' },
+    'Masa': { dimension: DIMENSIONS.mass, units: ['kg'], symbol: 'm' },
+    'Fuerza': { dimension: DIMENSIONS.force, units: ['N'], symbol: 'F' },
+    'Energía': { dimension: DIMENSIONS.energy, units: ['J'], symbol: 'E' },
+    'Potencia': { dimension: DIMENSIONS.power, units: ['W'], symbol: 'P' },
+    'Presión': { dimension: DIMENSIONS.pressure, units: ['Pa'], symbol: 'p' },
     'Momento': { dimension: DIMENSIONS.momentum, units: ['kg·m/s'], symbol: 'p' },
 
     // Termodinámica
-    'Temperatura': { dimension: DIMENSIONS.temperature, units: ['K', 'C'], symbol: 'T' },
-    'Calor': { dimension: DIMENSIONS.heat, units: ['J', 'cal'], symbol: 'Q' },
+    'Temperatura': { dimension: DIMENSIONS.temperature, units: ['K'], symbol: 'T' },
+    'Calor': { dimension: DIMENSIONS.heat, units: ['J'], symbol: 'Q' },
 
     // Electromagnetismo
-    'Corriente': { dimension: DIMENSIONS.current, units: ['A', 'mA'], symbol: 'I' },
-    'Voltaje': { dimension: DIMENSIONS.voltage, units: ['V', 'mV'], symbol: 'V' },
-    'Resistencia': { dimension: DIMENSIONS.resistance, units: ['Ω', 'kΩ'], symbol: 'R' },
+    'Corriente': { dimension: DIMENSIONS.current, units: ['A'], symbol: 'I' },
+    'Voltaje': { dimension: DIMENSIONS.voltage, units: ['V'], symbol: 'V' },
+    'Resistencia': { dimension: DIMENSIONS.resistance, units: ['Ω'], symbol: 'R' },
     'Carga': { dimension: DIMENSIONS.charge, units: ['C'], symbol: 'Q' },
+    'Capacitancia': { dimension: DIMENSIONS.capacitance, units: ['F'], symbol: 'C' },
+    'Inductancia': { dimension: DIMENSIONS.inductance, units: ['H'], symbol: 'L' },
 };
 
 /**
