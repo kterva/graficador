@@ -117,7 +117,7 @@ const TOUR_STEPS = [
             <p>Activa el checkbox <strong>"Mostrar Tangente (Derivada)"</strong> y mueve el slider.</p>
         `,
         highlight: '#tangentControls',
-        position: 'right',
+        position: 'left',
         action: () => {
             const tangentControls = document.getElementById('tangentControls');
             if (tangentControls) {
@@ -140,7 +140,7 @@ const TOUR_STEPS = [
             <p>Activa el checkbox <strong>"∫ Mostrar Área (Integral)"</strong>.</p>
         `,
         highlight: '#areaControls',
-        position: 'right',
+        position: 'left',
         waitFor: () => {
             return document.getElementById('showArea')?.checked === true;
         },
