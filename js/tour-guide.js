@@ -394,29 +394,54 @@ function positionModal(step) {
         const element = document.querySelector(step.highlight);
         if (element) {
             const rect = element.getBoundingClientRect();
+            const modalWidth = 500; // max-width del modal
+            const modalHeight = 300; // altura estimada
+            const padding = 20;
 
             switch (step.position) {
                 case 'bottom':
-                    modal.style.top = `${rect.bottom + 20}px`;
-                    modal.style.left = `${rect.left}px`;
+                    // Posicionar debajo del elemento
+                    let topPos = rect.bottom + padding;
+                    // Asegurar que no se salga por abajo
+                    if (topPos + modalHeight > window.innerHeight) {
+                        topPos = window.innerHeight - modalHeight - padding;
+                    }
+                    modal.style.top = `${topPos}px`;
+                    modal.style.left = `${Math.max(padding, Math.min(rect.left, window.innerWidth - modalWidth - padding))}px`;
                     modal.style.transform = 'none';
+                    modal.style.bottom = 'auto';
+                    modal.style.right = 'auto';
                     break;
                 case 'top':
-                    modal.style.bottom = `${window.innerHeight - rect.top + 20}px`;
-                    modal.style.left = `${rect.left}px`;
+                    // Posicionar arriba del elemento
+                    modal.style.bottom = `${window.innerHeight - rect.top + padding}px`;
+                    modal.style.left = `${Math.max(padding, Math.min(rect.left, window.innerWidth - modalWidth - padding))}px`;
                     modal.style.top = 'auto';
                     modal.style.transform = 'none';
+                    modal.style.right = 'auto';
                     break;
                 case 'left':
-                    modal.style.top = `${rect.top}px`;
-                    modal.style.right = `${window.innerWidth - rect.left + 20}px`;
+                    // Posicionar a la izquierda del elemento
+                    modal.style.top = `${Math.max(padding, rect.top)}px`;
+                    modal.style.right = `${window.innerWidth - rect.left + padding}px`;
                     modal.style.left = 'auto';
                     modal.style.transform = 'none';
+                    modal.style.bottom = 'auto';
                     break;
                 case 'right':
-                    modal.style.top = `${rect.top}px`;
-                    modal.style.left = `${rect.right + 20}px`;
+                    // Posicionar a la derecha del elemento
+                    modal.style.top = `${Math.max(padding, rect.top)}px`;
+                    let leftPos = rect.right + padding;
+                    // Si se sale por la derecha, posicionar a la izquierda
+                    if (leftPos + modalWidth > window.innerWidth) {
+                        modal.style.right = `${window.innerWidth - rect.left + padding}px`;
+                        modal.style.left = 'auto';
+                    } else {
+                        modal.style.left = `${leftPos}px`;
+                        modal.style.right = 'auto';
+                    }
                     modal.style.transform = 'none';
+                    modal.style.bottom = 'auto';
                     break;
             }
         }
@@ -626,20 +651,21 @@ function loadLinearDataForTour() {
 
     state.series.push(serie);
 
-    // Actualizar UI y Gráfica
+    // Actualizar UI de series
     if (typeof renderSeries === 'function') renderSeries();
     else if (typeof window.renderSeries === 'function') window.renderSeries();
 
+    // Actualizar el dropdown de tipo de ajuste en la primera serie
+    setTimeout(() => {
+        const fitTypeSelect = document.querySelector(`#fit-type-${serie.id}`);
+        if (fitTypeSelect) {
+            fitTypeSelect.value = 'linear';
+        }
+    }, 50);
+
+    // Actualizar gráfica
     if (typeof updateChart === 'function') updateChart();
     else if (typeof window.updateChart === 'function') window.updateChart();
-
-    // Scroll al panel de series para mostrar que se cargaron
-    setTimeout(() => {
-        const seriesContainer = document.getElementById('series-container'); // Corregido ID
-        if (seriesContainer) {
-            seriesContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }, 100);
 
     console.log('✓ Datos lineales cargados para el tour');
 }
@@ -672,20 +698,21 @@ function loadQuadraticDataForTour() {
 
     state.series.push(serie);
 
-    // Actualizar UI y Gráfica
+    // Actualizar UI de series
     if (typeof renderSeries === 'function') renderSeries();
     else if (typeof window.renderSeries === 'function') window.renderSeries();
 
+    // Actualizar el dropdown de tipo de ajuste en la segunda serie
+    setTimeout(() => {
+        const fitTypeSelect = document.querySelector(`#fit-type-${serie.id}`);
+        if (fitTypeSelect) {
+            fitTypeSelect.value = 'polynomial2';
+        }
+    }, 50);
+
+    // Actualizar gráfica
     if (typeof updateChart === 'function') updateChart();
     else if (typeof window.updateChart === 'function') window.updateChart();
-
-    // Scroll al panel de series
-    setTimeout(() => {
-        const seriesContainer = document.getElementById('series-container'); // Corregido ID
-        if (seriesContainer) {
-            seriesContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }, 100);
 
     console.log('✓ Datos cuadráticos cargados para el tour');
 }
