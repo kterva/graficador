@@ -2,7 +2,7 @@
 
 Aplicación web interactiva para análisis de datos experimentales con ajustes de regresión, propagación de incertidumbre y conversión de unidades. Ideal para estudiantes, científicos e ingenieros.
 
-![Version](https://img.shields.io/badge/version-1.3.0-blue)
+![Version](https://img.shields.io/badge/version-1.4.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## ✨ Características
@@ -76,6 +76,9 @@ http://localhost:8000
 Simplemente abre `index.html` en tu navegador moderno (Chrome, Firefox, Edge, Safari).
 
 ## 📖 Guía de Uso
+
+> **Nota:** Para una guía de inicio rápido y configuración local, ver [🚀 Quick Start](quick_start.md).
+> Para detalles técnicos y arquitectura, ver [📘 Contexto del Proyecto](project_context.md).
 
 ### 1️⃣ Agregar Datos
 
@@ -238,6 +241,12 @@ P = 21.0 ± 1.2
 - 🧪 Agregar tests
 
 ## 📝 Changelog
+
+### v1.4.0 (2025-12-05)
+- ✅ Interfaz móvil mejorada (menú popover)
+- ✅ Estabilidad en herramientas (tangente, ejes)
+- ✅ Documentación ampliada
+- ✅ Modo desarrollo configurable
 
 ### v1.3.0 (2025-12-03)
 - ✅ Sistema de unidades completo (básicas + derivadas)
