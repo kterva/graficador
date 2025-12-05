@@ -591,16 +591,16 @@ function showNotification(message, type = 'info') {
  * Inicializa el tour
  */
 export function initTour() {
-    // Preguntar si quiere ver el tour en primera visita
-    if (!localStorage.getItem('tour-completed')) {
-        setTimeout(() => {
-            if (confirm('¿Quieres un tour rápido de la aplicación? (3 minutos)')) {
-                startTour();
-            } else {
-                localStorage.setItem('tour-completed', 'true');
-            }
-        }, 2000);
-    }
+    // DESACTIVADO: Preguntar si quiere ver el tour en primera visita
+    // if (!localStorage.getItem('tour-completed')) {
+    //     setTimeout(() => {
+    //         if (confirm('¿Quieres un tour rápido de la aplicación? (3 minutos)')) {
+    //             startTour();
+    //         } else {
+    //             localStorage.setItem('tour-completed', 'true');
+    //         }
+    //     }, 2000);
+    // }
 
     // Agregar CSS de animación
     if (!document.getElementById('tour-styles')) {
