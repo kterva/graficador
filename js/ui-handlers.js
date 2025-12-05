@@ -40,14 +40,14 @@ export function renderSeries() {
                    onchange="updateSerieColor(${serie.id}, this.value)">
             
             <label style="display:block; margin-top:10px;">Tipo de Ajuste:</label>
-            <select onchange="updateFitType(${serie.id}, this.value)">
-                <option value="none">Sin ajuste</option>
-                <option value="linear">Lineal</option>
-                <option value="poly2">Polinomial (grado 2)</option>
-                <option value="poly3">Polinomial (grado 3)</option>
-                <option value="exponential">Exponencial</option>
-                <option value="logarithmic">Logarítmico</option>
-                <option value="power">Potencial</option>
+            <select id="fit-type-${serie.id}" onchange="updateFitType(${serie.id}, this.value)">
+                <option value="none" ${serie.fitType === 'none' ? 'selected' : ''}>Sin ajuste</option>
+                <option value="linear" ${serie.fitType === 'linear' ? 'selected' : ''}>Lineal</option>
+                <option value="poly2" ${serie.fitType === 'poly2' || serie.fitType === 'polynomial2' ? 'selected' : ''}>Polinomial (grado 2)</option>
+                <option value="poly3" ${serie.fitType === 'poly3' || serie.fitType === 'polynomial3' ? 'selected' : ''}>Polinomial (grado 3)</option>
+                <option value="exponential" ${serie.fitType === 'exponential' ? 'selected' : ''}>Exponencial</option>
+                <option value="logarithmic" ${serie.fitType === 'logarithmic' ? 'selected' : ''}>Logarítmico</option>
+                <option value="power" ${serie.fitType === 'power' ? 'selected' : ''}>Potencial</option>
             </select>
             
             <table>
