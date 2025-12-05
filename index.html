@@ -17,7 +17,7 @@
     <!-- Flag de desarrollo -->
     <script>
         // Activar herramientas de desarrollo (botones de datos de prueba)
-        window.IS_DEVELOPMENT = true;
+        window.IS_DEVELOPMENT = false;
     </script>
 </head>
 
@@ -432,37 +432,72 @@
 
                     <!-- Pestaña: Herramientas -->
                     <div id="help-tools" class="help-content" style="display: none;">
-                        <h3 style="color: #667eea; margin-top: 0;">🛠️ Herramientas Disponibles</h3>
+                        <h3 style="color: #667eea; margin-top: 0;">🛠️ Herramientas y Utilidades</h3>
 
-                        <div style="margin-bottom: 20px;">
-                            <h4 style="color: #764ba2; margin-bottom: 10px;">📊 Análisis de Incertidumbre</h4>
-                            <p>Activa "Mostrar Incertidumbre" para ver las líneas de pendiente máxima y mínima
-                                basadas en las barras de error.</p>
+                        <!-- Funciones de Gráfica -->
+                        <div style="margin-bottom: 25px;">
+                            <h4
+                                style="color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 15px;">
+                                📊 Funciones de Gráfica</h4>
+
+                            <div style="margin-bottom: 15px;">
+                                <strong style="color: #764ba2;">📉 Tangente (Derivada)</strong>
+                                <p style="margin: 5px 0;">Activa "Mostrar Tangente" y mueve el slider para ver la línea
+                                    tangente y su pendiente en cualquier punto.</p>
+                            </div>
+
+                            <div style="margin-bottom: 15px;">
+                                <strong style="color: #764ba2;">∫ Área (Integral)</strong>
+                                <p style="margin: 5px 0;">Activa "Mostrar Área" y define un intervalo [x₁, x₂] para
+                                    calcular el área bajo la curva.</p>
+                            </div>
+
+                            <div style="margin-bottom: 15px;">
+                                <strong style="color: #764ba2;">🔍 Zoom y Pan</strong>
+                                <p style="margin: 5px 0;">Usa la rueda del mouse para zoom y arrastra para mover. Doble
+                                    clic para restablecer.</p>
+                            </div>
+
+                            <div style="margin-bottom: 15px;">
+                                <strong style="color: #764ba2;">💾 Exportación</strong>
+                                <p style="margin: 5px 0;">Descarga tu gráfica en PNG o PDF desde el panel de
+                                    configuración.</p>
+                            </div>
                         </div>
 
-                        <div style="margin-bottom: 20px;">
-                            <h4 style="color: #764ba2; margin-bottom: 10px;">📉 Tangente (Derivada)</h4>
-                            <p>Mueve el slider para ver la línea tangente en cualquier punto y su pendiente
-                                (derivada).</p>
-                        </div>
+                        <!-- Herramientas Avanzadas -->
+                        <div>
+                            <h4
+                                style="color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 15px;">
+                                🧰 Herramientas Avanzadas</h4>
 
-                        <div style="margin-bottom: 20px;">
-                            <h4 style="color: #764ba2; margin-bottom: 10px;">∫ Área (Integral)</h4>
-                            <p>Define un intervalo [x₁, x₂] para calcular el área bajo la curva (integral
-                                definida).</p>
-                        </div>
+                            <div style="margin-bottom: 15px;">
+                                <strong style="color: #764ba2;">🔬 Análisis Dimensional</strong>
+                                <p style="margin: 5px 0;">Verifica la coherencia de ecuaciones físicas.</p>
+                                <ul style="margin-top: 5px; font-size: 0.95em; color: #555; padding-left: 20px;">
+                                    <li><strong>Uso:</strong> Menú Herramientas > Análisis Dimensional.</li>
+                                    <li><strong>Ejemplo:</strong> Escribe <code>velocidad * tiempo</code> para obtener
+                                        <code>[L]</code> (Longitud).
+                                    </li>
+                                    <li><strong>S.I.:</strong> Muestra unidades del Sistema Internacional compatibles.
+                                    </li>
+                                </ul>
+                            </div>
 
-                        <div style="margin-bottom: 20px;">
-                            <h4 style="color: #764ba2; margin-bottom: 10px;">🔍 Zoom y Pan</h4>
-                            <p><strong>Zoom:</strong> Rueda del mouse o botones +/-<br>
-                                <strong>Pan:</strong> Clic y arrastra<br>
-                                <strong>Restablecer:</strong> Botón "Restablecer Zoom"
-                            </p>
-                        </div>
+                            <div style="margin-bottom: 15px;">
+                                <strong style="color: #764ba2;">📐 Propagación de Errores</strong>
+                                <p style="margin: 5px 0;">Calcula incertidumbres en operaciones matemáticas (A ± ΔA).
+                                </p>
+                                <ul style="margin-top: 5px; font-size: 0.95em; color: #555; padding-left: 20px;">
+                                    <li>Soporta suma, resta, multiplicación, división y potencia.</li>
+                                </ul>
+                            </div>
 
-                        <div style="margin-bottom: 20px;">
-                            <h4 style="color: #764ba2; margin-bottom: 10px;">💾 Exportación</h4>
-                            <p>Descarga tu gráfica en formato PNG o PDF con un clic.</p>
+                            <div style="margin-bottom: 15px;">
+                                <strong style="color: #764ba2;">📺 Modo Presentación</strong>
+                                <p style="margin: 5px 0;">Presiona <code>Alt + P</code> o usa el botón en la cabecera
+                                    para maximizar la gráfica, ideal para proyectores.</p>
+                            </div>
                         </div>
                     </div>
 
@@ -540,7 +575,7 @@
 
     <!-- Flag de desarrollo: cambiar a false para producción -->
     <script>
-        window.IS_DEVELOPMENT = true;
+        window.IS_DEVELOPMENT = false;
     </script>
 
     <!-- Carga condicional de herramientas de desarrollo -->
