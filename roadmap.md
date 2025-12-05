@@ -1,5 +1,16 @@
 # 📊 Roadmap del Graficador Científico
 
+## 🛑 PUNTO DE DECISIÓN ESTRATÉGICA (Prioridad Alta)
+
+**Dilema:** El proyecto ha alcanzado un nivel de madurez ideal para educación media. Seguir agregando funcionalidades complejas (estadística avanzada, ajustes exóticos) podría sacrificar la simplicidad y usabilidad para este público objetivo.
+
+**Tarea para próxima sesión:** Analizar el camino a seguir:
+1.  **Bifurcación (Fork):** Mantener `graficador-edu` (simple, estable) y crear `graficador-pro` (avanzado).
+2.  **Modo Avanzado:** Implementar un interruptor en la UI que oculte/muestre funcionalidades complejas.
+3.  **Modularidad:** Cargar funcionalidades como plugins opcionales.
+
+---
+
 ## 📅 Plan de Trabajo: Siguiente Sprint (v1.5.0)
 
 ### Objetivo: Usabilidad y Herramientas Científicas
