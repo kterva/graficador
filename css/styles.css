@@ -253,8 +253,61 @@ select {
 
     /* Título más pequeño */
     h1 {
-        font-size: 20px;
+        font-size: 18px;
         margin-bottom: 15px;
+    }
+
+    /* Header en columna para móvil */
+    header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 15px;
+    }
+
+    header h1 {
+        text-align: center;
+        font-size: 16px;
+    }
+
+    /* Botones del header en grid */
+    header>div {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    header>div .btn,
+    header>div button {
+        font-size: 12px !important;
+        padding: 10px 8px !important;
+        white-space: nowrap;
+    }
+
+    /* Menú de herramientas ocupa todo el ancho */
+    header>div nav {
+        grid-column: 1 / -1;
+    }
+
+    header>div nav button {
+        width: 100%;
+    }
+
+    /* Intro section más compacta */
+    .intro-section {
+        padding: 15px !important;
+    }
+
+    .intro-section h3 {
+        font-size: 1em !important;
+    }
+
+    .intro-section ul {
+        font-size: 13px;
+        padding-left: 15px !important;
+    }
+
+    .intro-section li {
+        margin-bottom: 8px;
     }
 
     /* Layout en columna única */
@@ -275,7 +328,7 @@ select {
     /* Botones más grandes para táctil */
     .btn {
         padding: 10px 15px;
-        font-size: 16px;
+        font-size: 14px;
         margin: 5px 2px;
     }
 
@@ -314,7 +367,7 @@ select {
 
     /* Gráfica más pequeña en móvil */
     .chart-container {
-        height: 400px;
+        height: 350px;
     }
 
     /* Controles en columna */
@@ -340,6 +393,15 @@ select {
         grid-template-columns: 1fr !important;
     }
 
+    /* Config section colapsable */
+    .config-section {
+        padding: 10px !important;
+    }
+
+    .config-section summary {
+        font-size: 14px;
+    }
+
     /* Footer más compacto */
     footer {
         font-size: 12px;
@@ -360,30 +422,113 @@ select {
         width: 60px;
         height: 40px;
     }
+
+    /* Modales ajustados para móvil */
+    #helpModal>div,
+    #errorPropagationModal>div,
+    #dimensionalAnalysisModal>div {
+        width: 95% !important;
+        max-width: 95% !important;
+        margin: 10px auto !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
+    }
+
+    /* Tabs de ayuda en scroll horizontal */
+    #helpModal>div>div:first-of-type {
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 5px;
+        padding-bottom: 5px;
+    }
+
+    .help-tab {
+        flex-shrink: 0;
+        font-size: 12px !important;
+        padding: 8px 12px !important;
+    }
+
+    /* Botón de ayuda flotante */
+    #helpButton {
+        width: 45px !important;
+        height: 45px !important;
+        font-size: 20px !important;
+        bottom: 15px !important;
+        right: 15px !important;
+    }
+
+    /* Herramientas dropdown a pantalla completa */
+    #toolsMenu {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        border-radius: 15px 15px 0 0 !important;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
 }
 
 /* Para pantallas muy pequeñas (< 480px) */
 @media (max-width: 480px) {
     h1 {
-        font-size: 18px;
+        font-size: 14px;
+    }
+
+    header h1 {
+        font-size: 14px !important;
     }
 
     .container {
-        padding: 10px;
+        padding: 8px;
+    }
+
+    /* Botones del header en una columna */
+    header>div {
+        grid-template-columns: 1fr !important;
     }
 
     .btn {
-        font-size: 14px;
-        padding: 8px 12px;
+        font-size: 12px;
+        padding: 8px 10px;
     }
 
     .chart-container {
-        height: 300px;
+        height: 280px;
+    }
+
+    /* Intro section aún más compacta */
+    .intro-section {
+        padding: 10px !important;
+    }
+
+    .intro-section h3 {
+        font-size: 0.9em !important;
+    }
+
+    .intro-section ul {
+        font-size: 12px;
     }
 
     /* Ecuaciones con texto más pequeño */
     .equation-display {
-        font-size: 11px;
+        font-size: 10px;
+        padding: 8px;
+    }
+
+    /* Tabla de datos más compacta */
+    th,
+    td {
+        padding: 5px;
+        font-size: 12px;
+    }
+
+    input[type="number"] {
+        min-width: 50px;
+        padding: 4px;
     }
 }
 

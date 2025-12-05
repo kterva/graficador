@@ -117,7 +117,7 @@ const TOUR_STEPS = [
             <p>Activa el checkbox <strong>"Mostrar Tangente (Derivada)"</strong> y mueve el slider.</p>
         `,
         highlight: '#tangentControls',
-        position: 'right',
+        position: 'left',
         action: () => {
             const tangentControls = document.getElementById('tangentControls');
             if (tangentControls) {
@@ -140,7 +140,7 @@ const TOUR_STEPS = [
             <p>Activa el checkbox <strong>"∫ Mostrar Área (Integral)"</strong>.</p>
         `,
         highlight: '#areaControls',
-        position: 'right',
+        position: 'left',
         waitFor: () => {
             return document.getElementById('showArea')?.checked === true;
         },
@@ -392,33 +392,67 @@ function positionModal(step) {
         modal.style.right = 'auto';
     } else if (step.highlight) {
         const element = document.querySelector(step.highlight);
-        if (element) {
-            const rect = element.getBoundingClientRect();
+        if (!element) {
+            // Si el elemento no existe, centrar el modal como fallback
+            console.warn(`Tour: Elemento ${step.highlight} no encontrado, centrando modal`);
+            modal.style.top = '50%';
+            modal.style.left = '50%';
+            modal.style.transform = 'translate(-50%, -50%)';
+            modal.style.bottom = 'auto';
+            modal.style.right = 'auto';
+            return;
+        }
 
-            switch (step.position) {
-                case 'bottom':
-                    modal.style.top = `${rect.bottom + 20}px`;
-                    modal.style.left = `${rect.left}px`;
-                    modal.style.transform = 'none';
-                    break;
-                case 'top':
-                    modal.style.bottom = `${window.innerHeight - rect.top + 20}px`;
-                    modal.style.left = `${rect.left}px`;
-                    modal.style.top = 'auto';
-                    modal.style.transform = 'none';
-                    break;
-                case 'left':
-                    modal.style.top = `${rect.top}px`;
-                    modal.style.right = `${window.innerWidth - rect.left + 20}px`;
+        const rect = element.getBoundingClientRect();
+        const modalWidth = 500; // max-width del modal
+        const modalHeight = 300; // altura estimada
+        const padding = 20;
+
+        switch (step.position) {
+            case 'bottom':
+                // Posicionar debajo del elemento
+                let topPos = rect.bottom + padding;
+                // Asegurar que no se salga por abajo
+                if (topPos + modalHeight > window.innerHeight) {
+                    topPos = window.innerHeight - modalHeight - padding;
+                }
+                modal.style.top = `${topPos}px`;
+                modal.style.left = `${Math.max(padding, Math.min(rect.left, window.innerWidth - modalWidth - padding))}px`;
+                modal.style.transform = 'none';
+                modal.style.bottom = 'auto';
+                modal.style.right = 'auto';
+                break;
+            case 'top':
+                // Posicionar arriba del elemento
+                modal.style.bottom = `${window.innerHeight - rect.top + padding}px`;
+                modal.style.left = `${Math.max(padding, Math.min(rect.left, window.innerWidth - modalWidth - padding))}px`;
+                modal.style.top = 'auto';
+                modal.style.transform = 'none';
+                modal.style.right = 'auto';
+                break;
+            case 'left':
+                // Posicionar a la izquierda del elemento
+                modal.style.top = `${Math.max(padding, rect.top)}px`;
+                modal.style.right = `${window.innerWidth - rect.left + padding}px`;
+                modal.style.left = 'auto';
+                modal.style.transform = 'none';
+                modal.style.bottom = 'auto';
+                break;
+            case 'right':
+                // Posicionar a la derecha del elemento
+                modal.style.top = `${Math.max(padding, rect.top)}px`;
+                let leftPos = rect.right + padding;
+                // Si se sale por la derecha, posicionar a la izquierda
+                if (leftPos + modalWidth > window.innerWidth) {
+                    modal.style.right = `${window.innerWidth - rect.left + padding}px`;
                     modal.style.left = 'auto';
-                    modal.style.transform = 'none';
-                    break;
-                case 'right':
-                    modal.style.top = `${rect.top}px`;
-                    modal.style.left = `${rect.right + 20}px`;
-                    modal.style.transform = 'none';
-                    break;
-            }
+                } else {
+                    modal.style.left = `${leftPos}px`;
+                    modal.style.right = 'auto';
+                }
+                modal.style.transform = 'none';
+                modal.style.bottom = 'auto';
+                break;
         }
     }
 }
@@ -600,12 +634,12 @@ export function initTour() {
 function loadLinearDataForTour() {
     // Datos de ejemplo para función lineal: y = 2x + 1
     const linearData = [
-        { x: 0, y: 1, dx: 0.1, dy: 0.2 },
-        { x: 1, y: 3, dx: 0.1, dy: 0.2 },
-        { x: 2, y: 5, dx: 0.1, dy: 0.3 },
-        { x: 3, y: 7, dx: 0.1, dy: 0.2 },
-        { x: 4, y: 9, dx: 0.1, dy: 0.3 },
-        { x: 5, y: 11, dx: 0.1, dy: 0.2 }
+        { x: 0, y: 1, xError: 0.1, yError: 0.2 },
+        { x: 1, y: 3, xError: 0.1, yError: 0.2 },
+        { x: 2, y: 5, xError: 0.1, yError: 0.3 },
+        { x: 3, y: 7, xError: 0.1, yError: 0.2 },
+        { x: 4, y: 9, xError: 0.1, yError: 0.3 },
+        { x: 5, y: 11, xError: 0.1, yError: 0.2 }
     ];
 
     // Usar AppState global si está disponible, sino el importado
@@ -613,33 +647,28 @@ function loadLinearDataForTour() {
 
     // Limpiar series existentes
     state.series = [];
-    state.serieCounter = 0;
+    state.nextId = 0;
 
     // Agregar nueva serie
     const serie = {
-        id: state.serieCounter++,
+        id: state.nextId++,
         name: 'Datos Lineales',
         data: linearData,
         color: '#3498db',
-        fitType: 'linear'
+        fitType: 'linear',
+        equation: '',
+        r2: null
     };
 
     state.series.push(serie);
 
-    // Actualizar UI y Gráfica
+    // Actualizar UI de series (esto renderizará el select con el valor correcto)
     if (typeof renderSeries === 'function') renderSeries();
     else if (typeof window.renderSeries === 'function') window.renderSeries();
 
+    // Actualizar gráfica
     if (typeof updateChart === 'function') updateChart();
     else if (typeof window.updateChart === 'function') window.updateChart();
-
-    // Scroll al panel de series para mostrar que se cargaron
-    setTimeout(() => {
-        const seriesContainer = document.getElementById('series-container'); // Corregido ID
-        if (seriesContainer) {
-            seriesContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }, 100);
 
     console.log('✓ Datos lineales cargados para el tour');
 }
@@ -650,12 +679,12 @@ function loadLinearDataForTour() {
 function loadQuadraticDataForTour() {
     // Datos de ejemplo para función cuadrática: y = x² - 2x + 1
     const quadraticData = [
-        { x: 0, y: 1, dx: 0.1, dy: 0.2 },
-        { x: 1, y: 0, dx: 0.1, dy: 0.2 },
-        { x: 2, y: 1, dx: 0.1, dy: 0.2 },
-        { x: 3, y: 4, dx: 0.1, dy: 0.3 },
-        { x: 4, y: 9, dx: 0.1, dy: 0.3 },
-        { x: 5, y: 16, dx: 0.1, dy: 0.4 }
+        { x: 0, y: 1, xError: 0.1, yError: 0.2 },
+        { x: 1, y: 0, xError: 0.1, yError: 0.2 },
+        { x: 2, y: 1, xError: 0.1, yError: 0.2 },
+        { x: 3, y: 4, xError: 0.1, yError: 0.3 },
+        { x: 4, y: 9, xError: 0.1, yError: 0.3 },
+        { x: 5, y: 16, xError: 0.1, yError: 0.4 }
     ];
 
     // Usar AppState global si está disponible, sino el importado
@@ -663,29 +692,24 @@ function loadQuadraticDataForTour() {
 
     // Agregar segunda serie
     const serie = {
-        id: state.serieCounter++,
+        id: state.nextId++,
         name: 'Datos Cuadráticos',
         data: quadraticData,
         color: '#e74c3c',
-        fitType: 'polynomial2'
+        fitType: 'poly2',
+        equation: '',
+        r2: null
     };
 
     state.series.push(serie);
 
-    // Actualizar UI y Gráfica
+    // Actualizar UI de series (esto renderizará el select con el valor correcto)
     if (typeof renderSeries === 'function') renderSeries();
     else if (typeof window.renderSeries === 'function') window.renderSeries();
 
+    // Actualizar gráfica
     if (typeof updateChart === 'function') updateChart();
     else if (typeof window.updateChart === 'function') window.updateChart();
-
-    // Scroll al panel de series
-    setTimeout(() => {
-        const seriesContainer = document.getElementById('series-container'); // Corregido ID
-        if (seriesContainer) {
-            seriesContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }, 100);
 
     console.log('✓ Datos cuadráticos cargados para el tour');
 }
