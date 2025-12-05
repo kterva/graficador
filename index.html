@@ -700,6 +700,7 @@
                     <div style="margin-bottom: 15px;">
                         <label style="font-weight: bold; display: block; margin-bottom: 5px;">Expresión:</label>
                         <input type="text" id="dimExpression" placeholder="ej: velocidad * tiempo"
+                            onkeydown="if(event.key==='Enter'){analyzeDimension();}"
                             style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em;">
                         <small style="color: #666; display: block; margin-top: 5px;">
                             Operadores: * (multiplicar), / (dividir), ^ (potencia)
