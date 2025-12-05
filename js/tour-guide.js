@@ -625,12 +625,12 @@ export function initTour() {
 function loadLinearDataForTour() {
     // Datos de ejemplo para función lineal: y = 2x + 1
     const linearData = [
-        { x: 0, y: 1, dx: 0.1, dy: 0.2 },
-        { x: 1, y: 3, dx: 0.1, dy: 0.2 },
-        { x: 2, y: 5, dx: 0.1, dy: 0.3 },
-        { x: 3, y: 7, dx: 0.1, dy: 0.2 },
-        { x: 4, y: 9, dx: 0.1, dy: 0.3 },
-        { x: 5, y: 11, dx: 0.1, dy: 0.2 }
+        { x: 0, y: 1, xError: 0.1, yError: 0.2 },
+        { x: 1, y: 3, xError: 0.1, yError: 0.2 },
+        { x: 2, y: 5, xError: 0.1, yError: 0.3 },
+        { x: 3, y: 7, xError: 0.1, yError: 0.2 },
+        { x: 4, y: 9, xError: 0.1, yError: 0.3 },
+        { x: 5, y: 11, xError: 0.1, yError: 0.2 }
     ];
 
     // Usar AppState global si está disponible, sino el importado
@@ -638,30 +638,24 @@ function loadLinearDataForTour() {
 
     // Limpiar series existentes
     state.series = [];
-    state.serieCounter = 0;
+    state.nextId = 0;
 
     // Agregar nueva serie
     const serie = {
-        id: state.serieCounter++,
+        id: state.nextId++,
         name: 'Datos Lineales',
         data: linearData,
         color: '#3498db',
-        fitType: 'linear'
+        fitType: 'linear',
+        equation: '',
+        r2: null
     };
 
     state.series.push(serie);
 
-    // Actualizar UI de series
+    // Actualizar UI de series (esto renderizará el select con el valor correcto)
     if (typeof renderSeries === 'function') renderSeries();
     else if (typeof window.renderSeries === 'function') window.renderSeries();
-
-    // Actualizar el dropdown de tipo de ajuste en la primera serie
-    setTimeout(() => {
-        const fitTypeSelect = document.querySelector(`#fit-type-${serie.id}`);
-        if (fitTypeSelect) {
-            fitTypeSelect.value = 'linear';
-        }
-    }, 50);
 
     // Actualizar gráfica
     if (typeof updateChart === 'function') updateChart();
@@ -676,12 +670,12 @@ function loadLinearDataForTour() {
 function loadQuadraticDataForTour() {
     // Datos de ejemplo para función cuadrática: y = x² - 2x + 1
     const quadraticData = [
-        { x: 0, y: 1, dx: 0.1, dy: 0.2 },
-        { x: 1, y: 0, dx: 0.1, dy: 0.2 },
-        { x: 2, y: 1, dx: 0.1, dy: 0.2 },
-        { x: 3, y: 4, dx: 0.1, dy: 0.3 },
-        { x: 4, y: 9, dx: 0.1, dy: 0.3 },
-        { x: 5, y: 16, dx: 0.1, dy: 0.4 }
+        { x: 0, y: 1, xError: 0.1, yError: 0.2 },
+        { x: 1, y: 0, xError: 0.1, yError: 0.2 },
+        { x: 2, y: 1, xError: 0.1, yError: 0.2 },
+        { x: 3, y: 4, xError: 0.1, yError: 0.3 },
+        { x: 4, y: 9, xError: 0.1, yError: 0.3 },
+        { x: 5, y: 16, xError: 0.1, yError: 0.4 }
     ];
 
     // Usar AppState global si está disponible, sino el importado
@@ -689,26 +683,20 @@ function loadQuadraticDataForTour() {
 
     // Agregar segunda serie
     const serie = {
-        id: state.serieCounter++,
+        id: state.nextId++,
         name: 'Datos Cuadráticos',
         data: quadraticData,
         color: '#e74c3c',
-        fitType: 'polynomial2'
+        fitType: 'poly2',
+        equation: '',
+        r2: null
     };
 
     state.series.push(serie);
 
-    // Actualizar UI de series
+    // Actualizar UI de series (esto renderizará el select con el valor correcto)
     if (typeof renderSeries === 'function') renderSeries();
     else if (typeof window.renderSeries === 'function') window.renderSeries();
-
-    // Actualizar el dropdown de tipo de ajuste en la segunda serie
-    setTimeout(() => {
-        const fitTypeSelect = document.querySelector(`#fit-type-${serie.id}`);
-        if (fitTypeSelect) {
-            fitTypeSelect.value = 'polynomial2';
-        }
-    }, 50);
 
     // Actualizar gráfica
     if (typeof updateChart === 'function') updateChart();
