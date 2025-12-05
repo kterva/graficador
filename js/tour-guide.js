@@ -185,11 +185,37 @@ const TOUR_STEPS = [
         buttons: [
             { text: 'Atrás', action: 'back', secondary: true },
             { text: 'Siguiente', action: 'next' }
+        ],
+        action: () => {
+            // Asegurar que el modal esté cerrado si volvemos atrás
+            if (window.closeDimensionalAnalysisModal) {
+                window.closeDimensionalAnalysisModal();
+            }
+        }
+    },
+    {
+        id: 'dimensional-analysis',
+        title: 'Paso 9: Análisis Dimensional 🔬',
+        content: `
+            <p>¡Nueva funcionalidad! Verifica la coherencia de tus ecuaciones.</p>
+            <p>Escribe expresiones como <strong>velocidad * tiempo</strong> y obtén las unidades S.I. correctas.</p>
+            <p>El sistema soporta notación científica y superíndices automáticos.</p>
+        `,
+        highlight: '#dimensionalAnalysisModal',
+        position: 'center',
+        action: () => {
+            if (window.openDimensionalAnalysisModal) {
+                window.openDimensionalAnalysisModal();
+            }
+        },
+        buttons: [
+            { text: 'Atrás', action: 'back', secondary: true },
+            { text: 'Siguiente', action: 'next' }
         ]
     },
     {
         id: 'share-present',
-        title: 'Paso 9: Compartir y Presentar 🔗📺',
+        title: 'Paso 10: Compartir y Presentar 🔗📺',
         content: `
             <p>Finalmente, puedes:</p>
             <ul>
@@ -200,6 +226,12 @@ const TOUR_STEPS = [
         `,
         highlight: 'header',
         position: 'bottom',
+        action: () => {
+            // Cerrar modal al avanzar
+            if (window.closeDimensionalAnalysisModal) {
+                window.closeDimensionalAnalysisModal();
+            }
+        },
         buttons: [
             { text: 'Atrás', action: 'back', secondary: true },
             { text: 'Siguiente', action: 'next' }
