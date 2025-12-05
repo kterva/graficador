@@ -3,7 +3,9 @@
 // CONFIGURACIÓN DE GRÁFICA
 // ============================================
 
-function toggleConfigPanel() {
+import { AppState } from './state.js';
+
+export function toggleConfigPanel() {
     const content = document.getElementById('config-panel-content');
     const icon = document.getElementById('config-toggle-icon');
     if (content.style.display === 'none') {
@@ -18,7 +20,7 @@ function toggleConfigPanel() {
 /**
  * Toggle mobile menu visibility
  */
-function toggleMobileMenu() {
+export function toggleMobileMenu() {
     const menu = document.getElementById('headerMenu');
     const btn = document.getElementById('mobileMenuBtn');
 
@@ -35,7 +37,8 @@ function toggleMobileMenu() {
     }
 }
 
-function updateChartConfig() {
+export function updateChartConfig() {
+    const chart = AppState.chart;
     if (!chart) return;
 
     // Título
@@ -83,7 +86,7 @@ function updateChartConfig() {
 /**
  * Toggle intersection display based on checkbox
  */
-function toggleIntersection() {
+export function toggleIntersection() {
     const checkbox = document.getElementById('showIntersectionCheck');
     const display = document.getElementById('intersection-display');
 
@@ -101,7 +104,7 @@ function toggleIntersection() {
 /**
  * Calcular y mostrar punto de intersección entre dos series
  */
-function showIntersection() {
+export function showIntersection() {
     const display = document.getElementById('intersection-display');
     const content = document.getElementById('intersection-content');
 
