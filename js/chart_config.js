@@ -15,6 +15,26 @@ function toggleConfigPanel() {
     }
 }
 
+/**
+ * Toggle mobile menu visibility
+ */
+function toggleMobileMenu() {
+    const menu = document.getElementById('headerMenu');
+    const btn = document.getElementById('mobileMenuBtn');
+
+    if (!menu) return;
+
+    if (menu.style.display === 'none' || menu.classList.contains('mobile-hidden')) {
+        menu.style.display = 'flex';
+        menu.classList.remove('mobile-hidden');
+        if (btn) btn.textContent = '✕';
+    } else {
+        menu.style.display = 'none';
+        menu.classList.add('mobile-hidden');
+        if (btn) btn.textContent = '☰';
+    }
+}
+
 function updateChartConfig() {
     if (!chart) return;
 
@@ -58,4 +78,90 @@ function updateChartConfig() {
     chart.options.scales.y.grid.display = showGridY;
 
     chart.update();
+}
+
+/**
+ * Toggle intersection display based on checkbox
+ */
+function toggleIntersection() {
+    const checkbox = document.getElementById('showIntersectionCheck');
+    const display = document.getElementById('intersection-display');
+
+    if (!display) return;
+
+    if (checkbox && checkbox.checked) {
+        // Calcular y mostrar intersección
+        showIntersection();
+    } else {
+        // Ocultar
+        display.style.display = 'none';
+    }
+}
+
+/**
+ * Calcular y mostrar punto de intersección entre dos series
+ */
+function showIntersection() {
+    const display = document.getElementById('intersection-display');
+    const content = document.getElementById('intersection-content');
+
+    if (!display || !content || !window.AppState) return;
+
+    const series = window.AppState.series;
+
+    if (series.length < 2) {
+        content.innerHTML = '<p style="color: #e67e22;">⚠️ Necesitas al menos 2 series para calcular la intersección.</p>';
+        display.style.display = 'block';
+        return;
+    }
+
+    // Obtener los ajustes de las primeras dos series con ajuste lineal
+    const linearSeries = series.filter(s => s.fitType === 'linear' && s.data.filter(p => p.x !== '' && p.y !== '').length >= 2);
+
+    if (linearSeries.length < 2) {
+        content.innerHTML = '<p style="color: #e67e22;">⚠️ Necesitas al menos 2 series con ajuste lineal para calcular la intersección.</p>';
+        display.style.display = 'block';
+        return;
+    }
+
+    // Calcular coeficientes de las dos primeras series lineales
+    const s1 = linearSeries[0];
+    const s2 = linearSeries[1];
+
+    const data1 = s1.data.filter(p => p.x !== '' && p.y !== '').map(p => ({ x: parseFloat(p.x), y: parseFloat(p.y) }));
+    const data2 = s2.data.filter(p => p.x !== '' && p.y !== '').map(p => ({ x: parseFloat(p.x), y: parseFloat(p.y) }));
+
+    // Regresión lineal simple: y = ax + b
+    const regress = (data) => {
+        const n = data.length;
+        const sumX = data.reduce((s, p) => s + p.x, 0);
+        const sumY = data.reduce((s, p) => s + p.y, 0);
+        const sumXY = data.reduce((s, p) => s + p.x * p.y, 0);
+        const sumX2 = data.reduce((s, p) => s + p.x * p.x, 0);
+        const a = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+        const b = (sumY - a * sumX) / n;
+        return { a, b };
+    };
+
+    const r1 = regress(data1);
+    const r2 = regress(data2);
+
+    // Intersección: a1*x + b1 = a2*x + b2  =>  x = (b2 - b1) / (a1 - a2)
+    if (Math.abs(r1.a - r2.a) < 0.0001) {
+        content.innerHTML = '<p style="color: #e67e22;">⚠️ Las rectas son paralelas (misma pendiente), no hay intersección.</p>';
+        display.style.display = 'block';
+        return;
+    }
+
+    const xInt = (r2.b - r1.b) / (r1.a - r2.a);
+    const yInt = r1.a * xInt + r1.b;
+
+    content.innerHTML = `
+        <p><strong>Series:</strong> ${s1.name} ∩ ${s2.name}</p>
+        <p style="font-size: 1.2em; margin-top: 10px;">
+            <strong>X = ${xInt.toFixed(4)}</strong><br>
+            <strong>Y = ${yInt.toFixed(4)}</strong>
+        </p>
+    `;
+    display.style.display = 'block';
 }
