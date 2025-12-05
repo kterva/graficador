@@ -5,10 +5,13 @@
 
 function toggleConfigPanel() {
     const content = document.getElementById('config-panel-content');
+    const icon = document.getElementById('config-toggle-icon');
     if (content.style.display === 'none') {
         content.style.display = 'block';
+        if (icon) icon.textContent = '▲';
     } else {
         content.style.display = 'none';
+        if (icon) icon.textContent = '▼';
     }
 }
 

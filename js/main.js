@@ -108,6 +108,10 @@ window.AppState = AppState;
  */
 document.addEventListener('DOMContentLoaded', () => {
     initChart();
+
+    // Crear primera serie automáticamente para que el usuario vea la tabla desde el inicio
+    addSerie();
+
     initKeyboardShortcuts();
     initPresentationMode();
     initShareManager(); // Cargar datos desde URL si existe
