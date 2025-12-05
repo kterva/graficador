@@ -24,9 +24,17 @@
 <body>
     <div class="container" role="main">
         <header role="banner"
-            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
             <h1>📊 Graficador de Funciones</h1>
-            <div style="display: flex; gap: 10px; align-items: center;">
+
+            <!-- Botón hamburguesa (solo visible en móvil) -->
+            <button id="mobileMenuBtn" onclick="toggleMobileMenu()"
+                style="display: none; background: #667eea; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-size: 20px; cursor: pointer;">
+                ☰
+            </button>
+
+            <!-- Menú del header (colapsable en móvil) -->
+            <div id="headerMenu" style="display: flex; gap: 10px; align-items: center;">
                 <!-- Menú de Herramientas -->
                 <nav aria-label="Menú de herramientas" style="position: relative;">
                     <button class="btn btn-secondary" onclick="toggleToolsMenu()"
@@ -40,13 +48,13 @@
                         <div style="padding: 10px; border-bottom: 2px solid #eee;">
                             <strong style="color: #6c5ce7;">🧰 Herramientas Disponibles</strong>
                         </div>
-                        <button onclick="openErrorPropagationModal()" role="menuitem"
+                        <button onclick="openErrorPropagationModal(); toggleToolsMenu();" role="menuitem"
                             aria-label="Abrir calculadora de propagación de errores" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
                             cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee;"
                             onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
                             📐 Propagación de Errores
                         </button>
-                        <button onclick="openDimensionalAnalysisModal()" role="menuitem"
+                        <button onclick="openDimensionalAnalysisModal(); toggleToolsMenu();" role="menuitem"
                             aria-label="Abrir análisis dimensional" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
                             cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee;"
                             onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
@@ -55,18 +63,18 @@
                         <button onclick="alert('Plantillas próximamente...')" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
                             cursor: pointer; transition: background 0.2s; color: #999;"
                             onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
-                            🧪 Plantillas de Experimentos <span style="font-size: 0.8em;">(próximamente)</span>
+                            🧪 Plantillas <span style="font-size: 0.8em;">(próximamente)</span>
                         </button>
                     </div>
                 </nav>
 
                 <input type="file" id="project-file-input" style="display:none" accept=".json"
                     onchange="importProject()">
-                <button class="btn btn-primary" onclick="exportProject()">💾 Guardar Proyecto</button>
-                <button class="btn btn-success" onclick="triggerImportProject()">📂 Cargar Proyecto</button>
+                <button class="btn btn-primary" onclick="exportProject()">💾 Guardar</button>
+                <button class="btn btn-success" onclick="triggerImportProject()">📂 Cargar</button>
                 <button class="btn btn-secondary" onclick="togglePresentationMode()" title="Modo presentación (Alt+P)"
                     style="background-color: #9b59b6; border: none;">
-                    📺 Presentación
+                    📺 Presentar
                 </button>
                 <button class="btn btn-secondary" onclick="copyShareURL()" title="Generar URL compartible"
                     style="background-color: #3498db; border: none;">
@@ -264,7 +272,14 @@
                             <div class="config-group">
                                 <label>
                                     <input type="checkbox" id="showUncertaintyLines" onchange="updateChart()"> Mostrar
-                                    Incertidumbre (Pendiente Máx/Mín)
+                                    pendiente máx. y mín.
+                                </label>
+                            </div>
+                            <div class="config-group">
+                                <label>
+                                    <input type="checkbox" id="showIntersectionCheck" onchange="toggleIntersection()">
+                                    Mostrar
+                                    intersección
                                 </label>
                             </div>
                         </div>
@@ -272,14 +287,16 @@
                 </div>
 
                 <div class="controls" style="margin-top: 10px;">
-                    <button class="btn btn-primary" onclick="zoomIn()">🔍+ Acercar</button>
-                    <button class="btn btn-primary" onclick="zoomOut()">🔍- Alejar</button>
-                    <button class="btn btn-primary" onclick="resetZoom()">🔄 Restablecer Zoom</button>
-                    <span style="margin-left: 10px; margin-right: 5px;">Exportar:</span>
-                    <button class="btn btn-primary" onclick="downloadChartPNG()">PNG</button>
-                    <button class="btn btn-primary" onclick="downloadChartPDF()">PDF</button>
-                    <!-- SVG requiere lógica compleja con Chart.js canvas, lo dejaremos para fase 2 o usaremos un hack -->
-                    <button class="btn btn-success" onclick="showIntersection()">Mostrar Intersección</button>
+                    <div class="zoom-buttons" style="display: inline-flex; gap: 5px; margin-bottom: 10px;">
+                        <button class="btn btn-primary" onclick="zoomIn()">🔍+ Acercar</button>
+                        <button class="btn btn-primary" onclick="zoomOut()">🔍- Alejar</button>
+                        <button class="btn btn-primary" onclick="resetZoom()">🔄 Restablecer</button>
+                    </div>
+                    <div class="export-buttons" style="display: inline-flex; gap: 5px; margin-left: 10px;">
+                        <span style="margin-right: 5px;">Exportar:</span>
+                        <button class="btn btn-primary" onclick="downloadChartPNG()">PNG</button>
+                        <button class="btn btn-primary" onclick="downloadChartPDF()">PDF</button>
+                    </div>
                 </div>
 
                 <!-- Área de intersección -->
