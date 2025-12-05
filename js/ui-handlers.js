@@ -211,7 +211,7 @@ export function toggleTangent() {
 export function updateTangentFromSlider() {
     AppState.tools.tangentX = parseFloat(document.getElementById('tangentSlider').value);
     document.getElementById('tangentXInput').value = AppState.tools.tangentX.toFixed(4);
-    updateChart();
+    updateChart('none');
 }
 
 /**
