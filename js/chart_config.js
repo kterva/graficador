@@ -26,9 +26,15 @@ function updateChartConfig() {
     // Ejes
     const labelX = document.getElementById('labelX').value;
     const labelY = document.getElementById('labelY').value;
+    const unitX = document.getElementById('unitX')?.value || '';
+    const unitY = document.getElementById('unitY')?.value || '';
 
-    chart.options.scales.x.title.text = labelX;
-    chart.options.scales.y.title.text = labelY;
+    // Formatear etiquetas con unidades: "Etiqueta (unidad)"
+    const xAxisLabel = unitX ? `${labelX} (${unitX})` : labelX;
+    const yAxisLabel = unitY ? `${labelY} (${unitY})` : labelY;
+
+    chart.options.scales.x.title.text = xAxisLabel;
+    chart.options.scales.y.title.text = yAxisLabel;
 
     // Límites
     const minX = document.getElementById('minX').value;
