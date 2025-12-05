@@ -236,17 +236,67 @@ select {
 }
 
 /* ============================================
+   SISTEMA DE AYUDA
+   ============================================ */
+
+#helpButton {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+#helpButton:hover {
+    transform: scale(1.1);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.help-tab.active {
+    border-bottom: 3px solid #667eea !important;
+    color: #667eea !important;
+}
+
+.help-tab:hover {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+/* ============================================
    RESPONSIVE - DISPOSITIVOS MÓVILES
    ============================================ */
 
-@media (max-width: 768px) {
+/* ============================================
+   RESPONSIVE - DISPOSITIVOS MÓVILES
+   ============================================ */
+
+/* Tablet y Móvil (hasta 1024px) */
+@media (max-width: 1024px) {
 
     /* Ajustar padding del body */
     body {
         padding: 10px;
     }
 
-    /* Ajustar padding del container */
     .container {
         padding: 15px;
     }
@@ -259,37 +309,94 @@ select {
 
     /* Header en columna para móvil */
     header {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 15px;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 10px;
     }
 
     header h1 {
-        text-align: center;
         font-size: 16px;
+        flex: 1;
     }
 
-    /* Botones del header en grid */
-    header>div {
-        display: grid !important;
-        grid-template-columns: repeat(2, 1fr) !important;
+    /* Mostrar botón hamburguesa en móvil */
+    #mobileMenuBtn {
+        display: block !important;
+    }
+
+    /* Menú del header colapsado por defecto en móvil */
+    /* Menú del header estilo "Popover" */
+    #headerMenu {
+        display: none;
+        position: absolute;
+        top: 60px;
+        right: 10px;
+        width: 220px !important;
+        flex-direction: column !important;
         gap: 8px !important;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        z-index: 2000;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        animation: menuSlideIn 0.2s ease-out;
     }
 
-    header>div .btn,
-    header>div button {
-        font-size: 12px !important;
-        padding: 10px 8px !important;
-        white-space: nowrap;
+    @keyframes menuSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
     }
 
-    /* Menú de herramientas ocupa todo el ancho */
-    header>div nav {
-        grid-column: 1 / -1;
+    /* Botones dentro del menú popover */
+    #headerMenu .btn,
+    #headerMenu button {
+        width: 100% !important;
+        margin: 0 !important;
+        text-align: left;
+        display: block;
+        background: rgba(255, 255, 255, 0.15) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        backdrop-filter: blur(5px);
+        transition: all 0.2s ease;
     }
 
-    header>div nav button {
+    #headerMenu .btn:hover,
+    #headerMenu button:hover {
+        background: rgba(255, 255, 255, 0.25) !important;
+        transform: translateX(5px);
+    }
+
+    /* Ajustar el contenedor de herramientas dentro del menú */
+    #headerMenu nav {
         width: 100%;
+    }
+
+
+
+    /* Menú de herramientas posicionado correctamente */
+    #toolsMenu {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 15px 15px 0 0 !important;
+        max-height: 50vh;
+        overflow-y: auto;
+        z-index: 2000 !important;
     }
 
     /* Intro section más compacta */
@@ -457,19 +564,6 @@ select {
         bottom: 15px !important;
         right: 15px !important;
     }
-
-    /* Herramientas dropdown a pantalla completa */
-    #toolsMenu {
-        position: fixed !important;
-        top: auto !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        width: 100% !important;
-        border-radius: 15px 15px 0 0 !important;
-        max-height: 60vh;
-        overflow-y: auto;
-    }
 }
 
 /* Para pantallas muy pequeñas (< 480px) */
@@ -532,31 +626,6 @@ select {
     }
 }
 
-/* ============================================
-   SISTEMA DE AYUDA
-   ============================================ */
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-50px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.help-tab.active {
-    border-bottom: 3px solid #667eea !important;
-    color: #667eea !important;
-}
-
-.help-tab:hover {
-    background: rgba(102, 126, 234, 0.1);
-}
-
 /* Cursor para gráfica con pan habilitado */
 #myChart {
     cursor: grab;
@@ -564,4 +633,96 @@ select {
 
 #myChart:active {
     cursor: grabbing;
+}
+
+/* ============================================
+   DESKTOP OVERRIDES (Fix for layout regression)
+   ============================================ */
+@media (min-width: 1025px) {
+
+    /* Restore 2-column layout */
+    .layout {
+        grid-template-columns: 400px 1fr !important;
+        gap: 30px !important;
+    }
+
+    /* Reset header menu to normal flow */
+    #headerMenu {
+        display: flex !important;
+        position: static !important;
+        width: auto !important;
+        flex-direction: row !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        gap: 10px !important;
+        margin-top: 0 !important;
+        border-top: none !important;
+        animation: none !important;
+    }
+
+    /* Reset buttons in header */
+    #headerMenu .btn,
+    #headerMenu button {
+        width: auto !important;
+        margin: 0 5px !important;
+        text-align: center !important;
+        border: none !important;
+        display: inline-block !important;
+        backdrop-filter: none !important;
+        color: white !important;
+    }
+
+    /* Restore specific button colors */
+    /* Herramientas */
+    #headerMenu nav button {
+        background-color: #6c5ce7 !important;
+    }
+
+    #headerMenu nav button:hover {
+        background-color: #5a4ad1 !important;
+    }
+
+    /* Guardar */
+    #headerMenu .btn-primary {
+        background-color: #3498db !important;
+    }
+
+    #headerMenu .btn-primary:hover {
+        background-color: #2980b9 !important;
+    }
+
+    /* Cargar */
+    #headerMenu .btn-success {
+        background-color: #27ae60 !important;
+    }
+
+    #headerMenu .btn-success:hover {
+        background-color: #229954 !important;
+    }
+
+    /* Presentar */
+    #headerMenu button[onclick*="togglePresentationMode"] {
+        background-color: #9b59b6 !important;
+    }
+
+    #headerMenu button[onclick*="togglePresentationMode"]:hover {
+        background-color: #8e44ad !important;
+    }
+
+    /* Compartir */
+    #headerMenu button[onclick*="copyShareURL"] {
+        background-color: #3498db !important;
+    }
+
+    #headerMenu button[onclick*="copyShareURL"]:hover {
+        background-color: #2980b9 !important;
+    }
+
+    /* Hover effects generic */
+    #headerMenu .btn:hover,
+    #headerMenu button:hover {
+        transform: scale(1.05) !important;
+    }
 }

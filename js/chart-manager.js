@@ -73,6 +73,7 @@ export function initChart() {
             scales: {
                 x: {
                     type: 'linear',
+                    beginAtZero: true,
                     position: 'bottom',
                     title: {
                         display: false, // Ocultamos el título original, lo dibujará el plugin
@@ -87,6 +88,7 @@ export function initChart() {
                     }
                 },
                 y: {
+                    beginAtZero: true,
                     title: {
                         display: false, // Ocultamos el título original, lo dibujará el plugin
                         text: 'Y'
@@ -152,7 +154,7 @@ export function getDataRange() {
 /**
  * Actualiza el gráfico con los datos actuales
  */
-export function updateChart() {
+export function updateChart(animationMode) {
     const datasets = [];
     const showUncertaintyLines = document.getElementById('showUncertaintyLines').checked;
 
@@ -299,8 +301,17 @@ export function updateChart() {
                         y0 = coeffs[0] * AppState.tools.tangentX * AppState.tools.tangentX + coeffs[1] * AppState.tools.tangentX + coeffs[2];
                     }
 
-                    const x1 = AppState.tools.tangentX - deltaX;
-                    const x2 = AppState.tools.tangentX + deltaX;
+                    // Clampear la tangente a los límites de los datos para evitar que el gráfico se estire
+                    const dataXs = validData.map(p => p.x);
+                    const dataMin = Math.min(...dataXs);
+                    const dataMax = Math.max(...dataXs);
+
+                    let x1 = AppState.tools.tangentX - deltaX;
+                    let x2 = AppState.tools.tangentX + deltaX;
+
+                    if (x1 < dataMin) x1 = dataMin;
+                    if (x2 > dataMax) x2 = dataMax;
+
                     const y1 = slope * (x1 - AppState.tools.tangentX) + y0;
                     const y2 = slope * (x2 - AppState.tools.tangentX) + y0;
 
@@ -459,7 +470,7 @@ export function updateChart() {
     });
 
     AppState.chart.data.datasets = datasets;
-    AppState.chart.update();
+    AppState.chart.update(animationMode);
 }
 
 /**

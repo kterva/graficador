@@ -24,9 +24,17 @@
 <body>
     <div class="container" role="main">
         <header role="banner"
-            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
             <h1>📊 Graficador de Funciones</h1>
-            <div style="display: flex; gap: 10px; align-items: center;">
+
+            <!-- Botón hamburguesa (solo visible en móvil) -->
+            <button id="mobileMenuBtn" onclick="toggleMobileMenu()"
+                style="display: none; background: #667eea; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-size: 20px; cursor: pointer;">
+                ☰
+            </button>
+
+            <!-- Menú del header (colapsable en móvil) -->
+            <div id="headerMenu" style="display: flex; gap: 10px; align-items: center;">
                 <!-- Menú de Herramientas -->
                 <nav aria-label="Menú de herramientas" style="position: relative;">
                     <button class="btn btn-secondary" onclick="toggleToolsMenu()"
@@ -40,13 +48,13 @@
                         <div style="padding: 10px; border-bottom: 2px solid #eee;">
                             <strong style="color: #6c5ce7;">🧰 Herramientas Disponibles</strong>
                         </div>
-                        <button onclick="openErrorPropagationModal()" role="menuitem"
+                        <button onclick="openErrorPropagationModal(); toggleToolsMenu();" role="menuitem"
                             aria-label="Abrir calculadora de propagación de errores" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
                             cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee;"
                             onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
                             📐 Propagación de Errores
                         </button>
-                        <button onclick="openDimensionalAnalysisModal()" role="menuitem"
+                        <button onclick="openDimensionalAnalysisModal(); toggleToolsMenu();" role="menuitem"
                             aria-label="Abrir análisis dimensional" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
                             cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee;"
                             onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
@@ -55,18 +63,18 @@
                         <button onclick="alert('Plantillas próximamente...')" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
                             cursor: pointer; transition: background 0.2s; color: #999;"
                             onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
-                            🧪 Plantillas de Experimentos <span style="font-size: 0.8em;">(próximamente)</span>
+                            🧪 Plantillas <span style="font-size: 0.8em;">(próximamente)</span>
                         </button>
                     </div>
                 </nav>
 
                 <input type="file" id="project-file-input" style="display:none" accept=".json"
                     onchange="importProject()">
-                <button class="btn btn-primary" onclick="exportProject()">💾 Guardar Proyecto</button>
-                <button class="btn btn-success" onclick="triggerImportProject()">📂 Cargar Proyecto</button>
+                <button class="btn btn-primary" onclick="exportProject()">💾 Guardar</button>
+                <button class="btn btn-success" onclick="triggerImportProject()">📂 Cargar</button>
                 <button class="btn btn-secondary" onclick="togglePresentationMode()" title="Modo presentación (Alt+P)"
                     style="background-color: #9b59b6; border: none;">
-                    📺 Presentación
+                    📺 Presentar
                 </button>
                 <button class="btn btn-secondary" onclick="copyShareURL()" title="Generar URL compartible"
                     style="background-color: #3498db; border: none;">
@@ -75,19 +83,7 @@
             </div>
         </header>
 
-        <div class="intro-section"
-            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <h3 style="margin-top: 0; font-size: 1.2em;">¿Qué puedes hacer?</h3>
-            <ul style="margin: 10px 0; padding-left: 20px; line-height: 1.6;">
-                <li>📈 <strong>Graficar datos experimentales</strong> con barras de error (Δx, Δy)</li>
-                <li>📐 <strong>Ajustes de regresión</strong>: lineal, polinomial, exponencial, logarítmica, potencial
-                </li>
-                <li>🔬 <strong>Análisis de incertidumbre</strong>: cálculo automático de pendientes máxima/mínima
-                    (método de extremos)</li>
-                <li>🎨 <strong>Personalización completa</strong>: títulos, etiquetas, límites de ejes, colores</li>
-                <li>💾 <strong>Exportación</strong>: PNG, PDF y proyectos guardables</li>
-            </ul>
-        </div>
+
 
         <div class="layout">
             <!-- Panel izquierdo: Series de datos -->
@@ -126,6 +122,22 @@
                         <button class="btn btn-secondary" onclick="loadTestData('uncertainty')"
                             style="background: #a8e6cf;">🎯 Con Incertidumbre</button>
                     </div>
+                </div>
+
+
+                <!-- 1. Zoom Controls -->
+                <div id="zoom-controls" class="panel" style="margin-top: 15px; border: 1px solid #ddd;">
+                    <h4 style="margin: 0 0 10px 0; color: #555; font-size: 14px;">🔍 Controles de Vista</h4>
+                    <div class="zoom-buttons" style="display: inline-flex; gap: 5px; margin-bottom: 10px;">
+                        <button class="btn btn-primary" onclick="zoomIn()">🔍+ Acercar</button>
+                        <button class="btn btn-primary" onclick="zoomOut()">🔍- Alejar</button>
+                        <button class="btn btn-primary" onclick="resetZoom()">🔄 Restablecer</button>
+                    </div>
+                </div>
+                <div id="intersection-display"
+                    style="display:none; background: #d5f4e6; padding: 15px; margin-top: 15px; border-radius: 5px; border: 2px solid #27ae60;">
+                    <h3 style="margin-bottom: 10px; color: #27ae60;">📍 Punto de Intersección</h3>
+                    <div id="intersection-content"></div>
                 </div>
 
                 <div class="panel" style="margin-top: 20px; border: 1px solid #ddd;">
@@ -264,33 +276,21 @@
                             <div class="config-group">
                                 <label>
                                     <input type="checkbox" id="showUncertaintyLines" onchange="updateChart()"> Mostrar
-                                    Incertidumbre (Pendiente Máx/Mín)
+                                    pendiente máx. y mín.
+                                </label>
+                            </div>
+                            <div class="config-group">
+                                <label>
+                                    <input type="checkbox" id="showIntersectionCheck" onchange="toggleIntersection()">
+                                    Mostrar
+                                    intersección
                                 </label>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="controls" style="margin-top: 10px;">
-                    <button class="btn btn-primary" onclick="zoomIn()">🔍+ Acercar</button>
-                    <button class="btn btn-primary" onclick="zoomOut()">🔍- Alejar</button>
-                    <button class="btn btn-primary" onclick="resetZoom()">🔄 Restablecer Zoom</button>
-                    <span style="margin-left: 10px; margin-right: 5px;">Exportar:</span>
-                    <button class="btn btn-primary" onclick="downloadChartPNG()">PNG</button>
-                    <button class="btn btn-primary" onclick="downloadChartPDF()">PDF</button>
-                    <!-- SVG requiere lógica compleja con Chart.js canvas, lo dejaremos para fase 2 o usaremos un hack -->
-                    <button class="btn btn-success" onclick="showIntersection()">Mostrar Intersección</button>
-                </div>
-
-                <!-- Área de intersección -->
-                <div id="intersection-display"
-                    style="display:none; background: #d5f4e6; padding: 15px; margin-top: 15px; border-radius: 5px; border: 2px solid #27ae60;">
-                    <h3 style="margin-bottom: 10px; color: #27ae60;">📍 Punto de Intersección</h3>
-                    <div id="intersection-content"></div>
-                </div>
-
-                <!-- Herramientas de Cálculo -->
-                <div class="card" style="margin-top: 20px; border-left: 5px solid #6c5ce7;">
+                <div class="panel" style="margin-top: 20px; border: 1px solid #ddd; border-left: 5px solid #6c5ce7;">
                     <h3 style="color: #6c5ce7;">🧮 Herramientas de Cálculo</h3>
 
                     <!-- Control de Tangente -->
@@ -342,14 +342,21 @@
                     </div>
 
                 </div>
+
+                <div id="export-section" class="panel"
+                    style="margin-top: 20px; border: 1px solid #ddd; display: flex; align-items: center; justify-content: flex-end;">
+                    <span style="margin-right: 10px; font-weight: bold; color: #555;">Exportar:</span>
+                    <div class="export-buttons" style="display: inline-flex; gap: 5px;">
+                        <button class="btn btn-primary" onclick="downloadChartPNG()">PNG</button>
+                        <button class="btn btn-primary" onclick="downloadChartPDF()">PDF</button>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Botón de Ayuda Flotante -->
-        <button id="helpButton" onclick="toggleHelpModal()" style="position: fixed; top: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; 
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; 
-                    font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; 
-                    transition: all 0.3s ease;">
+        <!-- Botón de Ayuda Flotante -->
+        <button id="helpButton" class="floating-help-btn" onclick="toggleHelpModal()">
             ?
         </button>
 
@@ -382,7 +389,11 @@
 
                 <!-- Pestañas -->
                 <div style="display: flex; border-bottom: 2px solid #eee; background: #f8f9fa;">
-                    <button class="help-tab active" onclick="switchHelpTab('quick')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; 
+                    <button class="help-tab active" onclick="switchHelpTab('intro')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; 
+                                font-weight: bold; transition: all 0.3s; border-bottom: 3px solid transparent;">
+                        👋 Introducción
+                    </button>
+                    <button class="help-tab" onclick="switchHelpTab('quick')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; 
                                 font-weight: bold; transition: all 0.3s; border-bottom: 3px solid transparent;">
                         🚀 Inicio Rápido
                     </button>
@@ -399,8 +410,26 @@
                 <!-- Contenido -->
                 <div style="padding: 30px; max-height: 500px; overflow-y: auto;">
 
+                    <!-- Pestaña: Introducción -->
+                    <div id="help-intro" class="help-content">
+                        <div
+                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                            <h3 style="margin-top: 0; font-size: 1.2em;">¿Qué puedes hacer?</h3>
+                            <ul style="margin: 10px 0; padding-left: 20px; line-height: 1.6;">
+                                <li>📈 <strong>Graficar datos experimentales</strong> con barras de error (Δx, Δy)</li>
+                                <li>📐 <strong>Ajustes de regresión</strong>: lineal, polinomial, exponencial,
+                                    logarítmica, potencial</li>
+                                <li>🔬 <strong>Análisis de incertidumbre</strong>: cálculo automático de pendientes
+                                    máxima/mínima (método de extremos)</li>
+                                <li>🎨 <strong>Personalización completa</strong>: títulos, etiquetas, límites de ejes,
+                                    colores</li>
+                                <li>💾 <strong>Exportación</strong>: PNG, PDF y proyectos guardables</li>
+                            </ul>
+                        </div>
+                    </div>
+
                     <!-- Pestaña: Inicio Rápido -->
-                    <div id="help-quick" class="help-content">
+                    <div id="help-quick" class="help-content" style="display: none;">
                         <h3 style="color: #667eea; margin-top: 0;">🎯 Primeros Pasos</h3>
 
                         <div
@@ -582,13 +611,10 @@
     <!-- Archivos que aún no son módulos (compatibilidad) -->
     <script src="js/axis_arrows_plugin.js"></script>
     <script src="js/project_manager.js"></script>
-    <script src="js/chart_config.js"></script>
+
     <script src="js/export_manager.js"></script>
 
-    <!-- Flag de desarrollo: cambiar a false para producción -->
-    <script>
-        window.IS_DEVELOPMENT = false;
-    </script>
+
 
     <!-- Carga condicional de herramientas de desarrollo -->
     <script>

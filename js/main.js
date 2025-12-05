@@ -15,6 +15,7 @@
 // ============================================
 
 import { initChart, updateChart, resetZoom, zoomIn, zoomOut } from './chart-manager.js';
+import { toggleMobileMenu, toggleConfigPanel, toggleIntersection, showIntersection, updateChartConfig } from './chart_config.js';
 import { AppState } from './state.js';
 import { initKeyboardShortcuts } from './keyboard-shortcuts.js';
 import { togglePresentationMode, initPresentationMode } from './presentation-mode.js';
@@ -95,6 +96,11 @@ window.copyShareURLAgain = copyShareURLAgain;
 window.openDimensionalAnalysisModal = openDimensionalAnalysisModal;
 window.closeDimensionalAnalysisModal = closeDimensionalAnalysisModal;
 window.analyzeDimension = analyzeDimension;
+window.toggleMobileMenu = toggleMobileMenu;
+window.toggleConfigPanel = toggleConfigPanel;
+window.toggleIntersection = toggleIntersection;
+window.showIntersection = showIntersection;
+window.updateChartConfig = updateChartConfig;
 
 // ============================================
 // INICIALIZACIÓN DE LA APLICACIÓN
