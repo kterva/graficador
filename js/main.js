@@ -41,6 +41,7 @@ import {
     toggleArea,
     calculateArea,
     toggleHelp,
+    toggleGenericHelp,
     toggleHelpModal,
     switchHelpTab,
     toggleErrorPropagation,
@@ -81,6 +82,7 @@ window.updateTangentFromInput = updateTangentFromInput;
 window.toggleArea = toggleArea;
 window.calculateArea = calculateArea;
 window.toggleHelp = toggleHelp;
+window.toggleGenericHelp = toggleGenericHelp;
 window.toggleHelpModal = toggleHelpModal;
 window.switchHelpTab = switchHelpTab;
 window.toggleErrorPropagation = toggleErrorPropagation;
