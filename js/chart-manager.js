@@ -52,7 +52,8 @@ export function initChart() {
                     pan: {
                         enabled: true,
                         mode: 'xy',
-                        modifierKey: null, // No requiere tecla modificadora, solo arrastrar
+                        modifierKey: null, // Permite arrastrar sin presionar teclas extra
+                        threshold: 10,     // Pequeña tolerancia para diferenciar click de arrastre
                         onPanStart: function ({ chart }) {
                             chart.canvas.style.cursor = 'grabbing';
                         },
