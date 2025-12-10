@@ -32,6 +32,9 @@ export function calculateDerivative(x, coeffs, type) {
         // y = ax^2 + bx + c -> y' = 2ax + b
         // coeffs = [a, b, c]
         return 2 * coeffs[0] * x + coeffs[1];
+    } else if (type === 'exponential') {
+        // y = ae^(bx) -> y' = ab e^(bx)
+        return coeffs.a * coeffs.b * Math.exp(coeffs.b * x);
     }
     return 0;
 }
@@ -53,6 +56,10 @@ export function calculateIntegral(x1, x2, coeffs, type) {
         // y = ax^2 + bx + c -> ∫y = (a/3)x^3 + (b/2)x^2 + cx
         const F = (x) => (coeffs[0] / 3) * Math.pow(x, 3) + (coeffs[1] / 2) * x * x + coeffs[2] * x;
         return F(x2) - F(x1);
+    } else if (type === 'exponential') {
+        // y = ae^(bx) -> ∫y = (a/b)e^(bx)
+        const F = (x) => (coeffs.a / coeffs.b) * Math.exp(coeffs.b * x);
+        return F(x2) - F(x1);
     }
     return 0;
 }
@@ -64,12 +71,15 @@ export function calculateIntegral(x1, x2, coeffs, type) {
  * @returns {Object|Array|null} Coeficientes de la regresión
  */
 export function getRegressionCoeffs(data, type) {
+    const xs = data.map(p => p.x);
+    const ys = data.map(p => p.y);
+
     if (type === 'linear') {
         return linearRegression(data); // Retorna {a, b, ...}
     } else if (type === 'poly2') {
-        const xs = data.map(p => p.x);
-        const ys = data.map(p => p.y);
         return polynomialRegression(xs, ys, 2); // Retorna [a, b, c]
+    } else if (type === 'exponential') {
+        return exponentialRegression(xs, ys); // Retorna {a, b}
     }
     return null;
 }

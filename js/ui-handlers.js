@@ -64,7 +64,6 @@ export function renderSeries() {
                 </tbody>
             </table>
             <button class="btn btn-primary" onclick="addRow(${serie.id})">+ Agregar Fila</button>
-            <button class="btn btn-primary" onclick="updateChart()">Graficar</button>
             
             <div class="equation-display" id="eq-${serie.id}" style="display:none;"></div>
         `;
@@ -103,7 +102,13 @@ export function renderTable(serieId) {
                        data-serie="${serieId}" data-row="${index}" data-col="3"
                        onkeydown="handleKeyDown(event, ${serieId}, ${index}, 3)"
                        onchange="updatePoint(${serieId}, ${index}, 'yError', this.value)" placeholder="0"></td>
-            <td><button class="btn btn-danger" onclick="removeRow(${serieId}, ${index})">×</button></td>
+            <td>
+                <div class="action-btn-group">
+                    <button class="btn btn-secondary btn-xs" onclick="moveRowUp(${serieId}, ${index})" ${index === 0 ? 'disabled' : ''} title="Subir">↑</button>
+                    <button class="btn btn-secondary btn-xs" onclick="moveRowDown(${serieId}, ${index})" ${index === serie.data.length - 1 ? 'disabled' : ''} title="Bajar">↓</button>
+                    <button class="btn btn-danger btn-xs" onclick="removeRow(${serieId}, ${index})" title="Eliminar">×</button>
+                </div>
+            </td>
         `;
     });
 }
@@ -483,6 +488,23 @@ export function clearTable(serieId) {
     }
 }
 
+/**
+ * Borra TODOS los datos de TODAS las series y reinicia el proyecto
+ */
+export function clearAllData() {
+    if (confirm('⚠️ DESTRUCTIVO: ¿Estás seguro de que quieres BORRAR TODO el proyecto? \nSe perderán todas las series y configuraciones.')) {
+        AppState.series = [];
+        AppState.serieCounter = 0;
+
+        // Agregar una serie vacía por defecto para que el usuario no quede en el limbo
+        addSerieData(); // Esta función ya existe en este módulo y usa AppState.
+
+        renderSeries();
+        updateChart();
+        import('./chart_config.js').then(mod => mod.updateChartConfig());
+    }
+}
+
 // ============================================
 // PROPAGACIÓN DE ERRORES
 // ============================================
@@ -612,10 +634,28 @@ export function updateAxisUnit(axis, newUnit) {
         // Verificar que las unidades sean de la misma categoría
         const currentCategory = detectCategory(currentUnit);
         if (currentCategory !== newCategory) {
-            alert(`No se puede convertir de ${getCategoryName(currentCategory)} a ${getCategoryName(newCategory)}`);
-            // Revertir selector
-            document.getElementById(`unit${axis.toUpperCase()}`).value = currentUnit;
-            return;
+            // Permitir corrección de etiqueta sin conversión
+            const confirmCorrection = confirm(`No se puede convertir matemáticamente de ${getCategoryName(currentCategory)} a ${getCategoryName(newCategory)}.\n\n¿Desea cambiar la UNIDAD (etiqueta) sin modificar los valores numéricos?\n(Útil si se equivocó al elegir la unidad inicial)`);
+
+            if (confirmCorrection) {
+                // Actualizar metadatos sin convertir datos
+                for (const serie of AppState.series) {
+                    if (!serie.units) serie.units = {};
+                    serie.units[axis] = {
+                        unit: newUnit,
+                        category: newCategory,
+                        original: newUnit
+                    };
+                }
+                // Actualizar etiquetas y gráfico
+                import('./chart_config.js').then(mod => mod.updateChartConfig());
+                updateChart();
+                return;
+            } else {
+                // Revertir selector
+                document.getElementById(`unit${axis.toUpperCase()}`).value = currentUnit;
+                return;
+            }
         }
 
         // Convertir todos los datos
@@ -868,4 +908,40 @@ export function analyzeDimension() {
             alert('Error al analizar la expresión: ' + error.message);
         }
     });
+}
+
+/**
+ * Mueve una fila de datos hacia arriba
+ * @param {number} serieId - ID de la serie
+ * @param {number} index - Índice de la fila
+ */
+export function moveRowUp(serieId, index) {
+    const serie = AppState.series.find(s => s.id === serieId);
+    if (!serie || index <= 0) return;
+
+    // Intercambiar datos
+    const temp = serie.data[index];
+    serie.data[index] = serie.data[index - 1];
+    serie.data[index - 1] = temp;
+
+    renderTable(serieId);
+    updateChart();
+}
+
+/**
+ * Mueve una fila de datos hacia abajo
+ * @param {number} serieId - ID de la serie
+ * @param {number} index - Índice de la fila
+ */
+export function moveRowDown(serieId, index) {
+    const serie = AppState.series.find(s => s.id === serieId);
+    if (!serie || index >= serie.data.length - 1) return;
+
+    // Intercambiar datos
+    const temp = serie.data[index];
+    serie.data[index] = serie.data[index + 1];
+    serie.data[index + 1] = temp;
+
+    renderTable(serieId);
+    updateChart();
 }

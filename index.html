@@ -12,6 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.2.1/chartjs-plugin-zoom.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
     <!-- Estilos externos -->
     <link rel="stylesheet" href="css/styles.css">
@@ -73,11 +74,14 @@
                 <input type="file" id="project-file-input" style="display:none" accept=".json"
                     onchange="importProject()">
                 <button class="btn btn-primary" onclick="exportProject()">💾 Guardar</button>
-                <button class="btn btn-success" onclick="triggerImportProject()">📂 Cargar</button>
+                <button class="btn btn-secondary" onclick="triggerImportProject()">📂 Cargar</button>
+                <button class="btn btn-danger" onclick="clearAllData()"
+                    style="background-color: #e74c3c; color: white;">🗑️ Limpiar Todo</button>
                 <button class="btn btn-secondary" onclick="togglePresentationMode()" title="Modo presentación (Alt+P)"
                     style="background-color: #9b59b6; border: none;">
                     📺 Presentar
                 </button>
+                <div style="display: none;"></div>
                 <button class="btn btn-secondary" onclick="copyShareURL()" title="Generar URL compartible"
                     style="background-color: #3498db; border: none;">
                     🔗 Compartir
@@ -383,8 +387,13 @@
                 <div id="export-section" class="panel"
                     style="margin-top: 20px; border: 1px solid #ddd; display: flex; align-items: center; justify-content: flex-end;">
                     <span style="margin-right: 10px; font-weight: bold; color: #555;">Exportar:</span>
-                    <div class="export-buttons" style="display: inline-flex; gap: 5px;">
-                        <button class="btn btn-primary" onclick="downloadChartPNG()">PNG</button>
+                    <div class="export-buttons" style="display: inline-flex; gap: 5px; align-items: center;">
+                        <input type="checkbox" id="includeTableInExport" style="margin-right: 5px;">
+                        <label for="includeTableInExport"
+                            style="font-size: 13px; margin-right: 18px; cursor: pointer; user-select: none;">Incluir
+                            Tabla</label>
+
+                        <button class="btn btn-primary" onclick="downloadChartJPG()">JPG</button>
                         <button class="btn btn-primary" onclick="downloadChartPDF()">PDF</button>
                     </div>
                 </div>
@@ -485,9 +494,9 @@
 
                         <div
                             style="background: #f0f7ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea;">
-                            <strong>3. Haz clic en "Graficar"</strong>
-                            <p style="margin: 5px 0 0 0;">¡Listo! Verás tu gráfica con la línea de ajuste y la
-                                ecuación.</p>
+                            <strong>3. Visualización Automática</strong>
+                            <p style="margin: 5px 0 0 0;">¡Listo! Verás tu gráfica actualizada en tiempo real conforme
+                                ingresas los datos.</p>
                         </div>
 
                         <div id="help-dev-tip"
@@ -526,9 +535,22 @@
                             </div>
 
                             <div style="margin-bottom: 15px;">
-                                <strong style="color: #764ba2;">💾 Exportación</strong>
-                                <p style="margin: 5px 0;">Descarga tu gráfica en PNG o PDF desde el panel de
-                                    configuración.</p>
+                                <strong style="color: #764ba2;">💾 Guardar y Cargar Proyectos</strong>
+                                <p style="margin: 5px 0;">Permite guardar todo tu trabajo actual (datos,
+                                    configuraciones, títulos) para continuarlo después.</p>
+                                <ul style="margin-top: 5px; font-size: 0.95em; color: #555; padding-left: 20px;">
+                                    <li><strong>Formato:</strong> Archivo <code>.json</code> (Texto plano
+                                        estandarizado).</li>
+                                    <li><strong>¿Qué guarda?:</strong> Series de datos completas, etiquetas de ejes,
+                                        títulos y configuraciones visuales.</li>
+                                    <li><strong>Uso:</strong> Botón "Guardar" para descargar y "Cargar" para restaurar.
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div style="margin-bottom: 15px;">
+                                <strong style="color: #764ba2;">📤 Exportación de Imagen</strong>
+                                <p style="margin: 5px 0;">Descarga tu gráfica en PNG o PDF para informes.</p>
                             </div>
                         </div>
 

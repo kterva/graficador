@@ -21,7 +21,7 @@ export function togglePresentationMode() {
 
     if (isPresentation) {
         // Entrar en modo presentación
-        showNotification('📺 Modo presentación activado. Presiona ESC para salir.', 'info');
+        showNotification('📺 Modo presentación activado. Pan y Zoom habilitados. ESC para salir.', 'info');
 
         // Intentar poner el navegador en pantalla completa
         if (document.documentElement.requestFullscreen) {
@@ -41,7 +41,27 @@ export function togglePresentationMode() {
     // Redimensionar gráfica para asegurar que ocupe el espacio correcto
     setTimeout(() => {
         if (AppState.chart) {
-            AppState.chart.resize();
+            if (!isPresentation) {
+                // Al salir: limpieza agresiva
+                const canvas = AppState.chart.canvas;
+
+                // 1. Limpiar estilos inline
+                canvas.style.width = '';
+                canvas.style.height = '';
+
+                // 2. Limpiar atributos HTML que Chart.js establece
+                canvas.removeAttribute('width');
+                canvas.removeAttribute('height');
+
+                // 3. Forzar redimensionado de Chart.js
+                AppState.chart.resize();
+
+                // 4. Disparar evento de resize de ventana por si acaso
+                window.dispatchEvent(new Event('resize'));
+            } else {
+                // Al entrar, asegurar que ocupe todo
+                AppState.chart.resize();
+            }
         }
     }, 100);
 }
@@ -70,7 +90,14 @@ export function initPresentationMode() {
         if (!document.fullscreenElement && document.body.classList.contains('presentation-mode')) {
             // Si el usuario sale de pantalla completa con ESC nativo, desactivar clase
             document.body.classList.remove('presentation-mode');
-            if (AppState.chart) AppState.chart.resize();
+            if (AppState.chart) {
+                const canvas = AppState.chart.canvas;
+                canvas.style.width = '';
+                canvas.style.height = '';
+                canvas.removeAttribute('width');
+                canvas.removeAttribute('height');
+                AppState.chart.resize();
+            }
         }
     });
 }
@@ -107,6 +134,7 @@ function showNotification(message) {
 }
 
 // Agregar estilos de animación si no existen
+// Agregar estilos de animación si no existen
 if (!document.getElementById('presentation-styles')) {
     const style = document.createElement('style');
     style.id = 'presentation-styles';
@@ -118,63 +146,82 @@ if (!document.getElementById('presentation-styles')) {
             100% { opacity: 0; transform: translate(-50%, -20px); }
         }
         
-        /* Estilos del Modo Presentación */
+        /* Estilos del Modo Presentación - ESTRATEGIA OVERLAY */
+        /* No modificamos el layout base, solo superponemos la gráfica */
+        
         body.presentation-mode {
-            overflow: hidden;
-            background: white;
-            margin: 0;
-            padding: 0;
+            overflow: hidden; /* Evitar scroll mientras está activo */
         }
         
-        body.presentation-mode .container > header,
-        body.presentation-mode .intro-section,
-        body.presentation-mode .data-section,
-        body.presentation-mode .config-panel,
-        body.presentation-mode .controls-panel,
-        body.presentation-mode footer,
-        body.presentation-mode #dev-panel {
-            display: none !important;
-        }
-        
-        body.presentation-mode .container {
-            max-width: 100% !important;
+        /* Contenedor del gráfico en modo presentación */
+        body.presentation-mode .chart-container {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
+            max-width: none !important;
+            max-height: none !important;
             margin: 0 !important;
-            padding: 0 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            background: white;
-        }
-        
-        body.presentation-mode .chart-container {
-            width: 98vw !important;
-            height: 95vh !important;
-            max-width: 98vw !important;
-            max-height: 95vh !important;
             padding: 20px !important;
-            margin: 0 !important;
+            background: white !important;
+            z-index: 9999 !important;
+            border-radius: 0 !important;
             box-shadow: none !important;
+            
+            /* Centrado del canvas */
             display: flex !important;
-            align-items: center !important;
             justify-content: center !important;
-            background: white;
+            align-items: center !important;
         }
         
         body.presentation-mode canvas {
+            width: 100% !important;
+            height: 100% !important;
             max-width: 100% !important;
             max-height: 100% !important;
         }
         
-        /* Botón flotante para salir (opcional, ESC también funciona) */
-        body.presentation-mode .exit-presentation-btn {
-            display: block;
+        /* Botón de salir flotante */
+        .exit-presentation-btn {
+            display: none; /* Oculto por defecto */
             position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 10001;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            background: rgba(231, 76, 60, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s, background 0.2s;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .exit-presentation-btn:hover {
+            transform: scale(1.1);
+            background: #c0392b;
+        }
+        
+        body.presentation-mode .exit-presentation-btn {
+            display: flex !important; /* Visible solo en modo presentación */
         }
     `;
     document.head.appendChild(style);
+
+    // Crear el botón de cierre si no existe
+    if (!document.getElementById('exit-presentation-btn')) {
+        const btn = document.createElement('button');
+        btn.id = 'exit-presentation-btn';
+        btn.className = 'exit-presentation-btn';
+        btn.innerHTML = '×';
+        btn.title = 'Salir del modo presentación (ESC)';
+        btn.onclick = togglePresentationMode;
+        document.body.appendChild(btn);
+    }
 }
