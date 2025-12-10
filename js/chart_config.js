@@ -44,9 +44,52 @@ export function updateChartConfig() {
     // Título
     const title = document.getElementById('chartTitle').value;
     chart.options.plugins.title = {
-        display: !!title,
+        display: false, // Ocultar título interno (ya se muestra en HTML y exportación)
         text: title,
         font: { size: 18 }
+    };
+    chart.options.plugins.legend = {
+        position: 'top',
+        labels: {
+            filter: function (item, chart) {
+                // Lógica personalizada de leyenda:
+                // Si hay solo 1 serie (AppState.series.length === 1):
+                const isSingleSeries = AppState.series.length === 1;
+
+                // "item.text" es el label del dataset. 
+                // Buscamos ocultar el dataset de Puntos (que tiene el nombre de la serie)
+                // y mostrar SIEMPRE el de Ajuste (que empieza con "Ajuste:")
+
+                if (isSingleSeries) {
+                    // Si el label es igual al nombre de la serie y NO es un estilo de línea, es el de puntos.
+                    // El de ajuste ahora se llama igual, pero tiene pointStyle = 'line'.
+                    // Sin embargo, `item` en filter puede no tener todas las props del dataset.
+                    // Verificamos si item.text es igual al nombre de la serie única.
+
+                    if (item.text === AppState.series[0].name) {
+                        // Si es el dataset de Puntos, lo ocultamos. ¿Cómo distinguirlo del de Ajuste?
+                        // Chart.js genera items de leyenda. El dataset de puntos tiene index X y el de linea Y.
+                        // Generalmente Puntos van primero.
+                        // Ojo: Si ambos tienen el mismo label, Chart.js a veces los agrupa?
+                        // No, genera dos items si son diferentes datasets.
+
+                        // Si el item usa pointStyle 'rect' (default para puntos/barras) o 'circle' vs 'line'
+                        // item.pointStyle puede decirnos.
+
+                        // PERO: Hemos configurado pointStyle: 'line' para el ajuste.
+                        // Los puntos usan default (circle).
+
+                        if (item.pointStyle !== 'line') {
+                            return false; // Ocultar puntos
+                        }
+                    }
+
+                    // Ocultar items que no sean lineas de ajuste o pendiente
+                    // (Pendiente empieza con 'Pendiente' asi que pasa)
+                }
+                return true;
+            }
+        }
     };
 
     // Ejes
@@ -74,8 +117,16 @@ export function updateChartConfig() {
     chart.options.scales.y.max = maxY !== '' ? parseFloat(maxY) : null;
 
     // Grid
-    const showGridX = document.getElementById('showGridX').checked;
-    const showGridY = document.getElementById('showGridY').checked;
+    // Grid
+    const showGridCheckbox = document.getElementById('showGrid');
+    const showGrid = showGridCheckbox ? showGridCheckbox.checked : true;
+
+    // Si existen controles individuales (para retrocompatibilidad o futuro), usarlos, sino usar el general
+    const showGridXCheckbox = document.getElementById('showGridX');
+    const showGridYCheckbox = document.getElementById('showGridY');
+
+    const showGridX = showGridXCheckbox ? showGridXCheckbox.checked : showGrid;
+    const showGridY = showGridYCheckbox ? showGridYCheckbox.checked : showGrid;
 
     chart.options.scales.x.grid.display = showGridX;
     chart.options.scales.y.grid.display = showGridY;
@@ -125,6 +176,9 @@ export function showIntersection() {
         content.innerHTML = '<p style="color: #e67e22;">⚠️ Necesitas al menos 2 series con ajuste lineal para calcular la intersección.</p>';
         display.style.display = 'block';
         return;
+        if (AppState.chart) {
+            AppState.chart.update();
+        }
     }
 
     // Calcular coeficientes de las dos primeras series lineales

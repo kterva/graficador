@@ -161,7 +161,8 @@ export function getDataRange() {
  */
 export function updateChart(animationMode) {
     const datasets = [];
-    const showUncertaintyLines = document.getElementById('showUncertaintyLines').checked;
+    const showUncertaintyLinesCheckbox = document.getElementById('showUncertaintyLines');
+    const showUncertaintyLines = showUncertaintyLinesCheckbox ? showUncertaintyLinesCheckbox.checked : false;
 
     AppState.series.forEach(serie => {
         const validData = serie.data.filter(p => p.x !== '' && p.y !== '').map(p => ({
@@ -192,7 +193,7 @@ export function updateChart(animationMode) {
 
             datasets.push({
                 type: 'line',
-                label: `Ajuste: ${serie.name}`,
+                label: serie.name, // Solo "Serie 1" u "Otro nombre"
                 data: fit.points,
                 borderColor: '#000000',  // Negro
                 backgroundColor: 'transparent',
@@ -201,7 +202,8 @@ export function updateChart(animationMode) {
                 borderWidth: 2,
                 borderDash: [],  // Línea continua
                 fill: false,
-                tension: 0.4
+                tension: 0.4,
+                pointStyle: 'line' // Mostrar como línea en leyenda
             });
 
             // Add uncertainty lines and error boxes if enabled and available
@@ -304,6 +306,8 @@ export function updateChart(animationMode) {
                         y0 = coeffs.a * AppState.tools.tangentX + coeffs.b;
                     } else if (serie.fitType === 'poly2') {
                         y0 = coeffs[0] * AppState.tools.tangentX * AppState.tools.tangentX + coeffs[1] * AppState.tools.tangentX + coeffs[2];
+                    } else if (serie.fitType === 'exponential') {
+                        y0 = coeffs.a * Math.exp(coeffs.b * AppState.tools.tangentX);
                     }
 
                     // Clampear la tangente a los límites de los datos para evitar que el gráfico se estire
@@ -381,6 +385,8 @@ export function updateChart(animationMode) {
                             y = coeffs.a * x + coeffs.b;
                         } else if (serie.fitType === 'poly2') {
                             y = coeffs[0] * x * x + coeffs[1] * x + coeffs[2];
+                        } else if (serie.fitType === 'exponential') {
+                            y = coeffs.a * Math.exp(coeffs.b * x);
                         }
                         areaPoints.push({ x, y });
                     }

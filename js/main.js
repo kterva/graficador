@@ -52,12 +52,31 @@ import {
     closeErrorPropagationModal,
     openDimensionalAnalysisModal,
     closeDimensionalAnalysisModal,
-    analyzeDimension
+    analyzeDimension,
+    moveRowUp,
+    moveRowDown,
+    clearAllData
 } from './ui-handlers.js';
+import {
+    exportProject,
+    importProject,
+    triggerImportProject
+} from './project_manager.js';
+import {
+    downloadChartJPG,
+    downloadChartPDF
+} from './export_manager.js';
 
 // ============================================
 // EXPONER FUNCIONES AL SCOPE GLOBAL
 // ============================================
+// Gestión de Proyecto y Exportación
+window.exportProject = exportProject;
+window.importProject = importProject;
+window.triggerImportProject = triggerImportProject;
+window.downloadChartJPG = downloadChartJPG;
+window.downloadChartPDF = downloadChartPDF;
+
 // Necesario para que funcionen los onclick en el HTML
 
 window.addSerie = addSerie;
@@ -98,6 +117,9 @@ window.copyShareURLAgain = copyShareURLAgain;
 window.openDimensionalAnalysisModal = openDimensionalAnalysisModal;
 window.closeDimensionalAnalysisModal = closeDimensionalAnalysisModal;
 window.analyzeDimension = analyzeDimension;
+window.moveRowUp = moveRowUp;
+window.moveRowDown = moveRowDown;
+window.clearAllData = clearAllData;
 window.toggleMobileMenu = toggleMobileMenu;
 window.toggleConfigPanel = toggleConfigPanel;
 window.toggleIntersection = toggleIntersection;
