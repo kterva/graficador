@@ -343,6 +343,21 @@ export function toggleHelp(serieId, fitType) {
 }
 
 /**
+ * Muestra u oculta un panel de ayuda genérico por su ID
+ * @param {string} helpId - ID del elemento contenedor de la ayuda
+ */
+export function toggleGenericHelp(helpId) {
+    const helpDiv = document.getElementById(helpId);
+    if (!helpDiv) return;
+
+    if (helpDiv.style.display === 'block') {
+        helpDiv.style.display = 'none';
+    } else {
+        helpDiv.style.display = 'block';
+    }
+}
+
+/**
  * Muestra/oculta el modal de ayuda
  */
 export function toggleHelpModal() {

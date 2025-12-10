@@ -202,12 +202,7 @@
                                         <option value="kJ">kilojoule (kJ)</option>
                                         <option value="cal">caloría (cal)</option>
                                     </optgroup>
-                                </select><br>
-
-                                <label>Mínimo:</label>
-                                <input type="number" id="minX" placeholder="auto" onchange="updateChartConfig()"><br>
-                                <label>Máximo:</label>
-                                <input type="number" id="maxX" placeholder="auto" onchange="updateChartConfig()">
+                                </select>
                             </div>
                             <div>
                                 <strong>Eje Y</strong><br>
@@ -259,14 +254,54 @@
                                         <option value="kJ">kilojoule (kJ)</option>
                                         <option value="cal">caloría (cal)</option>
                                     </optgroup>
-                                </select><br>
-
-                                <label>Mínimo:</label>
-                                <input type="number" id="minY" placeholder="auto" onchange="updateChartConfig()"><br>
-                                <label>Máximo:</label>
-                                <input type="number" id="maxY" placeholder="auto" onchange="updateChartConfig()">
+                                </select>
                             </div>
                         </div>
+
+                        <!-- Panel Colapsable de Configuración de Ejes -->
+                        <details id="axis-limits-details"
+                            style="margin-top: 15px; border: 1px solid #eee; border-radius: 8px; padding: 5px;">
+                            <summary
+                                style="cursor: pointer; padding: 10px; font-weight: 500; user-select: none; color: #666;">
+                                ⚙️ Límites Manuales (Escala)
+                                <button class="help-btn-small"
+                                    onclick="document.getElementById('axis-limits-details').open = true; toggleGenericHelp('help-axis-limits'); event.preventDefault(); event.stopPropagation();"
+                                    title="Ayuda sobre límites">i</button>
+                            </summary>
+
+                            <div id="help-axis-limits" class="help-text" style="margin: 0 10px 10px 10px;">
+                                <strong>Control de Escala (Zoom manual):</strong><br>
+                                • <strong>Auto:</strong> Deja los campos vacíos para que la gráfica se ajuste
+                                automáticamente a tus datos.<br>
+                                • <strong>Manual:</strong> Escribe valores numéricos para forzar el inicio y fin de los
+                                ejes.<br>
+                                <em>Ejemplo: Si quieres que el eje Y siempre empiece en 0, pon "0" en Mínimo Y.</em>
+                            </div>
+
+                            <div
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; border-top: 1px solid #eee;">
+                                <div>
+                                    <label style="display:block; margin-bottom:5px; color:#555;"><strong>Límites
+                                            X</strong></label>
+                                    <label style="font-size: 0.9em;">Mín:</label>
+                                    <input type="number" id="minX" placeholder="auto" onchange="updateChartConfig()"
+                                        style="width: 100%; margin-bottom: 5px;">
+                                    <label style="font-size: 0.9em;">Máx:</label>
+                                    <input type="number" id="maxX" placeholder="auto" onchange="updateChartConfig()"
+                                        style="width: 100%;">
+                                </div>
+                                <div>
+                                    <label style="display:block; margin-bottom:5px; color:#555;"><strong>Límites
+                                            Y</strong></label>
+                                    <label style="font-size: 0.9em;">Mín:</label>
+                                    <input type="number" id="minY" placeholder="auto" onchange="updateChartConfig()"
+                                        style="width: 100%; margin-bottom: 5px;">
+                                    <label style="font-size: 0.9em;">Máx:</label>
+                                    <input type="number" id="maxY" placeholder="auto" onchange="updateChartConfig()"
+                                        style="width: 100%;">
+                                </div>
+                            </div>
+                        </details>
 
                         <div style="margin-top: 10px;">
                             <div class="config-group">
