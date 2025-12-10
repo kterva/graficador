@@ -77,29 +77,33 @@ export function initChart() {
                     beginAtZero: true,
                     position: 'bottom',
                     title: {
-                        display: false, // Ocultamos el título original, lo dibujará el plugin
+                        display: false,
                         text: 'X'
                     },
                     grid: {
                         display: true,
-                        drawBorder: false // Ocultar borde del eje
+                        drawBorder: false,
+                        color: (context) => context.tick.value === 0 ? '#333' : '#e5e5e5',
+                        lineWidth: (context) => context.tick.value === 0 ? 2 : 1
                     },
                     ticks: {
-                        display: true // Mantener los números
+                        display: true
                     }
                 },
                 y: {
                     beginAtZero: true,
                     title: {
-                        display: false, // Ocultamos el título original, lo dibujará el plugin
+                        display: false,
                         text: 'Y'
                     },
                     grid: {
                         display: true,
-                        drawBorder: false // Ocultar borde del eje
+                        drawBorder: false,
+                        color: (context) => context.tick.value === 0 ? '#333' : '#e5e5e5',
+                        lineWidth: (context) => context.tick.value === 0 ? 2 : 1
                     },
                     ticks: {
-                        display: true // Mantener los números
+                        display: true
                     }
                 }
             }
@@ -418,7 +422,7 @@ export function updateChart(animationMode) {
                 }
 
                 let uncertaintyHtml = '';
-                if (fit.uncertainty && fit.uncertainty.mMax !== undefined) {
+                if (showUncertaintyLines && fit.uncertainty && fit.uncertainty.mMax !== undefined) {
                     const u = fit.uncertainty;
                     const deltaM = (u.mMax - u.mMin) / 2;
 
@@ -456,7 +460,7 @@ export function updateChart(animationMode) {
 
                 eqDiv.innerHTML = `
                     <strong>Ecuación:</strong> ${fit.equation}
-                    <button class="help-btn" onclick="toggleHelp(${serie.id}, '${serie.fitType}')">?</button>
+                    <button class="help-btn" onclick="toggleHelp(${serie.id}, '${serie.fitType}')">i</button>
                     <br><strong>R² =</strong> ${fit.r2.toFixed(6)}
                     ${uncertaintyHtml}
                     <div class="help-text" id="help-${serie.id}"></div>

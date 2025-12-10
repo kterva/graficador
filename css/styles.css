@@ -183,20 +183,47 @@ select {
 }
 
 .help-btn {
-    background: #3498db;
+    background: #f39c12;
+    /* Naranja/Amarillo para Info */
     color: white;
     border: none;
-    width: 25px;
-    height: 25px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     cursor: pointer;
     font-weight: bold;
     margin-left: 10px;
-    font-size: 14px;
+    font-size: 12px;
+    line-height: 20px;
+    text-align: center;
+    padding: 0;
+    display: inline-block;
+    vertical-align: middle;
 }
 
-.help-btn:hover {
-    background: #2980b9;
+.help-btn-small {
+    background: #f39c12;
+    /* Naranja/Amarillo para Info */
+    color: white;
+    border: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 5px;
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
+    padding: 0;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.help-btn:hover,
+.help-btn-small:hover {
+    background: #e67e22;
+    transform: scale(1.1);
 }
 
 /* ============================================
@@ -401,10 +428,10 @@ select {
         background: rgba(255, 255, 255, 0.95) !important;
         z-index: 2005 !important;
     }
-    
+
     /* Fix para que los botones dentro del submenú sean legibles */
     #toolsMenu button {
-        color: #333 !important; 
+        color: #333 !important;
         background: transparent !important;
         border-bottom: 1px solid #eee !important;
         padding-left: 15px !important;
@@ -413,7 +440,8 @@ select {
     #toolsMenu button:hover {
         background: #f0f0f0 !important;
         color: #6c5ce7 !important;
-        transform: none !important; /* Desactivar efecto de desplazamiento lateral del padre */
+        transform: none !important;
+        /* Desactivar efecto de desplazamiento lateral del padre */
     }
 
     #toolsMenu strong {
