@@ -384,19 +384,43 @@ select {
 
 
 
-    /* Menú de herramientas posicionado correctamente */
+    /* Menú de herramientas integrado en el menú principal (Estilo Acordeón) */
     #toolsMenu {
-        position: fixed !important;
+        position: relative !important;
         top: auto !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
+        bottom: auto !important;
+        left: auto !important;
+        right: auto !important;
         width: 100% !important;
         max-width: 100% !important;
-        border-radius: 15px 15px 0 0 !important;
-        max-height: 50vh;
-        overflow-y: auto;
-        z-index: 2000 !important;
+        max-height: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 8px !important;
+        margin-top: 10px !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        z-index: 2005 !important;
+    }
+    
+    /* Fix para que los botones dentro del submenú sean legibles */
+    #toolsMenu button {
+        color: #333 !important; 
+        background: transparent !important;
+        border-bottom: 1px solid #eee !important;
+        padding-left: 15px !important;
+    }
+
+    #toolsMenu button:hover {
+        background: #f0f0f0 !important;
+        color: #6c5ce7 !important;
+        transform: none !important; /* Desactivar efecto de desplazamiento lateral del padre */
+    }
+
+    #toolsMenu strong {
+        color: #6c5ce7 !important;
+        display: block;
+        padding-bottom: 5px;
+        border-bottom: 2px solid #6c5ce7;
     }
 
     /* Intro section más compacta */
