@@ -5,6 +5,20 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-12-05
+
+### Añadido
+- **Documentación**: Nuevos archivos `project_context.md` y `quick_start.md` para facilitar el onboarding.
+- **Modo Desarrollo**: Flag `IS_DEVELOPMENT` para habilitar herramientas de prueba en rama `develop`.
+
+### Mejorado
+- **Interfaz Móvil**: Menú de cabecera tipo "popover" para mejor experiencia en pantallas pequeñas.
+- **Layout**: Reorganización de paneles de control (Zoom -> Config -> Cálculo -> Exportar) y unificación de estilos visuales.
+- **Estabilidad**:
+    - Solucionado "temblor" en slider de tangente (limitación a rango de datos y desactivación de animación).
+    - Ejes configurados para mostrar siempre el origen (0,0) al restablecer zoom.
+
+
 ## [1.1.0] - 2025-12-01
 
 ### Añadido
