@@ -375,10 +375,9 @@ select {
         display: block !important;
     }
 
-    /* Menú del header colapsado por defecto en móvil */
-    /* Menú del header estilo "Popover" */
+    /* Menú del header estilo "Popover" — oculto por defecto en móvil */
     #headerMenu {
-        display: none;
+        display: none !important;
         position: absolute;
         top: 60px;
         right: 10px;
@@ -392,6 +391,11 @@ select {
         z-index: 2000;
         border: 1px solid rgba(255, 255, 255, 0.1);
         animation: menuSlideIn 0.2s ease-out;
+    }
+
+    /* Visible al hacer click en hamburguesa */
+    #headerMenu.mobile-open {
+        display: flex !important;
     }
 
     @keyframes menuSlideIn {

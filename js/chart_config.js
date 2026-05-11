@@ -23,17 +23,15 @@ export function toggleConfigPanel() {
 export function toggleMobileMenu() {
     const menu = document.getElementById('headerMenu');
     const btn = document.getElementById('mobileMenuBtn');
-
     if (!menu) return;
 
-    if (menu.style.display === 'none' || menu.classList.contains('mobile-hidden')) {
-        menu.style.display = 'flex';
-        menu.classList.remove('mobile-hidden');
-        if (btn) btn.textContent = '✕';
-    } else {
-        menu.style.display = 'none';
-        menu.classList.add('mobile-hidden');
+    const isOpen = menu.classList.contains('mobile-open');
+    if (isOpen) {
+        menu.classList.remove('mobile-open');
         if (btn) btn.textContent = '☰';
+    } else {
+        menu.classList.add('mobile-open');
+        if (btn) btn.textContent = '✕';
     }
 }
 
