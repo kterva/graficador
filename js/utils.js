@@ -45,7 +45,7 @@ export function extractUnit(label) {
  */
 export function formatWithUncertainty(value, uncertainty) {
     if (!uncertainty || uncertainty === 0) {
-        return value.toFixed(4); // Sin incertidumbre, usar 4 decimales
+        return { value: value.toFixed(4), uncertainty: '0' };
     }
 
     // Encontrar el orden de magnitud de la incertidumbre

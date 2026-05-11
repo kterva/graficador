@@ -60,10 +60,13 @@ export function renderSeries() {
                         <th></th>
                     </tr>
                 </thead>
-                <tbody id="table-${serie.id}">
+                <tbody id="table-${serie.id}" onpaste="handleTablePaste(event, ${serie.id})">
                 </tbody>
             </table>
             <button class="btn btn-primary" onclick="addRow(${serie.id})">+ Agregar Fila</button>
+            <p style="margin: 6px 0 0 0; font-size: 11px; color: #aaa;">
+                💡 Podés pegar datos directamente desde Excel o Google Sheets (Ctrl+V sobre la tabla)
+            </p>
             
             <div class="equation-display" id="eq-${serie.id}" style="display:none;"></div>
         `;
@@ -494,7 +497,7 @@ export function clearTable(serieId) {
 export function clearAllData() {
     if (confirm('⚠️ DESTRUCTIVO: ¿Estás seguro de que quieres BORRAR TODO el proyecto? \nSe perderán todas las series y configuraciones.')) {
         AppState.series = [];
-        AppState.serieCounter = 0;
+        AppState.nextId = 1;
 
         // Agregar una serie vacía por defecto para que el usuario no quede en el limbo
         addSerieData(); // Esta función ya existe en este módulo y usa AppState.
@@ -944,4 +947,79 @@ export function moveRowDown(serieId, index) {
 
     renderTable(serieId);
     updateChart();
+}
+
+// ============================================
+// CLIPBOARD — PEGAR DESDE EXCEL / GOOGLE SHEETS
+// ============================================
+
+/**
+ * Maneja el pegado de datos tabulares desde Excel, Google Sheets o LibreOffice Calc.
+ * Detecta el número de columnas para asignar automáticamente X, ±X, Y, ±Y.
+ *
+ * Formatos soportados:
+ *   2 columnas: X, Y
+ *   3 columnas: X, Y, ±Y
+ *   4 columnas: X, ±X, Y, ±Y
+ *
+ * @param {ClipboardEvent} event
+ * @param {number} serieId - ID de la serie destino
+ */
+export function handleTablePaste(event, serieId) {
+    const text = event.clipboardData?.getData('text');
+    if (!text) return;
+
+    const rows = text.split(/\r?\n/).filter(r => r.trim() !== '');
+    if (rows.length === 0) return;
+
+    // Detectar separador: tab (Excel/Sheets) o coma (CSV)
+    const sep = rows[0].includes('\t') ? '\t' : ',';
+    const parsed = rows.map(r => r.split(sep).map(v => v.trim()));
+    const numCols = parsed[0].length;
+
+    // Saltar cabecera si la primera celda no es numérica
+    const startIdx = isNaN(parseFloat(parsed[0][0])) ? 1 : 0;
+    const dataRows = parsed.slice(startIdx);
+    if (dataRows.length === 0) return;
+
+    const serie = AppState.series.find(s => s.id === serieId);
+    if (!serie) return;
+
+    serie.data = dataRows.map(cols => {
+        const toNum = (v) => (v !== undefined && v !== '' && !isNaN(parseFloat(v))) ? parseFloat(v) : 0;
+        if (numCols === 2) {
+            return { x: toNum(cols[0]), y: toNum(cols[1]), xError: 0, yError: 0 };
+        } else if (numCols === 3) {
+            return { x: toNum(cols[0]), y: toNum(cols[1]), xError: 0, yError: toNum(cols[2]) };
+        } else {
+            return { x: toNum(cols[0]), xError: toNum(cols[1]), y: toNum(cols[2]), yError: toNum(cols[3]) };
+        }
+    });
+
+    if (serie.data.length === 0) {
+        serie.data = [{ x: '', y: '', xError: 0, yError: 0 }];
+    }
+
+    // Prevenir el pegado nativo del navegador DESPUES de leer los datos
+    event.preventDefault();
+
+    renderTable(serieId);
+    updateChart();
+    _showPasteNotification(serie.data.length, numCols);
+}
+
+/**
+ * Muestra una notificación temporal con el resultado del pegado.
+ * @param {number} count - Número de filas pegadas
+ * @param {number} cols  - Número de columnas detectadas
+ */
+function _showPasteNotification(count, cols) {
+    const label = { 2: 'X, Y', 3: 'X, Y, ±Y', 4: 'X, ±X, Y, ±Y' }[Math.min(cols, 4)] || 'X, Y';
+    const n = document.createElement('div');
+    n.style.cssText = 'position:fixed;top:80px;right:20px;background:linear-gradient(135deg,#11998e,#38ef7d);' +
+        'color:white;padding:14px 20px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);' +
+        'z-index:3000;font-size:14px;font-weight:500;transition:opacity .3s';
+    n.textContent = `✓ ${count} fila${count !== 1 ? 's' : ''} pegada${count !== 1 ? 's' : ''} (${label})`;
+    document.body.appendChild(n);
+    setTimeout(() => { n.style.opacity = '0'; setTimeout(() => n.remove(), 300); }, 3000);
 }

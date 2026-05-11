@@ -188,7 +188,12 @@ export function polynomialRegression(xs, ys, degree) {
         result.push(sum);
     }
 
-    return gaussianElimination(matrix, result).reverse();
+    try {
+        return gaussianElimination(matrix, result).reverse();
+    } catch (e) {
+        console.warn('polynomialRegression: sistema singular o datos insuficientes.', e.message);
+        return null;
+    }
 }
 
 /**

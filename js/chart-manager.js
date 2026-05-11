@@ -306,8 +306,15 @@ export function updateChart(animationMode) {
                         y0 = coeffs.a * AppState.tools.tangentX + coeffs.b;
                     } else if (serie.fitType === 'poly2') {
                         y0 = coeffs[0] * AppState.tools.tangentX * AppState.tools.tangentX + coeffs[1] * AppState.tools.tangentX + coeffs[2];
+                    } else if (serie.fitType === 'poly3') {
+                        const tx = AppState.tools.tangentX;
+                        y0 = coeffs[0] * tx * tx * tx + coeffs[1] * tx * tx + coeffs[2] * tx + coeffs[3];
                     } else if (serie.fitType === 'exponential') {
                         y0 = coeffs.a * Math.exp(coeffs.b * AppState.tools.tangentX);
+                    } else if (serie.fitType === 'logarithmic') {
+                        y0 = AppState.tools.tangentX > 0 ? coeffs.a * Math.log(AppState.tools.tangentX) + coeffs.b : 0;
+                    } else if (serie.fitType === 'power') {
+                        y0 = AppState.tools.tangentX > 0 ? coeffs.a * Math.pow(AppState.tools.tangentX, coeffs.b) : 0;
                     }
 
                     // Clampear la tangente a los límites de los datos para evitar que el gráfico se estire
@@ -385,8 +392,14 @@ export function updateChart(animationMode) {
                             y = coeffs.a * x + coeffs.b;
                         } else if (serie.fitType === 'poly2') {
                             y = coeffs[0] * x * x + coeffs[1] * x + coeffs[2];
+                        } else if (serie.fitType === 'poly3') {
+                            y = coeffs[0] * x * x * x + coeffs[1] * x * x + coeffs[2] * x + coeffs[3];
                         } else if (serie.fitType === 'exponential') {
                             y = coeffs.a * Math.exp(coeffs.b * x);
+                        } else if (serie.fitType === 'logarithmic') {
+                            y = x > 0 ? coeffs.a * Math.log(x) + coeffs.b : 0;
+                        } else if (serie.fitType === 'power') {
+                            y = x > 0 ? coeffs.a * Math.pow(x, coeffs.b) : 0;
                         }
                         areaPoints.push({ x, y });
                     }

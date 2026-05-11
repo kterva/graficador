@@ -9,7 +9,8 @@
  */
 
 import { AppState } from './state.js';
-import { renderSeries, updateChart } from './main.js';
+import { renderSeries } from './ui-handlers.js';
+import { updateChart } from './chart-manager.js';
 
 /**
  * Genera una URL compartible con el estado actual
@@ -23,7 +24,8 @@ export function generateShareURL() {
             name: s.name,
             data: s.data,
             color: s.color,
-            fitType: s.fitType
+            fitType: s.fitType,
+            units: s.units || null
         })),
         config: {
             title: document.getElementById('chartTitle')?.value || '',

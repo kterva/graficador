@@ -55,7 +55,8 @@ import {
     analyzeDimension,
     moveRowUp,
     moveRowDown,
-    clearAllData
+    clearAllData,
+    handleTablePaste
 } from './ui-handlers.js';
 import {
     exportProject,
@@ -120,6 +121,7 @@ window.analyzeDimension = analyzeDimension;
 window.moveRowUp = moveRowUp;
 window.moveRowDown = moveRowDown;
 window.clearAllData = clearAllData;
+window.handleTablePaste = handleTablePaste;
 window.toggleMobileMenu = toggleMobileMenu;
 window.toggleConfigPanel = toggleConfigPanel;
 window.toggleIntersection = toggleIntersection;

@@ -32,11 +32,19 @@ export function calculateDerivative(x, coeffs, type) {
         // y = ax^2 + bx + c -> y' = 2ax + b
         // coeffs = [a, b, c]
         return 2 * coeffs[0] * x + coeffs[1];
-    } else if (type === 'exponential') {
-        // y = ae^(bx) -> y' = ab e^(bx)
-        return coeffs.a * coeffs.b * Math.exp(coeffs.b * x);
+    } else if (type === 'poly3') {
+        // y = ax³+bx²+cx+d  →  y' = 3ax²+2bx+c
+        // coeffs = [a, b, c, d] (mayor grado primero)
+        return 3 * coeffs[0] * x * x + 2 * coeffs[1] * x + coeffs[2];
+    } else if (type === 'logarithmic') {
+        // y = a·ln(x)+b  →  y' = a/x
+        if (x <= 0) return 0;
+        return coeffs.a / x;
+    } else if (type === 'power') {
+        // y = a·x^b  →  y' = a·b·x^(b-1)
+        if (x <= 0) return 0;
+        return coeffs.a * coeffs.b * Math.pow(x, coeffs.b - 1);
     }
-    return 0;
 }
 
 /**
@@ -56,12 +64,26 @@ export function calculateIntegral(x1, x2, coeffs, type) {
         // y = ax^2 + bx + c -> ∫y = (a/3)x^3 + (b/2)x^2 + cx
         const F = (x) => (coeffs[0] / 3) * Math.pow(x, 3) + (coeffs[1] / 2) * x * x + coeffs[2] * x;
         return F(x2) - F(x1);
-    } else if (type === 'exponential') {
-        // y = ae^(bx) -> ∫y = (a/b)e^(bx)
-        const F = (x) => (coeffs.a / coeffs.b) * Math.exp(coeffs.b * x);
+    } else if (type === 'poly3') {
+        // y = ax³+bx²+cx+d  →  ∫y = (a/4)x⁴+(b/3)x³+(c/2)x²+dx
+        const F = (x) => (coeffs[0] / 4) * Math.pow(x, 4) + (coeffs[1] / 3) * Math.pow(x, 3) + (coeffs[2] / 2) * x * x + coeffs[3] * x;
+        return F(x2) - F(x1);
+    } else if (type === 'logarithmic') {
+        // y = a·ln(x)+b  →  ∫y = a·(x·ln(x)-x)+b·x
+        if (x1 <= 0 || x2 <= 0) return 0;
+        const F = (x) => coeffs.a * (x * Math.log(x) - x) + coeffs.b * x;
+        return F(x2) - F(x1);
+    } else if (type === 'power') {
+        // y = a·x^b  →  ∫y = a·x^(b+1)/(b+1)  (b ≠ -1)
+        if (x1 <= 0 || x2 <= 0) return 0;
+        if (Math.abs(coeffs.b + 1) < 1e-10) {
+            // Caso especial b = -1: ∫a/x dx = a·ln(x)
+            const F = (x) => coeffs.a * Math.log(x);
+            return F(x2) - F(x1);
+        }
+        const F = (x) => coeffs.a * Math.pow(x, coeffs.b + 1) / (coeffs.b + 1);
         return F(x2) - F(x1);
     }
-    return 0;
 }
 
 /**
@@ -75,11 +97,17 @@ export function getRegressionCoeffs(data, type) {
     const ys = data.map(p => p.y);
 
     if (type === 'linear') {
-        return linearRegression(data); // Retorna {a, b, ...}
+        return linearRegression(data);
     } else if (type === 'poly2') {
-        return polynomialRegression(xs, ys, 2); // Retorna [a, b, c]
+        return polynomialRegression(xs, ys, 2);
+    } else if (type === 'poly3') {
+        return polynomialRegression(xs, ys, 3);
     } else if (type === 'exponential') {
-        return exponentialRegression(xs, ys); // Retorna {a, b}
+        return exponentialRegression(xs, ys);
+    } else if (type === 'logarithmic') {
+        return logarithmicRegression(xs, ys);
+    } else if (type === 'power') {
+        return powerRegression(xs, ys);
     }
     return null;
 }
