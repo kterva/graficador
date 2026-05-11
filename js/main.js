@@ -65,7 +65,8 @@ import {
 } from './project_manager.js';
 import {
     downloadChartJPG,
-    downloadChartPDF
+    downloadChartPDF,
+    downloadAllCSV
 } from './export_manager.js';
 
 // ============================================
@@ -77,6 +78,7 @@ window.importProject = importProject;
 window.triggerImportProject = triggerImportProject;
 window.downloadChartJPG = downloadChartJPG;
 window.downloadChartPDF = downloadChartPDF;
+window.downloadAllCSV  = downloadAllCSV;
 
 // Necesario para que funcionen los onclick en el HTML
 

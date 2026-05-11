@@ -279,3 +279,63 @@ export function downloadChartPDF() {
 
     doc.save('reporte_graficador.pdf');
 }
+
+/**
+ * Exporta TODAS las series en un único archivo CSV.
+ * Formato: secciones por serie, separadas por línea en blanco.
+ *
+ * Ejemplo:
+ *   # Serie 1
+ *   X,±X,Y,±Y
+ *   1,0,2,0
+ *
+ *   # Serie 2
+ *   X,±X,Y,±Y
+ *   ...
+ */
+export function downloadAllCSV() {
+    const series = AppState.series;
+    if (!series || series.length === 0) return;
+
+    const title = document.getElementById('chartTitle')?.value || 'graficador';
+    const labelX = document.getElementById('labelX')?.value || 'X';
+    const labelY = document.getElementById('labelY')?.value || 'Y';
+    const unitX  = document.getElementById('unitX')?.value  || '';
+    const unitY  = document.getElementById('unitY')?.value  || '';
+
+    const colX  = unitX  ? `${labelX} (${unitX})`   : labelX;
+    const colY  = unitY  ? `${labelY} (${unitY})`   : labelY;
+    const colDX = unitX  ? `±${labelX} (${unitX})`  : `±${labelX}`;
+    const colDY = unitY  ? `±${labelY} (${unitY})`  : `±${labelY}`;
+
+    let csv = `# ${title}\n`;
+
+    series.forEach((serie, idx) => {
+        const validPoints = serie.data.filter(p => p.x !== '' && p.y !== '');
+        if (validPoints.length === 0) return;
+
+        if (idx > 0) csv += '\n'; // línea en blanco entre series
+        csv += `# ${serie.name}\n`;
+        csv += `${colX},${colDX},${colY},${colDY}\n`;
+
+        validPoints.forEach(p => {
+            const x  = formatValue(p.x,  parseFloat(p.xError) || 0);
+            const dx = formatError(parseFloat(p.xError) || 0);
+            const y  = formatValue(p.y,  parseFloat(p.yError) || 0);
+            const dy = formatError(parseFloat(p.yError) || 0);
+            csv += `${x},${dx},${y},${dy}\n`;
+        });
+    });
+
+    const filename = title.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '') || 'datos';
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `${filename}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
