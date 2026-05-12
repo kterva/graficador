@@ -68,3 +68,46 @@ export const errorBarsPlugin = {
         });
     }
 };
+
+/**
+ * Plugin que dibuja los puntos de datos con estilo "diana científica":
+ * un círculo exterior hueco + punto central sólido.
+ *
+ * Esto permite ver el valor exacto (centro) y distinguir el punto
+ * desde lejos (aro exterior), sin tapar las barras de error.
+ *
+ * Solo actúa sobre datasets con errorBars: true (datos reales).
+ */
+export const bullseyePointsPlugin = {
+    id: 'bullseyePoints',
+    afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+
+        chart.data.datasets.forEach((dataset, i) => {
+            if (!dataset.errorBars) return; // Solo datasets de datos reales
+            const meta = chart.getDatasetMeta(i);
+            if (meta.hidden) return;
+
+            const color = dataset.borderColor || '#333';
+
+            ctx.save();
+            meta.data.forEach(point => {
+                const { x, y } = point;
+
+                // Círculo exterior (aro)
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Punto central sólido
+                ctx.beginPath();
+                ctx.arc(x, y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.fill();
+            });
+            ctx.restore();
+        });
+    }
+};

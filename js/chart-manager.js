@@ -9,7 +9,7 @@
  */
 
 import { AppState } from './state.js';
-import { errorBarsPlugin } from './chart-plugins.js';
+import { errorBarsPlugin, bullseyePointsPlugin } from './chart-plugins.js';
 import { calculateFit, calculateDerivative, calculateIntegral, getRegressionCoeffs } from './calculations.js';
 import { extractUnit, formatWithUncertainty } from './utils.js';
 
@@ -114,6 +114,7 @@ export function initChart() {
 
     // Registrar plugins
     Chart.register(errorBarsPlugin);
+    Chart.register(bullseyePointsPlugin);
 }
 
 /**
@@ -182,7 +183,7 @@ export function updateChart(animationMode) {
             backgroundColor: serie.color,
             borderColor: serie.color,
             showLine: false,
-            pointRadius: 5,
+            pointRadius: 0,   // El plugin bullseyePoints dibuja los puntos
             errorBars: true
         });
 
