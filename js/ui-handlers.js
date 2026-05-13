@@ -13,6 +13,13 @@ import { addSerie as addSerieData, removeSerie as removeSerieData, addRow as add
 import { updateChart, getDataRange } from './chart-manager.js';
 import { propagateUncertainty, formatPropagationResult, validateAllInputs, formatWarnings } from './uncertainty-propagation.js';
 
+// Debounce para updateChart: evita recalcular en cada tecla mientras se escribe un número
+let _chartUpdateTimer = null;
+function debouncedUpdateChart() {
+    clearTimeout(_chartUpdateTimer);
+    _chartUpdateTimer = setTimeout(() => updateChart(), 400);
+}
+
 /**
  * Renderiza todas las series en el DOM
  */
@@ -448,7 +455,7 @@ export function removeRow(serieId, index) {
  */
 export function updatePoint(serieId, index, axis, value) {
     updatePointData(serieId, index, axis, value);
-    updateChart();
+    debouncedUpdateChart(); // Espera 400ms desde la última tecla antes de redibujar
 }
 
 /**

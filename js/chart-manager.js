@@ -74,7 +74,7 @@ export function initChart() {
             scales: {
                 x: {
                     type: 'linear',
-                    beginAtZero: true,
+                    beginAtZero: false,
                     position: 'bottom',
                     grace: '8%',
                     title: {
@@ -92,7 +92,7 @@ export function initChart() {
                     }
                 },
                 y: {
-                    beginAtZero: true,
+                    beginAtZero: false,
                     grace: '8%',
                     title: {
                         display: false,

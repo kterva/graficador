@@ -115,19 +115,21 @@ export function updateChartConfig() {
     chart.options.scales.y.max = maxY !== '' ? parseFloat(maxY) : null;
 
     // Grid
-    // Grid
     const showGridCheckbox = document.getElementById('showGrid');
     const showGrid = showGridCheckbox ? showGridCheckbox.checked : true;
 
-    // Si existen controles individuales (para retrocompatibilidad o futuro), usarlos, sino usar el general
     const showGridXCheckbox = document.getElementById('showGridX');
     const showGridYCheckbox = document.getElementById('showGridY');
-
     const showGridX = showGridXCheckbox ? showGridXCheckbox.checked : showGrid;
     const showGridY = showGridYCheckbox ? showGridYCheckbox.checked : showGrid;
 
     chart.options.scales.x.grid.display = showGridX;
     chart.options.scales.y.grid.display = showGridY;
+
+    // Origen
+    const beginAtZero = document.getElementById('beginAtZero')?.checked ?? false;
+    chart.options.scales.x.beginAtZero = beginAtZero;
+    chart.options.scales.y.beginAtZero = beginAtZero;
 
     chart.update();
 }
@@ -174,9 +176,6 @@ export function showIntersection() {
         content.innerHTML = '<p style="color: #e67e22;">⚠️ Necesitas al menos 2 series con ajuste lineal para calcular la intersección.</p>';
         display.style.display = 'block';
         return;
-        if (AppState.chart) {
-            AppState.chart.update();
-        }
     }
 
     // Calcular coeficientes de las dos primeras series lineales
