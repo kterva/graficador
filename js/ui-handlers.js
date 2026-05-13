@@ -440,6 +440,7 @@ export function addRow(serieId) {
 export function removeRow(serieId, index) {
     removeRowData(serieId, index);
     renderTable(serieId);
+    updateChart();
 }
 
 /**
