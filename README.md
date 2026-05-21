@@ -93,8 +93,10 @@ Simplemente abre `index.html` en tu navegador moderno (Chrome, Firefox, Edge, Sa
 2. Seleccionar archivo CSV
 3. Formato: `x,y`
 
-**Opción C: Datos de Prueba** (modo desarrollo)
+**Opción C: Datos de Prueba**
+- En el menú "Herramientas" se encuentra una opción para cargar **Datos de prueba**
 - Click en botones de ejemplo: 📈 Lineal, 📊 Cuadrática, etc.
+- Se pueden probar todas las funcionalidades
 
 ### 2️⃣ Configurar Ajuste
 
