@@ -7,7 +7,7 @@
  * ajustes de curvas con análisis de incertidumbre.
  * 
  * @author Leonardo Trujillo
- * @version 1.2.0 - Modular
+ * @version 1.4.0 - Modular
  */
 
 // ============================================
@@ -29,6 +29,7 @@ import {
     updatePoint,
     updateSerieColor,
     updateFitType,
+    updateDefaultError,
     exportCSV,
     importCSV,
     clearTable,
@@ -47,11 +48,16 @@ import {
     toggleErrorPropagation,
     calculateErrorPropagation,
     updateAxisUnit,
+    updateAxisPrefix,
+    updateCustomUnit,
+    showUnitHelp,
     toggleToolsMenu,
     openErrorPropagationModal,
     closeErrorPropagationModal,
     openDimensionalAnalysisModal,
     closeDimensionalAnalysisModal,
+    openTestDataModal,
+    closeTestDataModal,
     analyzeDimension,
     moveRowUp,
     moveRowDown,
@@ -89,6 +95,7 @@ window.removeRow = removeRow;
 window.updatePoint = updatePoint;
 window.updateSerieColor = updateSerieColor;
 window.updateFitType = updateFitType;
+window.updateDefaultError = updateDefaultError;
 window.exportCSV = exportCSV;
 window.importCSV = importCSV;
 window.clearTable = clearTable;
@@ -110,6 +117,9 @@ window.switchHelpTab = switchHelpTab;
 window.toggleErrorPropagation = toggleErrorPropagation;
 window.calculateErrorPropagation = calculateErrorPropagation;
 window.updateAxisUnit = updateAxisUnit;
+window.updateAxisPrefix = updateAxisPrefix;
+window.updateCustomUnit = updateCustomUnit;
+window.showUnitHelp = showUnitHelp;
 window.toggleToolsMenu = toggleToolsMenu;
 window.openErrorPropagationModal = openErrorPropagationModal;
 window.closeErrorPropagationModal = closeErrorPropagationModal;
@@ -119,6 +129,8 @@ window.closeShareModal = closeShareModal;
 window.copyShareURLAgain = copyShareURLAgain;
 window.openDimensionalAnalysisModal = openDimensionalAnalysisModal;
 window.closeDimensionalAnalysisModal = closeDimensionalAnalysisModal;
+window.openTestDataModal = openTestDataModal;
+window.closeTestDataModal = closeTestDataModal;
 window.analyzeDimension = analyzeDimension;
 window.moveRowUp = moveRowUp;
 window.moveRowDown = moveRowDown;

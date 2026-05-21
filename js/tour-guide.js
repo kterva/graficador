@@ -9,7 +9,8 @@
  */
 
 import { AppState } from './state.js';
-import { updateChart, renderSeries } from './main.js';
+import { updateChart } from './chart-manager.js';
+import { renderSeries } from './ui-handlers.js';
 
 /**
  * Configuración del tour

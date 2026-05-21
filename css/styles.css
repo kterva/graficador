@@ -121,9 +121,18 @@ th {
 
 input[type="number"] {
     width: 100%;
+    min-width: 50px;
     padding: 5px;
     border: 1px solid #ccc;
     border-radius: 3px;
+    -moz-appearance: textfield; /* Firefox */
+}
+
+/* Ocultar flechas de los inputs numéricos (Chrome, Safari, Edge, Opera) */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .color-input {

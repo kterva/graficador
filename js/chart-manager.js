@@ -17,6 +17,16 @@ import { extractUnit, formatWithUncertainty } from './utils.js';
  * Inicializa el gráfico de Chart.js
  */
 export function initChart() {
+    const existingChart = Chart.getChart("myChart");
+    if (existingChart) {
+        existingChart.destroy();
+    } else if (AppState.chart) {
+        AppState.chart.destroy();
+    }
+    
+    // Siempre comenzar con beginAtZero = true para que los ejes sean visibles
+    const beginAtZero = true;
+    
     const ctx = document.getElementById('myChart').getContext('2d');
     AppState.chart = new Chart(ctx, {
         type: 'scatter',
@@ -47,6 +57,9 @@ export function initChart() {
                         mode: 'xy',
                         drag: {
                             enabled: false, // Deshabilitar drag zoom para evitar conflictos con pan
+                        },
+                        onZoomComplete: function ({ chart }) {
+                            updateChart();
                         }
                     },
                     pan: {
@@ -59,6 +72,7 @@ export function initChart() {
                         },
                         onPanComplete: function ({ chart }) {
                             chart.canvas.style.cursor = 'grab';
+                            updateChart();
                         }
                     },
                     limits: {
@@ -74,7 +88,7 @@ export function initChart() {
             scales: {
                 x: {
                     type: 'linear',
-                    beginAtZero: false,
+                    beginAtZero: beginAtZero,
                     position: 'bottom',
                     grace: '8%',
                     title: {
@@ -92,7 +106,7 @@ export function initChart() {
                     }
                 },
                 y: {
-                    beginAtZero: false,
+                    beginAtZero: beginAtZero,
                     grace: '8%',
                     title: {
                         display: false,
@@ -151,12 +165,29 @@ export function getDataRange() {
     if (!hasData) {
         // Fallback a escalas si no hay datos crudos
         if (AppState.chart && AppState.chart.scales && AppState.chart.scales.x) {
-            return { min: AppState.chart.scales.x.min || 0, max: AppState.chart.scales.x.max || 10 };
+            const xScale = AppState.chart.scales.x;
+            const min = typeof xScale.min === 'number' && !isNaN(xScale.min) ? xScale.min : 0;
+            const max = typeof xScale.max === 'number' && !isNaN(xScale.max) ? xScale.max : 10;
+            return { min, max };
         }
         return { min: 0, max: 10 };
     }
 
     return { min: minX, max: maxX };
+}
+
+function getVisibleXRange() {
+    if (!AppState.chart || !AppState.chart.scales || !AppState.chart.scales.x) {
+        return null;
+    }
+
+    const xScale = AppState.chart.scales.x;
+    const min = typeof xScale.min === 'number' && !isNaN(xScale.min) ? xScale.min :
+        (xScale.options && typeof xScale.options.min === 'number' && !isNaN(xScale.options.min) ? xScale.options.min : null);
+    const max = typeof xScale.max === 'number' && !isNaN(xScale.max) ? xScale.max :
+        (xScale.options && typeof xScale.options.max === 'number' && !isNaN(xScale.options.max) ? xScale.options.max : null);
+
+    return { min, max };
 }
 
 /**
@@ -166,13 +197,15 @@ export function updateChart(animationMode) {
     const datasets = [];
     const showUncertaintyLinesCheckbox = document.getElementById('showUncertaintyLines');
     const showUncertaintyLines = showUncertaintyLinesCheckbox ? showUncertaintyLinesCheckbox.checked : false;
+    const extrapolateNeg = document.getElementById('extrapolateNegInfinity')?.checked ?? false;
+    const extrapolatePos = document.getElementById('extrapolatePosInfinity')?.checked ?? false;
 
     AppState.series.forEach(serie => {
         const validData = serie.data.filter(p => p.x !== '' && p.y !== '').map(p => ({
             x: parseFloat(p.x),
             y: parseFloat(p.y),
-            xError: parseFloat(p.xError || 0),
-            yError: parseFloat(p.yError || 0)
+            xError: parseFloat(serie.defaultXError || 0),
+            yError: parseFloat(serie.defaultYError || 0)
         }));
 
         if (validData.length === 0) return;
@@ -190,7 +223,29 @@ export function updateChart(animationMode) {
         if (serie.fitType !== 'none' && validData.length >= 2) {
             const xLabel = AppState.chart.options.scales.x.title.text || 'X';
             const yLabel = AppState.chart.options.scales.y.title.text || 'Y';
-            const fit = calculateFit(validData, serie.fitType, xLabel, yLabel);
+
+            const dataRange = getDataRange();
+            const visibleXRange = getVisibleXRange();
+
+            let chartXMin = visibleXRange?.min;
+            let chartXMax = visibleXRange?.max;
+
+            if (chartXMin === null || chartXMin === undefined) {
+                chartXMin = AppState.chart?.options?.scales?.x?.min;
+            }
+            if (chartXMax === null || chartXMax === undefined) {
+                chartXMax = AppState.chart?.options?.scales?.x?.max;
+            }
+            if (chartXMin === null || chartXMin === undefined) chartXMin = dataRange.min;
+            if (chartXMax === null || chartXMax === undefined) chartXMax = dataRange.max;
+
+            const fitMin = extrapolateNeg ? chartXMin : undefined;
+            const fitMax = extrapolatePos ? chartXMax : undefined;
+
+            const fit = calculateFit(validData, serie.fitType, xLabel, yLabel, {
+                min: fitMin,
+                max: fitMax
+            });
             serie.equation = fit.equation;
             serie.r2 = fit.r2;
 
@@ -517,7 +572,7 @@ export function resetZoom() {
     document.getElementById('minY').value = '';
     document.getElementById('maxY').value = '';
 
-    AppState.chart.update();
+    updateChart();
 }
 
 /**
@@ -526,6 +581,7 @@ export function resetZoom() {
 export function zoomIn() {
     if (!AppState.chart) return;
     AppState.chart.zoom(1.2);
+    updateChart();
 }
 
 /**
@@ -534,4 +590,5 @@ export function zoomIn() {
 export function zoomOut() {
     if (!AppState.chart) return;
     AppState.chart.zoom(0.8);
+    updateChart();
 }

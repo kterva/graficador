@@ -93,8 +93,32 @@ export function updateChartConfig() {
     // Ejes
     const labelX = document.getElementById('labelX').value;
     const labelY = document.getElementById('labelY').value;
-    const unitX = document.getElementById('unitX')?.value || '';
-    const unitY = document.getElementById('unitY')?.value || '';
+    const defaultXError = document.getElementById('defaultXError')?.value;
+    const defaultYError = document.getElementById('defaultYError')?.value;
+
+    AppState.config.defaultXError = defaultXError !== undefined && defaultXError !== '' ? parseFloat(defaultXError) : 0;
+    AppState.config.defaultYError = defaultYError !== undefined && defaultYError !== '' ? parseFloat(defaultYError) : 0;
+
+    function getComposedUnit(axis) {
+        const prefixSelect = document.getElementById(`prefix${axis.toUpperCase()}`);
+        const unitSelect = document.getElementById(`unit${axis.toUpperCase()}`);
+        const customInput = document.getElementById(`unit${axis.toUpperCase()}Custom`);
+        
+        const prefix = prefixSelect ? prefixSelect.value : '';
+        let baseUnit = '';
+        
+        if (unitSelect && unitSelect.value === 'custom_manual') {
+            baseUnit = customInput ? customInput.value.trim() : '';
+        } else if (unitSelect) {
+            baseUnit = unitSelect.value;
+        }
+        
+        if (!baseUnit) return '';
+        return prefix + baseUnit;
+    }
+
+    const unitX = getComposedUnit('x');
+    const unitY = getComposedUnit('y');
 
     // Formatear etiquetas con unidades: "Etiqueta (unidad)"
     const xAxisLabel = unitX ? `${labelX} (${unitX})` : labelX;

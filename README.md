@@ -91,7 +91,7 @@ Simplemente abre `index.html` en tu navegador moderno (Chrome, Firefox, Edge, Sa
 **Opción B: Importar CSV**
 1. Click en **"📂 Importar"**
 2. Seleccionar archivo CSV
-3. Formato: `x,y,xError,yError`
+3. Formato: `x,y`
 
 **Opción C: Datos de Prueba** (modo desarrollo)
 - Click en botones de ejemplo: 📈 Lineal, 📊 Cuadrática, etc.

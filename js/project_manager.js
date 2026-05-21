@@ -12,7 +12,7 @@ import { updateChartConfig } from './chart_config.js';
  */
 export function exportProject() {
     const projectData = {
-        version: '1.2.0',
+        version: '1.4.0',
         timestamp: new Date().toISOString(),
         config: {
             xLabel: document.getElementById('labelX').value,

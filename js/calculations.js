@@ -120,7 +120,7 @@ export function getRegressionCoeffs(data, type) {
  * @param {string} yLabel - Etiqueta del eje Y
  * @returns {Object} Resultado del ajuste con ecuación, r2, puntos, etc.
  */
-export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y') {
+export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = null) {
     const xs = data.map(p => p.x);
     const ys = data.map(p => p.y);
     const n = xs.length;
@@ -211,6 +211,13 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y') {
     if (minX === Infinity) {
         minX = Math.min(...xs);
         maxX = Math.max(...xs);
+    }
+
+    if (xRange && typeof xRange.min === 'number' && !isNaN(xRange.min)) {
+        minX = xRange.min;
+    }
+    if (xRange && typeof xRange.max === 'number' && !isNaN(xRange.max)) {
+        maxX = xRange.max;
     }
 
     // Adjust minX for logarithmic and power functions if necessary

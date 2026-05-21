@@ -74,13 +74,13 @@ export function downloadChartJPG() {
         AppState.series.forEach((serie, index) => {
             if (index > 0) yPos += 20; // Espacio entre series 
 
-            // Detectar constancia
+            // Detectar constancia usando la incertidumbre por defecto de la serie
             const validData = serie.data.filter(p => p.x !== '');
-            const firstXErr = parseFloat(validData[0]?.xError || 0);
-            const firstYErr = parseFloat(validData[0]?.yError || 0);
+            const firstXErr = parseFloat(serie.defaultXError || 0);
+            const firstYErr = parseFloat(serie.defaultYError || 0);
 
-            const isXErrConst = validData.every(p => parseFloat(p.xError || 0) === firstXErr);
-            const isYErrConst = validData.every(p => parseFloat(p.yError || 0) === firstYErr);
+            const isXErrConst = firstXErr > 0;
+            const isYErrConst = firstYErr > 0;
 
             // Obtener configuración desde DOM para asegurar consistencia
             const labelX = document.getElementById('labelX')?.value || 'X';
@@ -134,12 +134,11 @@ export function downloadChartJPG() {
             validData.forEach(p => {
                 if (yPos > totalHeight - 20) return;
 
-                const xErr = parseFloat(p.xError || 0);
-                const yErr = parseFloat(p.yError || 0);
+                const xErr = firstXErr;
+                const yErr = firstYErr;
 
                 // Valor X
                 let xStr = formatValue(p.x, xErr > 0 ? xErr : 0);
-                // Si error no es constante, agregarlo
                 if (!isXErrConst && xErr > 0) {
                     xStr += ` ± ${formatError(xErr)} `;
                 }
@@ -206,11 +205,11 @@ export function downloadChartPDF() {
 
         AppState.series.forEach(serie => {
             const validData = serie.data.filter(p => p.x !== '');
-            const firstXErr = parseFloat(validData[0]?.xError || 0);
-            const firstYErr = parseFloat(validData[0]?.yError || 0);
+            const firstXErr = parseFloat(serie.defaultXError || 0);
+            const firstYErr = parseFloat(serie.defaultYError || 0);
 
-            const isXErrConst = validData.every(p => parseFloat(p.xError || 0) === firstXErr);
-            const isYErrConst = validData.every(p => parseFloat(p.yError || 0) === firstYErr);
+            const isXErrConst = firstXErr > 0;
+            const isYErrConst = firstYErr > 0;
 
             // Obtener configuración desde DOM
             const labelX = document.getElementById('labelX')?.value || 'X';
@@ -229,8 +228,8 @@ export function downloadChartPDF() {
             if (unitY) headY += ` (${unitY})`;
 
             const body = validData.map(p => {
-                const xErr = parseFloat(p.xError || 0);
-                const yErr = parseFloat(p.yError || 0);
+                const xErr = firstXErr;
+                const yErr = firstYErr;
 
                 let xStr = formatValue(p.x, xErr > 0 ? xErr : 0);
                 if (!isXErrConst && xErr > 0) xStr += ` ± ${formatError(xErr)} `;
@@ -286,11 +285,11 @@ export function downloadChartPDF() {
  *
  * Ejemplo:
  *   # Serie 1
- *   X,±X,Y,±Y
- *   1,0,2,0
+ *   X,Y
+ *   1,2
  *
  *   # Serie 2
- *   X,±X,Y,±Y
+ *   X,Y
  *   ...
  */
 export function downloadAllCSV() {
@@ -300,13 +299,9 @@ export function downloadAllCSV() {
     const title = document.getElementById('chartTitle')?.value || 'graficador';
     const labelX = document.getElementById('labelX')?.value || 'X';
     const labelY = document.getElementById('labelY')?.value || 'Y';
-    const unitX  = document.getElementById('unitX')?.value  || '';
-    const unitY  = document.getElementById('unitY')?.value  || '';
 
-    const colX  = unitX  ? `${labelX} (${unitX})`   : labelX;
-    const colY  = unitY  ? `${labelY} (${unitY})`   : labelY;
-    const colDX = unitX  ? `±${labelX} (${unitX})`  : `±${labelX}`;
-    const colDY = unitY  ? `±${labelY} (${unitY})`  : `±${labelY}`;
+    const colX = labelX;
+    const colY = labelY;
 
     let csv = `# ${title}\n`;
 
@@ -314,16 +309,14 @@ export function downloadAllCSV() {
         const validPoints = serie.data.filter(p => p.x !== '' && p.y !== '');
         if (validPoints.length === 0) return;
 
-        if (idx > 0) csv += '\n'; // línea en blanco entre series
+        if (idx > 0) csv += '\n';
         csv += `# ${serie.name}\n`;
-        csv += `${colX},${colDX},${colY},${colDY}\n`;
+        csv += `${colX},${colY}\n`;
 
         validPoints.forEach(p => {
-            const x  = formatValue(p.x,  parseFloat(p.xError) || 0);
-            const dx = formatError(parseFloat(p.xError) || 0);
-            const y  = formatValue(p.y,  parseFloat(p.yError) || 0);
-            const dy = formatError(parseFloat(p.yError) || 0);
-            csv += `${x},${dx},${y},${dy}\n`;
+            const x = formatValue(p.x, 0);
+            const y = formatValue(p.y, 0);
+            csv += `${x},${y}\n`;
         });
     });
 

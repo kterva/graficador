@@ -18,7 +18,7 @@ import { updateChart } from './chart-manager.js';
  */
 export function generateShareURL() {
     const state = {
-        version: '1.3.0',
+        version: '1.4.0',
         series: AppState.series.map(s => ({
             id: s.id,
             name: s.name,
@@ -66,8 +66,8 @@ export function loadFromURL() {
         const state = JSON.parse(json);
 
         // Validar versión (opcional, por ahora solo advertir)
-        if (state.version && state.version !== '1.3.0') {
-            console.warn(`URL generada con versión ${state.version}, actual: 1.3.0`);
+        if (state.version && state.version !== '1.4.0') {
+            console.warn(`URL generada con versión ${state.version}, actual: 1.4.0`);
         }
 
         // Cargar series

@@ -23,7 +23,7 @@ export function addSerie() {
         id: id,
         name: `Serie ${id}`,
         color: color,
-        data: [{ x: '', y: '', xError: 0, yError: 0 }],
+        data: [{ x: '', y: '' }],
         fitType: 'none',
         equation: '',
         r2: null
@@ -53,7 +53,7 @@ export function addRow(serieId) {
     const serie = findSerieById(serieId);
     if (!serie) return false;
 
-    serie.data.push({ x: '', y: '', xError: 0, yError: 0 });
+    serie.data.push({ x: '', y: '' });
     return true;
 }
 
@@ -78,7 +78,7 @@ export function removeRow(serieId, index) {
  * Actualiza un punto de datos
  * @param {number} serieId - ID de la serie
  * @param {number} index - Índice del punto
- * @param {string} axis - Eje a actualizar ('x', 'y', 'xError', 'yError')
+ * @param {string} axis - Eje a actualizar ('x' o 'y')
  * @param {string|number} value - Nuevo valor
  * @returns {boolean} true si se actualizó, false si no se encontró
  */
@@ -119,6 +119,26 @@ export function updateFitType(serieId, fitType) {
 }
 
 /**
+ * Actualiza la incertidumbre por defecto (columna) de una serie
+ * @param {number} serieId - ID de la serie
+ * @param {string} axis - Eje ('x' o 'y')
+ * @param {number} value - Valor de incertidumbre
+ * @returns {boolean} true si se actualizó, false si no se encontró
+ */
+export function updateDefaultError(serieId, axis, value) {
+    const serie = findSerieById(serieId);
+    if (!serie) return false;
+
+    const numValue = parseFloat(value) || 0;
+    if (axis === 'x') {
+        serie.defaultXError = numValue;
+    } else if (axis === 'y') {
+        serie.defaultYError = numValue;
+    }
+    return true;
+}
+
+/**
  * Limpia todos los datos de una serie
  * @param {number} serieId - ID de la serie
  * @returns {boolean} true si se limpió, false si no se encontró
@@ -127,7 +147,7 @@ export function clearTable(serieId) {
     const serie = findSerieById(serieId);
     if (!serie) return false;
 
-    serie.data = [{ x: '', y: '', xError: 0, yError: 0 }];
+    serie.data = [{ x: '', y: '' }];
     return true;
 }
 
@@ -141,11 +161,11 @@ export function exportCSV(serieId) {
     if (!serie) return false;
 
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "X,Y,xError,yError\n";
+    csvContent += "X,Y\n";
 
     serie.data.forEach(p => {
         if (p.x !== '' && p.y !== '') {
-            csvContent += `${p.x},${p.y},${p.xError || 0},${p.yError || 0}\n`;
+            csvContent += `${p.x},${p.y}\n`;
         }
     });
 
@@ -192,15 +212,13 @@ export function importCSVFile(serieId, file, callback) {
             if (parts.length >= 2) {
                 serie.data.push({
                     x: parseFloat(parts[0]),
-                    y: parseFloat(parts[1]),
-                    xError: parseFloat(parts[2] || 0),
-                    yError: parseFloat(parts[3] || 0)
+                    y: parseFloat(parts[1])
                 });
             }
         });
 
         if (serie.data.length === 0) {
-            serie.data.push({ x: '', y: '', xError: 0, yError: 0 });
+            serie.data.push({ x: '', y: '' });
         }
 
         if (callback) callback(true);
@@ -221,8 +239,6 @@ export function getValidData(serieId) {
         .filter(p => p.x !== '' && p.y !== '')
         .map(p => ({
             x: parseFloat(p.x),
-            y: parseFloat(p.y),
-            xError: parseFloat(p.xError || 0),
-            yError: parseFloat(p.yError || 0)
+            y: parseFloat(p.y)
         }));
 }

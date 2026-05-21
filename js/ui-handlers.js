@@ -9,7 +9,7 @@
  */
 
 import { AppState } from './state.js';
-import { addSerie as addSerieData, removeSerie as removeSerieData, addRow as addRowData, removeRow as removeRowData, updatePoint as updatePointData, updateSerieColor as updateSerieColorData, updateFitType as updateFitTypeData, clearTable as clearTableData, exportCSV as exportCSVData, importCSVFile } from './data-manager.js';
+import { addSerie as addSerieData, removeSerie as removeSerieData, addRow as addRowData, removeRow as removeRowData, updatePoint as updatePointData, updateSerieColor as updateSerieColorData, updateFitType as updateFitTypeData, updateDefaultError as updateDefaultErrorData, clearTable as clearTableData, exportCSV as exportCSVData, importCSVFile } from './data-manager.js';
 import { updateChart, getDataRange } from './chart-manager.js';
 import { propagateUncertainty, formatPropagationResult, validateAllInputs, formatWarnings } from './uncertainty-propagation.js';
 
@@ -56,14 +56,12 @@ export function renderSeries() {
                 <option value="logarithmic" ${serie.fitType === 'logarithmic' ? 'selected' : ''}>Logarítmico</option>
                 <option value="power" ${serie.fitType === 'power' ? 'selected' : ''}>Potencial</option>
             </select>
-            
+
             <table>
                 <thead>
                     <tr>
                         <th>X</th>
-                        <th>±X</th>
                         <th>Y</th>
-                        <th>±Y</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -72,7 +70,8 @@ export function renderSeries() {
             </table>
             <button class="btn btn-primary" onclick="addRow(${serie.id})">+ Agregar Fila</button>
             <p style="margin: 6px 0 0 0; font-size: 11px; color: #aaa;">
-                💡 Podés pegar datos directamente desde Excel o Google Sheets (Ctrl+V sobre la tabla)
+                💡 Podés pegar datos directamente desde Excel o Google Sheets (Ctrl+V sobre la tabla)<br>
+                💡 Los errores X/Y se aplican desde la configuración de columna, no desde cada fila
             </p>
             
             <div class="equation-display" id="eq-${serie.id}" style="display:none;"></div>
@@ -100,18 +99,10 @@ export function renderTable(serieId) {
                        data-serie="${serieId}" data-row="${index}" data-col="0"
                        onkeydown="handleKeyDown(event, ${serieId}, ${index}, 0)"
                        onchange="updatePoint(${serieId}, ${index}, 'x', this.value)"></td>
-            <td><input type="number" step="any" value="${point.xError || 0}" 
+            <td><input type="number" step="any" value="${point.y}" 
                        data-serie="${serieId}" data-row="${index}" data-col="1"
                        onkeydown="handleKeyDown(event, ${serieId}, ${index}, 1)"
-                       onchange="updatePoint(${serieId}, ${index}, 'xError', this.value)" placeholder="0"></td>
-            <td><input type="number" step="any" value="${point.y}" 
-                       data-serie="${serieId}" data-row="${index}" data-col="2"
-                       onkeydown="handleKeyDown(event, ${serieId}, ${index}, 2)"
                        onchange="updatePoint(${serieId}, ${index}, 'y', this.value)"></td>
-            <td><input type="number" step="any" value="${point.yError || 0}" 
-                       data-serie="${serieId}" data-row="${index}" data-col="3"
-                       onkeydown="handleKeyDown(event, ${serieId}, ${index}, 3)"
-                       onchange="updatePoint(${serieId}, ${index}, 'yError', this.value)" placeholder="0"></td>
             <td>
                 <div class="action-btn-group">
                     <button class="btn btn-secondary btn-xs" onclick="moveRowUp(${serieId}, ${index})" ${index === 0 ? 'disabled' : ''} title="Subir">↑</button>
@@ -291,6 +282,7 @@ export function toggleHelp(serieId, fitType) {
                 <strong>Ecuación Lineal: y = ax + b</strong><br>
                 • <strong>a</strong>: Pendiente de la recta (cuánto cambia Y por cada unidad de X)<br>
                 • <strong>b</strong>: Ordenada al origen (valor de Y cuando X = 0)<br>
+                • <strong>R (Coeficiente de correlación)</strong>: Índice que mide el grado de relación entre dos variables cuantitativas y continuas (de -1 a 1)<br>
                 • <strong>R²</strong>: Coeficiente de determinación (0 a 1, más cerca de 1 = mejor ajuste)<br>
                 <br>
                 <strong>Incertidumbre (Método de Pendiente Máxima/Mínima):</strong><br>
@@ -459,6 +451,18 @@ export function updatePoint(serieId, index, axis, value) {
 }
 
 /**
+ * Actualiza la incertidumbre por defecto (columna) de una serie
+ * @param {number} serieId - ID de la serie
+ * @param {string} axis - Eje ('x' o 'y')
+ * @param {number} value - Valor de incertidumbre
+ */
+export function updateDefaultError(serieId, axis, value) {
+    updateDefaultErrorData(serieId, axis, value);
+    renderTable(serieId);
+    updateChart();
+}
+
+/**
  * Actualiza el color de una serie (wrapper para exponer)
  */
 export function updateSerieColor(serieId, color) {
@@ -594,117 +598,74 @@ export function updateAxisUnit(axis, newUnit) {
     import('./units.js').then(unitsModule => {
         const { convert, detectCategory, getCategoryName } = unitsModule;
 
-        if (!newUnit) {
-            // Sin unidad seleccionada, solo actualizar etiqueta
+        const unitSelect = document.getElementById(`unit${axis.toUpperCase()}`);
+        const customInput = document.getElementById(`unit${axis.toUpperCase()}Custom`);
+        const prefixSelect = document.getElementById(`prefix${axis.toUpperCase()}`);
+        const prefix = prefixSelect ? prefixSelect.value : '';
+        
+        let actualBase = newUnit;
+        
+        if (unitSelect && unitSelect.value === 'custom_manual') {
+            if (customInput) customInput.style.display = 'block';
+            if (newUnit === 'custom_manual') return; // Solo querían mostrar la caja
+            actualBase = newUnit;
+        } else {
+            if (customInput) {
+                customInput.style.display = 'none';
+                customInput.value = '';
+            }
+        }
+
+        if (!actualBase) {
+            // Limpiar unidad si seleccionó 'Sin unidad' o vacío
+            for (const serie of AppState.series) {
+                if (!serie.units) serie.units = {};
+                serie.units[axis] = {
+                    unit: '',
+                    category: 'none',
+                    original: ''
+                };
+            }
+            import('./chart_config.js').then(mod => mod.updateChartConfig());
             updateChart();
             return;
         }
 
-        // Detectar categoría de la nueva unidad
-        const newCategory = detectCategory(newUnit);
+        const combinedUnit = prefix + actualBase;
+
+        // Detectar categoría de la nueva unidad combinada
+        let newCategory = detectCategory(combinedUnit);
         if (!newCategory) {
-            alert(`No se pudo detectar la categoría de la unidad: ${newUnit}`);
-            return;
+            newCategory = 'custom';
+            console.log(`Unidad desconocida detectada: ${combinedUnit}. Asignando categoría 'custom'`);
         }
 
         // Verificar si hay datos para convertir
         if (AppState.series.length === 0) {
-            // No hay datos, solo guardar la unidad
-            console.log(`Unidad del eje ${axis.toUpperCase()} establecida a: ${newUnit}`);
+            console.log(`Unidad del eje ${axis.toUpperCase()} establecida a: ${combinedUnit}`);
+            import('./chart_config.js').then(mod => mod.updateChartConfig());
             updateChart();
             return;
         }
 
         // Buscar la unidad actual en las series
-        let currentUnit = null;
-        let hasUnits = false;
-
+        // Ya no se realizan conversiones matemáticas por decisión de diseño.
+        // Solo se actualizan las etiquetas/metadatos para el gráfico.
         for (const serie of AppState.series) {
-            if (serie.units && serie.units[axis]) {
-                currentUnit = serie.units[axis].unit;
-                hasUnits = true;
-                break;
-            }
-        }
-
-        // Si no hay unidad actual, asumir que es la misma categoría
-        if (!currentUnit) {
-            // Primera vez que se establece unidad
-            for (const serie of AppState.series) {
-                if (!serie.units) serie.units = {};
-                serie.units[axis] = {
-                    unit: newUnit,
-                    category: newCategory,
-                    original: newUnit
-                };
-            }
-            updateChart();
-            return;
-        }
-
-        // Verificar que las unidades sean de la misma categoría
-        const currentCategory = detectCategory(currentUnit);
-        if (currentCategory !== newCategory) {
-            // Permitir corrección de etiqueta sin conversión
-            const confirmCorrection = confirm(`No se puede convertir matemáticamente de ${getCategoryName(currentCategory)} a ${getCategoryName(newCategory)}.\n\n¿Desea cambiar la UNIDAD (etiqueta) sin modificar los valores numéricos?\n(Útil si se equivocó al elegir la unidad inicial)`);
-
-            if (confirmCorrection) {
-                // Actualizar metadatos sin convertir datos
-                for (const serie of AppState.series) {
-                    if (!serie.units) serie.units = {};
-                    serie.units[axis] = {
-                        unit: newUnit,
-                        category: newCategory,
-                        original: newUnit
-                    };
-                }
-                // Actualizar etiquetas y gráfico
-                import('./chart_config.js').then(mod => mod.updateChartConfig());
-                updateChart();
-                return;
-            } else {
-                // Revertir selector
-                document.getElementById(`unit${axis.toUpperCase()}`).value = currentUnit;
-                return;
-            }
-        }
-
-        // Convertir todos los datos
-        let convertedCount = 0;
-        for (const serie of AppState.series) {
-            for (const point of serie.data) {
-                const oldValue = parseFloat(point[axis]);
-                if (!isNaN(oldValue)) {
-                    const newValue = convert(oldValue, currentUnit, newUnit, currentCategory);
-                    point[axis] = newValue;
-
-                    // También convertir errores si existen
-                    const errorKey = axis === 'x' ? 'xError' : 'yError';
-                    if (point[errorKey]) {
-                        point[errorKey] = convert(point[errorKey], currentUnit, newUnit, currentCategory);
-                    }
-
-                    convertedCount++;
-                }
-            }
-
-            // Actualizar metadatos de unidad
             if (!serie.units) serie.units = {};
             serie.units[axis] = {
-                unit: newUnit,
+                unit: combinedUnit,
                 category: newCategory,
-                original: serie.units[axis]?.original || currentUnit
+                original: combinedUnit
             };
         }
 
-        // Actualizar gráfica y mostrar confirmación
+        // Actualizar gráfica
+        import('./chart_config.js').then(mod => mod.updateChartConfig());
         updateChart();
         renderSeries();
 
-        console.log(`✓ ${convertedCount} valores convertidos de ${currentUnit} a ${newUnit}`);
-
-        // Mostrar notificación visual
-        showUnitConversionNotification(currentUnit, newUnit, convertedCount);
+        console.log(`Unidad del eje ${axis.toUpperCase()} cambiada a ${combinedUnit} (etiqueta actualizada).`);
     }).catch(error => {
         console.error('Error al cargar módulo de unidades:', error);
         alert('Error al convertir unidades');
@@ -712,9 +673,40 @@ export function updateAxisUnit(axis, newUnit) {
 }
 
 /**
+ * Procesa la unidad escrita manualmente en el input personalizado
+ * @param {string} axis - 'x' o 'y'
+ * @param {string} newUnit - Valor tipeado
+ */
+export function updateCustomUnit(axis, newUnit) {
+    if (!newUnit.trim()) return;
+    updateAxisUnit(axis, newUnit.trim());
+}
+
+/**
+ * Se llama cuando cambia el selector de prefijo.
+ * Obtiene la unidad base actual (del select o del custom input) y vuelve a procesar.
+ */
+export function updateAxisPrefix(axis, prefixValue) {
+    const unitSelect = document.getElementById(`unit${axis.toUpperCase()}`);
+    const customInput = document.getElementById(`unit${axis.toUpperCase()}Custom`);
+    
+    let baseUnit = '';
+    if (unitSelect && unitSelect.value === 'custom_manual') {
+        baseUnit = customInput ? customInput.value.trim() : '';
+        if (!baseUnit) baseUnit = 'custom_manual';
+    } else if (unitSelect) {
+        baseUnit = unitSelect.value;
+    }
+    
+    updateAxisUnit(axis, baseUnit);
+}
+
+/**
  * Muestra una notificación temporal de conversión exitosa
  */
 function showUnitConversionNotification(from, to, count) {
+    if (count === 0) return; // No mostrar nada si no hubo conversión matemática real
+
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed;
@@ -740,6 +732,58 @@ function showUnitConversionNotification(from, to, count) {
         notification.style.animation = 'slideOut 0.3s ease-in';
         setTimeout(() => notification.remove(), 300);
     }, 3000);
+}
+
+/**
+ * Muestra el modal de ayuda específico para las unidades
+ */
+export function showUnitHelp() {
+    if (document.getElementById('unitHelpModal')) return;
+
+    const modal = document.createElement('div');
+    modal.id = 'unitHelpModal';
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0, 0, 0, 0.5); z-index: 4000;
+        display: flex; justify-content: center; align-items: center;
+        animation: fadeIn 0.2s;
+    `;
+
+    const content = document.createElement('div');
+    content.style.cssText = `
+        background: white; padding: 25px; border-radius: 8px;
+        max-width: 500px; width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        position: relative; line-height: 1.5; color: #333;
+    `;
+
+    content.innerHTML = `
+        <button id="closeUnitHelp" style="position: absolute; top: 10px; right: 15px; border: none; background: none; font-size: 24px; cursor: pointer; color: #888;">&times;</button>
+        <h3 style="margin-top: 0; color: #4a5568; border-bottom: 2px solid #ebf8ff; padding-bottom: 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">📏 Sistema de Unidades</h3>
+        
+        <p style="margin-bottom: 15px;">El graficador te permite gestionar las unidades físicas de tus datos de forma inteligente:</p>
+        
+        <ul style="padding-left: 20px; text-align: left;">
+            <li style="margin-bottom: 12px;"><strong>Unidades Base:</strong> Seleccioná la unidad correcta de la lista para organizar las etiquetas de los ejes de tu gráfica.</li>
+            <li style="margin-bottom: 12px;"><strong>Prefijos:</strong> Usá el menú de la izquierda para agregar un prefijo a la unidad (mili, micro, kilo, etc.), lo cual se reflejará instantáneamente en el gráfico (ej. <i>mA</i>, <i>kV</i>).</li>
+            <li style="margin-bottom: 12px;"><strong>Unidades Personalizadas:</strong> Si tu unidad no está en la lista, seleccioná <i>"Otra (Personalizada)..."</i> y escribíla. ¡Podés combinarlas con los prefijos!</li>
+        </ul>
+        <div style="text-align: right; margin-top: 25px;">
+            <button id="closeUnitHelpBtn" style="padding: 8px 16px; background-color: #4a5568; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Entendido</button>
+        </div>
+    `;
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+
+    const closeHandler = () => {
+        if (document.body.contains(modal)) {
+            document.body.removeChild(modal);
+        }
+    };
+
+    document.getElementById('closeUnitHelp').onclick = closeHandler;
+    document.getElementById('closeUnitHelpBtn').onclick = closeHandler;
+    modal.onclick = (e) => { if (e.target === modal) closeHandler(); };
 }
 
 // ============================================
@@ -824,10 +868,13 @@ export function openDimensionalAnalysisModal() {
     menu.style.display = 'none';
 
     // Llenar catálogo si está vacío
-    const catalog = document.getElementById('dimCatalog');
-    if (catalog.children.length === 0) {
-        populateDimensionalCatalog();
-    }
+    import('./units.js').then(unitsModule => {
+        const { populateDimensionalCatalog } = unitsModule;
+        const catalog = document.getElementById('dimCatalog');
+        if (catalog.children.length === 0) {
+            populateDimensionalCatalog();
+        }
+    });
 }
 
 /**
@@ -842,6 +889,26 @@ export function closeDimensionalAnalysisModal() {
     const resultDiv = document.getElementById('dimResult');
     resultDiv.style.display = 'none';
     document.getElementById('dimExpression').value = '';
+}
+
+/**
+ * Abre el modal de datos de prueba
+ */
+export function openTestDataModal() {
+    const modal = document.getElementById('testDataModal');
+    if (modal) modal.style.display = 'block';
+    
+    // Cerrar el menú de herramientas
+    const menu = document.getElementById('toolsMenu');
+    if (menu) menu.style.display = 'none';
+}
+
+/**
+ * Cierra el modal de datos de prueba
+ */
+export function closeTestDataModal() {
+    const modal = document.getElementById('testDataModal');
+    if (modal) modal.style.display = 'none';
 }
 
 /**
@@ -918,7 +985,7 @@ export function analyzeDimension() {
             console.error('Error al analizar dimensión:', error);
             alert('Error al analizar la expresión: ' + error.message);
         }
-    });
+    }).catch(err => console.error("Error cargando units.js", err));
 }
 
 /**
@@ -963,12 +1030,10 @@ export function moveRowDown(serieId, index) {
 
 /**
  * Maneja el pegado de datos tabulares desde Excel, Google Sheets o LibreOffice Calc.
- * Detecta el número de columnas para asignar automáticamente X, ±X, Y, ±Y.
+ * Detecta el número de columnas para asignar automáticamente X y Y.
  *
- * Formatos soportados:
+ * Formato soportado:
  *   2 columnas: X, Y
- *   3 columnas: X, Y, ±Y
- *   4 columnas: X, ±X, Y, ±Y
  *
  * @param {ClipboardEvent} event
  * @param {number} serieId - ID de la serie destino
@@ -994,18 +1059,12 @@ export function handleTablePaste(event, serieId) {
     if (!serie) return;
 
     serie.data = dataRows.map(cols => {
-        const toNum = (v) => (v !== undefined && v !== '' && !isNaN(parseFloat(v))) ? parseFloat(v) : 0;
-        if (numCols === 2) {
-            return { x: toNum(cols[0]), y: toNum(cols[1]), xError: 0, yError: 0 };
-        } else if (numCols === 3) {
-            return { x: toNum(cols[0]), y: toNum(cols[1]), xError: 0, yError: toNum(cols[2]) };
-        } else {
-            return { x: toNum(cols[0]), xError: toNum(cols[1]), y: toNum(cols[2]), yError: toNum(cols[3]) };
-        }
+        const toNum = (v) => (v !== undefined && v !== '' && !isNaN(parseFloat(v))) ? parseFloat(v) : '';
+        return { x: toNum(cols[0]), y: toNum(cols[1]) };
     });
 
     if (serie.data.length === 0) {
-        serie.data = [{ x: '', y: '', xError: 0, yError: 0 }];
+        serie.data = [{ x: '', y: '' }];
     }
 
     // Prevenir el pegado nativo del navegador DESPUES de leer los datos
@@ -1022,7 +1081,7 @@ export function handleTablePaste(event, serieId) {
  * @param {number} cols  - Número de columnas detectadas
  */
 function _showPasteNotification(count, cols) {
-    const label = { 2: 'X, Y', 3: 'X, Y, ±Y', 4: 'X, ±X, Y, ±Y' }[Math.min(cols, 4)] || 'X, Y';
+    const label = 'X, Y';
     const n = document.createElement('div');
     n.style.cssText = 'position:fixed;top:80px;right:20px;background:linear-gradient(135deg,#11998e,#38ef7d);' +
         'color:white;padding:14px 20px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);' +

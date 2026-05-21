@@ -3,10 +3,10 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <title>Graficador con Ajustes</title>
 
-    <!-- Chart.js y plugins -->
     <!-- Chart.js y plugins -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -63,6 +63,12 @@
                             onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
                             🔬 Análisis Dimensional
                         </button>
+                        <button onclick="openTestDataModal(); toggleToolsMenu();" role="menuitem"
+                            aria-label="Cargar datos de prueba" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
+                            cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee;"
+                            onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+                            🧪 Cargar Datos de Prueba
+                        </button>
                         <button onclick="alert('Plantillas próximamente...')" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
                             cursor: pointer; transition: background 0.2s; color: #999;"
                             onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
@@ -106,29 +112,18 @@
                     <canvas id="myChart"></canvas>
                 </div>
 
-                <!-- Panel de Configuración -->
-
-                <!-- Panel de Desarrollo (solo en rama develop) -->
-                <div id="dev-panel" class="panel"
-                    style="margin-top: 20px; border: 2px solid #ff6b6b; background: #fff5f5; display: none;">
-                    <h3 style="color: #ff6b6b;">🧪 Datos de Prueba (DEV)</h3>
-                    <div
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px;">
-                        <button class="btn btn-secondary" onclick="loadTestData('linear')"
-                            style="background: #4ecdc4;">📈
-                            Lineal</button>
-                        <button class="btn btn-secondary" onclick="loadTestData('quadratic')"
-                            style="background: #95e1d3;">📊 Cuadrática</button>
-                        <button class="btn btn-secondary" onclick="loadTestData('exponential')"
-                            style="background: #f38181;">📉 Exponencial</button>
-                        <button class="btn btn-secondary" onclick="loadTestData('logarithmic')"
-                            style="background: #aa96da;">📐 Logarítmica</button>
-                        <button class="btn btn-secondary" onclick="loadTestData('power')" style="background: #fcbad3;">⚡
-                            Potencial</button>
-                        <button class="btn btn-secondary" onclick="loadTestData('uncertainty')"
-                            style="background: #a8e6cf;">🎯 Con Incertidumbre</button>
-                    </div>
+                <div id="extrapolation-controls" style="margin-top: 15px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: #fafafa; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.95rem;">
+                        <input type="checkbox" id="extrapolateNegInfinity" onchange="updateChart()">
+                        Extrapolar a -infinito
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.95rem;">
+                        <input type="checkbox" id="extrapolatePosInfinity" onchange="updateChart()">
+                        Extrapolar a +infinito
+                    </label>
                 </div>
+
+                <!-- Panel de Configuración -->
 
 
                 <!-- 1. Zoom Controls -->
@@ -162,9 +157,25 @@
                                 <input type="text" id="labelX" value="X" onchange="updateChartConfig()"><br>
 
                                 <!-- Selector de unidades para eje X -->
-                                <label style="margin-top: 8px; display: block;">Unidad:</label>
-                                <select id="unitX" onchange="updateAxisUnit('x', this.value)"
-                                    style="width: 100%; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                                <label style="margin-top: 8px; display: block;">Unidad: 
+                                    <span onclick="showUnitHelp()" title="Ayuda sobre unidades" style="cursor:pointer; font-size:0.9em; background:#eee; border-radius:50%; padding:0 4px; border:1px solid #ccc; display: inline-block; width: 14px; text-align: center;">?</span>
+                                </label>
+                                <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+                                    <select id="prefixX" onchange="updateAxisPrefix('x', this.value)" style="flex: 1; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                                        <option value="">Prefijo...</option>
+                                        <option value="p">pico (p)</option>
+                                        <option value="n">nano (n)</option>
+                                        <option value="μ">micro (μ)</option>
+                                        <option value="m">mili (m)</option>
+                                        <option value="c">centi (c)</option>
+                                        <option value="d">deci (d)</option>
+                                        <option value="k">kilo (k)</option>
+                                        <option value="M">mega (M)</option>
+                                        <option value="G">giga (G)</option>
+                                        <option value="T">tera (T)</option>
+                                    </select>
+                                    <select id="unitX" onchange="updateAxisUnit('x', this.value)"
+                                        style="flex: 2; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
                                     <option value="">Sin unidad</option>
                                     <optgroup label="Longitud">
                                         <option value="m">metros (m)</option>
@@ -177,36 +188,55 @@
                                         <option value="ms">milisegundos (ms)</option>
                                         <option value="min">minutos (min)</option>
                                         <option value="h">horas (h)</option>
+                                        <option value="day">días (day)</option>
                                     </optgroup>
                                     <optgroup label="Masa">
                                         <option value="kg">kilogramos (kg)</option>
                                         <option value="g">gramos (g)</option>
                                         <option value="mg">miligramos (mg)</option>
+                                        <option value="ton">toneladas métricas (ton)</option>
                                     </optgroup>
                                     <optgroup label="Temperatura">
                                         <option value="K">kelvin (K)</option>
-                                        <option value="C">grados Celsius (°C)</option>
-                                        <option value="F">grados Fahrenheit (°F)</option>
+                                        <option value="°C">grados Celsius (°C)</option>
                                     </optgroup>
                                     <optgroup label="Velocidad">
                                         <option value="m/s">metros por segundo (m/s)</option>
-                                        <option value="cm/s">centímetros por segundo (cm/s)</option>
                                         <option value="km/h">kilómetros por hora (km/h)</option>
                                     </optgroup>
                                     <optgroup label="Aceleración">
                                         <option value="m/s²">metros por segundo cuadrado (m/s²)</option>
-                                        <option value="cm/s²">centímetros por segundo cuadrado (cm/s²)</option>
                                     </optgroup>
                                     <optgroup label="Fuerza">
                                         <option value="N">newton (N)</option>
-                                        <option value="kN">kilonewton (kN)</option>
                                     </optgroup>
                                     <optgroup label="Energía">
                                         <option value="J">joule (J)</option>
-                                        <option value="kJ">kilojoule (kJ)</option>
+                                        <option value="eV">electronvoltio (eV)</option>
                                         <option value="cal">caloría (cal)</option>
                                     </optgroup>
+                                    <optgroup label="Electromagnetismo">
+                                        <option value="C">coulomb (C)</option>
+                                        <option value="A">amperio (A)</option>
+                                        <option value="V">voltio (V)</option>
+                                        <option value="Ω">ohmio (Ω)</option>
+                                        <option value="F">faradio (F)</option>
+                                        <option value="H">henrio (H)</option>
+                                        <option value="T">tesla (T)</option>
+                                        <option value="Wb">weber (Wb)</option>
+                                    </optgroup>
+                                    <optgroup label="Ángulos">
+                                        <option value="rad">radián (rad)</option>
+                                        <option value="deg">grado (deg)</option>
+                                    </optgroup>
+                                    <option value="custom_manual">Otra (Personalizada)...</option>
                                 </select>
+                                </div>
+                                <input type="text" id="unitXCustom" placeholder="Ej. A, RPM, Hz" oninput="updateCustomUnit('x', this.value)"
+                                    style="width: 100%; padding: 5px; border-radius: 4px; border: 1px solid #ccc; display: none; margin-top: 4px;">
+                                <label style="display:block; margin-top: 8px; font-weight: 500; color: #444;">Incertidumbre de columna ±X:</label>
+                                <input type="number" id="defaultXError" step="any" placeholder="0" value="0" onchange="updateChartConfig()"
+                                    style="width: 100%; padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
                             </div>
                             <div>
                                 <strong>Eje Y</strong><br>
@@ -214,9 +244,25 @@
                                 <input type="text" id="labelY" value="Y" onchange="updateChartConfig()"><br>
 
                                 <!-- Selector de unidades para eje Y -->
-                                <label style="margin-top: 8px; display: block;">Unidad:</label>
-                                <select id="unitY" onchange="updateAxisUnit('y', this.value)"
-                                    style="width: 100%; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                                <label style="margin-top: 8px; display: block;">Unidad: 
+                                    <span onclick="showUnitHelp()" title="Ayuda sobre unidades" style="cursor:pointer; font-size:0.9em; background:#eee; border-radius:50%; padding:0 4px; border:1px solid #ccc; display: inline-block; width: 14px; text-align: center;">?</span>
+                                </label>
+                                <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+                                    <select id="prefixY" onchange="updateAxisPrefix('y', this.value)" style="flex: 1; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                                        <option value="">Prefijo...</option>
+                                        <option value="p">pico (p)</option>
+                                        <option value="n">nano (n)</option>
+                                        <option value="μ">micro (μ)</option>
+                                        <option value="m">mili (m)</option>
+                                        <option value="c">centi (c)</option>
+                                        <option value="d">deci (d)</option>
+                                        <option value="k">kilo (k)</option>
+                                        <option value="M">mega (M)</option>
+                                        <option value="G">giga (G)</option>
+                                        <option value="T">tera (T)</option>
+                                    </select>
+                                    <select id="unitY" onchange="updateAxisUnit('y', this.value)"
+                                        style="flex: 2; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
                                     <option value="">Sin unidad</option>
                                     <optgroup label="Longitud">
                                         <option value="m">metros (m)</option>
@@ -229,36 +275,55 @@
                                         <option value="ms">milisegundos (ms)</option>
                                         <option value="min">minutos (min)</option>
                                         <option value="h">horas (h)</option>
+                                        <option value="day">días (day)</option>
                                     </optgroup>
                                     <optgroup label="Masa">
                                         <option value="kg">kilogramos (kg)</option>
                                         <option value="g">gramos (g)</option>
                                         <option value="mg">miligramos (mg)</option>
+                                        <option value="ton">toneladas métricas (ton)</option>
                                     </optgroup>
                                     <optgroup label="Temperatura">
                                         <option value="K">kelvin (K)</option>
-                                        <option value="C">grados Celsius (°C)</option>
-                                        <option value="F">grados Fahrenheit (°F)</option>
+                                        <option value="°C">grados Celsius (°C)</option>
                                     </optgroup>
                                     <optgroup label="Velocidad">
                                         <option value="m/s">metros por segundo (m/s)</option>
-                                        <option value="cm/s">centímetros por segundo (cm/s)</option>
                                         <option value="km/h">kilómetros por hora (km/h)</option>
                                     </optgroup>
                                     <optgroup label="Aceleración">
                                         <option value="m/s²">metros por segundo cuadrado (m/s²)</option>
-                                        <option value="cm/s²">centímetros por segundo cuadrado (cm/s²)</option>
                                     </optgroup>
                                     <optgroup label="Fuerza">
                                         <option value="N">newton (N)</option>
-                                        <option value="kN">kilonewton (kN)</option>
                                     </optgroup>
                                     <optgroup label="Energía">
                                         <option value="J">joule (J)</option>
-                                        <option value="kJ">kilojoule (kJ)</option>
+                                        <option value="eV">electronvoltio (eV)</option>
                                         <option value="cal">caloría (cal)</option>
                                     </optgroup>
+                                    <optgroup label="Electromagnetismo">
+                                        <option value="C">coulomb (C)</option>
+                                        <option value="A">amperio (A)</option>
+                                        <option value="V">voltio (V)</option>
+                                        <option value="Ω">ohmio (Ω)</option>
+                                        <option value="F">faradio (F)</option>
+                                        <option value="H">henrio (H)</option>
+                                        <option value="T">tesla (T)</option>
+                                        <option value="Wb">weber (Wb)</option>
+                                    </optgroup>
+                                    <optgroup label="Ángulos">
+                                        <option value="rad">radián (rad)</option>
+                                        <option value="deg">grado (deg)</option>
+                                    </optgroup>
+                                    <option value="custom_manual">Otra (Personalizada)...</option>
                                 </select>
+                                </div>
+                                <input type="text" id="unitYCustom" placeholder="Ej. A, RPM, Hz" oninput="updateCustomUnit('y', this.value)"
+                                    style="width: 100%; padding: 5px; border-radius: 4px; border: 1px solid #ccc; display: none;">
+                                <label style="display:block; margin-top: 8px; font-weight: 500; color: #444;">Incertidumbre de columna ±Y:</label>
+                                <input type="number" id="defaultYError" step="any" placeholder="0" value="0" onchange="updateChartConfig()"
+                                    style="width: 100%; padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
                             </div>
                         </div>
 
@@ -571,6 +636,25 @@
                                 <p style="margin: 5px 0;">Verifica la coherencia de ecuaciones físicas.</p>
                                 <ul style="margin-top: 5px; font-size: 0.95em; color: #555; padding-left: 20px;">
                                     <li><strong>Uso:</strong> Menú Herramientas > Análisis Dimensional.</li>
+                                </ul>
+                            </div>
+                            
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #4ecdc4;">
+                                <h4 style="margin: 0 0 10px 0; color: #333; display: flex; align-items: center; gap: 8px;">
+                                    🧪 Cargar Datos de Prueba</h4>
+                                <p style="margin: 0 0 10px 0; font-size: 0.9em; line-height: 1.5; color: #555;">
+                                    Permite cargar rápidamente conjuntos de datos predefinidos para explorar y probar las funciones del graficador, como los diferentes modelos de ajuste (Lineal, Cuadrático, Exponencial, etc.).
+                                </p>
+                                <ul style="margin: 0; padding-left: 20px; font-size: 0.9em; color: #555;">
+                                    <li><strong>Uso:</strong> Menú Herramientas > Cargar Datos de Prueba.</li>
+                                </ul>
+                            </div>
+
+                            <div style="margin-bottom: 15px;">
+                                <strong style="color: #764ba2;">📐 Propagación de Errores</strong>
+                                <p style="margin: 5px 0;">Calcula incertidumbres en operaciones matemáticas (A ± ΔA).
+                                </p>
+                                <ul style="margin-top: 5px; font-size: 0.95em; color: #555; padding-left: 20px;">
                                     <li><strong>Ejemplo:</strong> Escribe <code>velocidad * tiempo</code> para obtener
                                         <code>[L]</code> (Longitud).
                                     </li>
@@ -662,6 +746,7 @@
                     🔗 Ver código fuente en GitHub
                 </a>
             </p>
+            <p style="margin: 5px 0; font-size: 13px; color: #999;">Versión 1.4.0</p>
             <p style="margin: 5px 0; font-size: 13px; color: #999;">
                 ¡Contribuciones y sugerencias son bienvenidas! 🚀 Escríbeme a <a
                     href="mailto:trujillo.leonardo@gmail.com" style="color: #3498db;">trujillo.leonardo@gmail.com</a>
@@ -675,9 +760,6 @@
     <!-- JavaScript externo -->
     <!-- Archivos que aún no son módulos (compatibilidad) -->
     <script src="js/axis_arrows_plugin.js"></script>
-    <script src="js/project_manager.js"></script>
-
-    <script src="js/export_manager.js"></script>
 
 
 
@@ -692,6 +774,45 @@
             console.log('🔧 Cargando herramientas de desarrollo...');
         }
     </script>
+
+    <!-- Modal de Datos de Prueba -->
+    <div id="testDataModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        background: rgba(0,0,0,0.5); z-index: 2000; overflow-y: auto;">
+        <div style="background: white; max-width: 600px; margin: 50px auto; border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #4ecdc4 0%, #2980b9 100%); padding: 20px; color: white;">
+                <h2 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.2em;">🧪</span> Datos de Prueba
+                </h2>
+                <p style="margin: 10px 0 0 0; opacity: 0.9;">Carga ejemplos predefinidos para explorar las funcionalidades del graficador.</p>
+            </div>
+            
+            <div style="padding: 25px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px;">
+                    <button class="btn btn-secondary" onclick="loadTestData('linear'); closeTestDataModal();"
+                        style="background: #4ecdc4;">📈 Lineal</button>
+                    <button class="btn btn-secondary" onclick="loadTestData('quadratic'); closeTestDataModal();"
+                        style="background: #95e1d3;">📊 Cuadrática</button>
+                    <button class="btn btn-secondary" onclick="loadTestData('exponential'); closeTestDataModal();"
+                        style="background: #f38181;">📉 Exponencial</button>
+                    <button class="btn btn-secondary" onclick="loadTestData('logarithmic'); closeTestDataModal();"
+                        style="background: #aa96da;">📐 Logarítmica</button>
+                    <button class="btn btn-secondary" onclick="loadTestData('power'); closeTestDataModal();" 
+                        style="background: #fcbad3;">⚡ Potencial</button>
+                    <button class="btn btn-secondary" onclick="loadTestData('uncertainty'); closeTestDataModal();"
+                        style="background: #a8e6cf;">🎯 Con Incertidumbre</button>
+                </div>
+
+                <!-- Botón cerrar -->
+                <div style="text-align: right; margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="closeTestDataModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; 
+                        border-radius: 6px; cursor: pointer;">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal de Propagación de Errores -->
     <div id="errorPropagationModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -856,19 +977,10 @@
     </div>
 
     <!-- Módulo principal (ES6) -->
-    <script type="module" src="js/main.js?v=1.2.2"></script>
+    <script type="module" src="js/main.js?v=1.4.0"></script>
 
-    <!-- Mostrar panel de desarrollo si IS_DEVELOPMENT está activado -->
-    <script>
-        // Cargar dev-tools.js solo si IS_DEVELOPMENT está definido y es true
-        if (typeof window.IS_DEVELOPMENT !== 'undefined' && window.IS_DEVELOPMENT) {
-            const script = document.createElement('script');
-            script.type = 'module';
-            script.src = 'js/dev-tools.js?Dev=' + Date.now();
-            document.head.appendChild(script);
-            console.log('🔧 Cargando herramientas de desarrollo...');
-        }
-    </script>
+    <!-- Herramientas de desarrollo -->
+    <script type="module" src="js/dev-tools.js"></script>
 </body>
 
 </html>

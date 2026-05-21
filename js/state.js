@@ -34,6 +34,8 @@ export const AppState = {
         xMax: null,  // null = auto
         yMin: null,  // null = auto
         yMax: null,  // null = auto
+        defaultXError: 0,
+        defaultYError: 0,
         showGrid: true
     },
 
@@ -77,6 +79,8 @@ export function findSerieById(id) {
  * @property {Array<DataPoint>} data - Array de puntos de datos
  * @property {string} equation - Ecuación del ajuste (generada)
  * @property {number} r2 - Coeficiente R² del ajuste (generado)
+ * @property {number} defaultXError - Incertidumbre por defecto para el eje X (aplica a toda la columna)
+ * @property {number} defaultYError - Incertidumbre por defecto para el eje Y (aplica a toda la columna)
  * @property {Object} units - Metadatos de unidades (opcional)
  * @property {Object} units.x - Unidad del eje X
  * @property {string} units.x.unit - Símbolo de la unidad (ej: 'm', 's')
@@ -93,7 +97,5 @@ export function findSerieById(id) {
  * @typedef {Object} DataPoint
  * @property {number|string} x - Valor X
  * @property {number|string} y - Valor Y
- * @property {number} xError - Error en X
- * @property {number} yError - Error en Y
  */
 
