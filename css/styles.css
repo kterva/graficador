@@ -119,13 +119,16 @@ th {
    INPUTS
    ============================================ */
 
-input[type="number"] {
+/* Inputs numéricos de la tabla (tipo text para aceptar coma como decimal) */
+input[type="number"],
+input[type="text"] {
     width: 100%;
     min-width: 50px;
     padding: 5px;
     border: 1px solid #ccc;
     border-radius: 3px;
     -moz-appearance: textfield; /* Firefox */
+    box-sizing: border-box;
 }
 
 /* Ocultar flechas de los inputs numéricos (Chrome, Safari, Edge, Opera) */

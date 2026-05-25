@@ -12,6 +12,7 @@ import { AppState } from './state.js';
 import { addSerie as addSerieData, removeSerie as removeSerieData, addRow as addRowData, removeRow as removeRowData, updatePoint as updatePointData, updateSerieColor as updateSerieColorData, updateFitType as updateFitTypeData, updateDefaultError as updateDefaultErrorData, clearTable as clearTableData, exportCSV as exportCSVData, importCSVFile } from './data-manager.js';
 import { updateChart, getDataRange } from './chart-manager.js';
 import { propagateUncertainty, formatPropagationResult, validateAllInputs, formatWarnings } from './uncertainty-propagation.js';
+import { showDecimalWarning, normalizeDecimalInput } from './utils.js';
 
 // Debounce para updateChart: evita recalcular en cada tecla mientras se escribe un número
 let _chartUpdateTimer = null;
@@ -95,13 +96,15 @@ export function renderTable(serieId) {
     serie.data.forEach((point, index) => {
         const row = tbody.insertRow();
         row.innerHTML = `
-            <td><input type="number" step="any" value="${point.x}" 
+            <td><input type="text" inputmode="decimal" step="any" value="${point.x}" 
                        data-serie="${serieId}" data-row="${index}" data-col="0"
                        onkeydown="handleKeyDown(event, ${serieId}, ${index}, 0)"
+                       oninput="handleDecimalInput(event)"
                        onchange="updatePoint(${serieId}, ${index}, 'x', this.value)"></td>
-            <td><input type="number" step="any" value="${point.y}" 
+            <td><input type="text" inputmode="decimal" step="any" value="${point.y}" 
                        data-serie="${serieId}" data-row="${index}" data-col="1"
                        onkeydown="handleKeyDown(event, ${serieId}, ${index}, 1)"
+                       oninput="handleDecimalInput(event)"
                        onchange="updatePoint(${serieId}, ${index}, 'y', this.value)"></td>
             <td>
                 <div class="action-btn-group">
@@ -446,8 +449,23 @@ export function removeRow(serieId, index) {
  * Actualiza un punto (wrapper para exponer)
  */
 export function updatePoint(serieId, index, axis, value) {
-    updatePointData(serieId, index, axis, value);
+    // Normalizar: reemplazar coma por punto antes de guardar
+    const normalized = normalizeDecimalInput(value);
+    updatePointData(serieId, index, axis, normalized);
     debouncedUpdateChart(); // Espera 400ms desde la última tecla antes de redibujar
+}
+
+/**
+ * Maneja el input en celdas numéricas:
+ * - Si el usuario escribe punto (.), muestra aviso de que debe usar coma
+ * - Si el usuario escribe coma (,), la reemplaza automáticamente por punto en el valor interno
+ */
+export function handleDecimalInput(event) {
+    const input = event.target;
+    const val = input.value;
+    if (val.includes('.')) {
+        showDecimalWarning(input);
+    }
 }
 
 /**

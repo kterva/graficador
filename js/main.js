@@ -62,7 +62,8 @@ import {
     moveRowUp,
     moveRowDown,
     clearAllData,
-    handleTablePaste
+    handleTablePaste,
+    handleDecimalInput
 } from './ui-handlers.js';
 import {
     exportProject,
@@ -136,6 +137,7 @@ window.moveRowUp = moveRowUp;
 window.moveRowDown = moveRowDown;
 window.clearAllData = clearAllData;
 window.handleTablePaste = handleTablePaste;
+window.handleDecimalInput = handleDecimalInput;
 window.toggleMobileMenu = toggleMobileMenu;
 window.toggleConfigPanel = toggleConfigPanel;
 window.toggleIntersection = toggleIntersection;

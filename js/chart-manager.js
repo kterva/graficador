@@ -11,7 +11,7 @@
 import { AppState } from './state.js';
 import { errorBarsPlugin, bullseyePointsPlugin } from './chart-plugins.js';
 import { calculateFit, calculateDerivative, calculateIntegral, getRegressionCoeffs } from './calculations.js';
-import { extractUnit, formatWithUncertainty } from './utils.js';
+import { extractUnit, formatWithUncertainty, parseDecimal } from './utils.js';
 
 /**
  * Inicializa el gráfico de Chart.js
@@ -248,7 +248,7 @@ export function getDataRange() {
             if (dataset.data && dataset.data.length > 0) {
                 dataset.data.forEach(p => {
                     if (p.x !== undefined && p.x !== null) {
-                        const val = parseFloat(p.x);
+                        const val = parseDecimal(p.x);
                         if (!isNaN(val)) {
                             if (val < minX) minX = val;
                             if (val > maxX) maxX = val;
@@ -300,10 +300,10 @@ export function updateChart(animationMode) {
 
     AppState.series.forEach(serie => {
         const validData = serie.data.filter(p => p.x !== '' && p.y !== '').map(p => ({
-            x: parseFloat(p.x),
-            y: parseFloat(p.y),
-            xError: parseFloat(serie.defaultXError || 0),
-            yError: parseFloat(serie.defaultYError || 0)
+            x: parseDecimal(p.x),
+            y: parseDecimal(p.y),
+            xError: parseDecimal(serie.defaultXError || 0),
+            yError: parseDecimal(serie.defaultYError || 0)
         }));
 
         if (validData.length === 0) return;

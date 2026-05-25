@@ -10,6 +10,7 @@
  */
 
 import { AppState, getNextColor, findSerieById } from './state.js';
+import { parseDecimal, normalizeDecimalInput } from './utils.js';
 
 /**
  * Agrega una nueva serie de datos
@@ -129,7 +130,7 @@ export function updateDefaultError(serieId, axis, value) {
     const serie = findSerieById(serieId);
     if (!serie) return false;
 
-    const numValue = parseFloat(value) || 0;
+    const numValue = parseDecimal(value) || 0;
     if (axis === 'x') {
         serie.defaultXError = numValue;
     } else if (axis === 'y') {
@@ -209,10 +210,14 @@ export function importCSVFile(serieId, file, callback) {
             if (index === 0 && /[a-zA-Z]/.test(cleanLine)) return;
 
             const parts = cleanLine.split(',');
-            if (parts.length >= 2) {
+            // Si tiene 2 columnas separadas por coma, puede ser X,Y o "1,5","2,3" (coma decimal)
+            // Detectar si la línea usa punto y coma como separador de columnas
+            const partsSemicolon = cleanLine.split(';');
+            const usedParts = partsSemicolon.length >= 2 ? partsSemicolon : parts.length >= 2 ? parts : null;
+            if (usedParts && usedParts.length >= 2) {
                 serie.data.push({
-                    x: parseFloat(parts[0]),
-                    y: parseFloat(parts[1])
+                    x: normalizeDecimalInput(usedParts[0]),
+                    y: normalizeDecimalInput(usedParts[1])
                 });
             }
         });
@@ -238,7 +243,7 @@ export function getValidData(serieId) {
     return serie.data
         .filter(p => p.x !== '' && p.y !== '')
         .map(p => ({
-            x: parseFloat(p.x),
-            y: parseFloat(p.y)
+            x: parseDecimal(p.x),
+            y: parseDecimal(p.y)
         }));
 }

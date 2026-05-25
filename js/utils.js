@@ -81,3 +81,70 @@ export function calculateR2(observed, predicted) {
     const ssResidual = observed.reduce((sum, y, i) => sum + Math.pow(y - predicted[i], 2), 0);
     return 1 - (ssResidual / ssTotal);
 }
+
+/**
+ * Parsea un valor numérico aceptando tanto coma como punto como separador decimal.
+ * La coma se convierte automáticamente a punto antes de parsear.
+ *
+ * @param {string|number} value - Valor a parsear
+ * @returns {number} Número parseado, o NaN si no es válido
+ *
+ * @example
+ * parseDecimal('3,14')  // returns 3.14
+ * parseDecimal('3.14')  // returns 3.14
+ */
+export function parseDecimal(value) {
+    if (value === null || value === undefined || value === '') return NaN;
+    if (typeof value === 'number') return value;
+    // Normalizar: reemplazar coma por punto
+    const normalized = String(value).trim().replace(',', '.');
+    return parseFloat(normalized);
+}
+
+/**
+ * Normaliza un string numérico reemplazando coma por punto.
+ * Útil para guardar el valor raw en el estado antes de parsear.
+ *
+ * @param {string} value - Valor ingresado por el usuario
+ * @returns {string} Valor con coma reemplazada por punto
+ */
+export function normalizeDecimalInput(value) {
+    return String(value).trim().replace(',', '.');
+}
+
+/**
+ * Muestra un aviso flotante debajo del input cuando el usuario tipea punto
+ * en lugar de coma como separador decimal.
+ *
+ * @param {HTMLElement} input - El input que disparó el evento
+ */
+export function showDecimalWarning(input) {
+    const existingWarning = document.getElementById('decimal-warning');
+    if (existingWarning) existingWarning.remove();
+
+    const warning = document.createElement('div');
+    warning.id = 'decimal-warning';
+    warning.textContent = '💡 Usá coma (,) como separador decimal';
+    warning.style.cssText = `
+        position: fixed;
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffc107;
+        border-radius: 4px;
+        padding: 4px 10px;
+        font-size: 12px;
+        z-index: 3000;
+        pointer-events: none;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    `;
+
+    // Posicionar debajo del input
+    const rect = input.getBoundingClientRect();
+    warning.style.left = `${rect.left}px`;
+    warning.style.top = `${rect.bottom + 4}px`;
+
+    document.body.appendChild(warning);
+
+    // Auto-eliminar después de 2.5 segundos
+    setTimeout(() => warning.remove(), 2500);
+}
