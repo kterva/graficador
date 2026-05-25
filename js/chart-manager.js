@@ -13,6 +13,11 @@ import { errorBarsPlugin, bullseyePointsPlugin } from './chart-plugins.js';
 import { calculateFit, calculateDerivative, calculateIntegral, getRegressionCoeffs } from './calculations.js';
 import { extractUnit, formatWithUncertainty, parseDecimal } from './utils.js';
 
+// Registrar plugins una sola vez al cargar el módulo.
+// Si se registran dentro de initChart() se duplican cada vez que se reinicializa el gráfico.
+Chart.register(errorBarsPlugin);
+Chart.register(bullseyePointsPlugin);
+
 /**
  * Inicializa el gráfico de Chart.js
  */
@@ -181,9 +186,7 @@ export function initChart() {
         hideCoordinatesTooltip();
     });
 
-    // Registrar plugins
-    Chart.register(errorBarsPlugin);
-    Chart.register(bullseyePointsPlugin);
+    // Los plugins se registran a nivel de módulo (ver arriba), no aquí.
 }
 
 /**
