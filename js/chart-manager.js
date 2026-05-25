@@ -83,6 +83,11 @@ export function initChart() {
                 legend: {
                     display: true,
                     position: 'top'
+                },
+                tooltip: {
+                    // Filtrar todos los ítems para suprimir el tooltip nativo
+                    // sin romper el sistema de detección de hover
+                    filter: () => false
                 }
             },
             scales: {
@@ -122,13 +127,106 @@ export function initChart() {
                         display: true
                     }
                 }
+            },
+            onClick: function(e, elements) {
+                // Reservado para futuros usos del clic sobre el gráfico.
             }
         }
+    });
+
+    // Escuchar mousemove en el canvas para mostrar coordenadas.
+    // Se usa 'nearest' con intersect:false para facilitar el apuntado:
+    // detecta el punto o segmento más cercano sin necesidad de estar exactamente encima.
+    const canvas = document.getElementById('myChart');
+    canvas.addEventListener('mousemove', function(e) {
+        if (!AppState.chart) return;
+
+        const elements = AppState.chart.getElementsAtEventForMode(
+            e, 'nearest', { intersect: false, axis: 'x' }, false
+        );
+
+        if (elements.length === 0) {
+            canvas.style.cursor = 'default';
+            hideCoordinatesTooltip();
+            return;
+        }
+
+        const { datasetIndex, index } = elements[0];
+        const dataset = AppState.chart.data.datasets[datasetIndex];
+        const label = dataset.label || '';
+
+        // Etiquetas de datasets internos que NO deben mostrar coordenadas
+        const esInterno = label.includes('Caja Error')
+            || label.includes('Tangente')
+            || label.includes('Área')
+            || label.includes('Pendiente')
+            || label.includes('Punto Tangente')
+            || label.includes('Incertidumbre');
+
+        // Mostrar coordenadas tanto en puntos del usuario (scatter) como en líneas de ajuste
+        const esLineaAjuste = dataset.type === 'line' && !esInterno;
+        const esPuntoUsuario = dataset.showLine === false && !esInterno;
+
+        if (esLineaAjuste || esPuntoUsuario) {
+            canvas.style.cursor = 'crosshair';
+            const dataPoint = dataset.data[index];
+            showCoordinatesTooltip(e, dataPoint.x, dataPoint.y);
+        } else {
+            canvas.style.cursor = 'default';
+            hideCoordinatesTooltip();
+        }
+    });
+
+    canvas.addEventListener('mouseleave', function() {
+        hideCoordinatesTooltip();
     });
 
     // Registrar plugins
     Chart.register(errorBarsPlugin);
     Chart.register(bullseyePointsPlugin);
+}
+
+/**
+ * Muestra las coordenadas del punto sobre la curva en un tooltip flotante.
+ * @param {Event} e - Evento del mouse.
+ * @param {number} x - Coordenada X.
+ * @param {number} y - Coordenada Y.
+ */
+function showCoordinatesTooltip(e, x, y) {
+    const tooltipId = 'coordinates-tooltip';
+    let tooltip = document.getElementById(tooltipId);
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.id = tooltipId;
+        tooltip.style.cssText = `
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 2000;
+            pointer-events: none;
+            white-space: nowrap;
+            display: none;
+        `;
+        document.body.appendChild(tooltip);
+    }
+
+    tooltip.textContent = `X: ${x.toFixed(4)}, Y: ${y.toFixed(4)}`;
+    tooltip.style.left = `${e.x + 10}px`;
+    tooltip.style.top = `${e.y + 10}px`;
+    tooltip.style.display = 'block';
+}
+
+/**
+ * Oculta el tooltip de coordenadas.
+ */
+function hideCoordinatesTooltip() {
+    const tooltip = document.getElementById('coordinates-tooltip');
+    if (tooltip) {
+        tooltip.style.display = 'none';
+    }
 }
 
 /**
@@ -216,7 +314,8 @@ export function updateChart(animationMode) {
             backgroundColor: serie.color,
             borderColor: serie.color,
             showLine: false,
-            pointRadius: 0,   // El plugin bullseyePoints dibuja los puntos
+            pointRadius: 0,       // El plugin bullseyePoints dibuja los puntos visualmente
+            pointHitRadius: 12,   // Área de detección de hover (invisible)
             errorBars: true
         });
 
