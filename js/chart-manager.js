@@ -64,7 +64,7 @@ export function initChart() {
                             enabled: false, // Deshabilitar drag zoom para evitar conflictos con pan
                         },
                         onZoomComplete: function ({ chart }) {
-                            updateChart();
+                            updateChart('none');
                         }
                     },
                     pan: {
@@ -80,9 +80,9 @@ export function initChart() {
                         onPanComplete: function ({ chart }) {
                             chart.canvas.style.cursor = 'grab';
                             AppState.isPanning = false;
-                            // No llamar updateChart() aquí: Chart.js ya actualizó la vista
-                            // durante el pan. Llamarlo genera un segundo redibujado que
-                            // produce el parpadeo visual que el usuario reportó.
+                            // Llamar con 'none' para que recalcule la curva extrapolada
+                            // a los nuevos límites sin hacer la animación de rebote/flicker.
+                            updateChart('none');
                         }
                     },
                     limits: {
@@ -681,7 +681,7 @@ export function resetZoom() {
     document.getElementById('minY').value = '';
     document.getElementById('maxY').value = '';
 
-    updateChart();
+    updateChart('none');
 }
 
 /**
@@ -690,7 +690,7 @@ export function resetZoom() {
 export function zoomIn() {
     if (!AppState.chart) return;
     AppState.chart.zoom(1.2);
-    updateChart();
+    updateChart('none');
 }
 
 /**
@@ -699,5 +699,5 @@ export function zoomIn() {
 export function zoomOut() {
     if (!AppState.chart) return;
     AppState.chart.zoom(0.8);
-    updateChart();
+    updateChart('none');
 }
