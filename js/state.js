@@ -49,7 +49,10 @@ export const AppState = {
     },
 
     // Paleta de colores
-    colors: COLORS
+    colors: COLORS,
+
+    // Flag para detectar que el usuario está arrastrando el gráfico (pan)
+    isPanning: false
 };
 
 /**

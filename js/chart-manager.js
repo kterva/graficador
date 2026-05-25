@@ -70,14 +70,19 @@ export function initChart() {
                     pan: {
                         enabled: true,
                         mode: 'xy',
-                        modifierKey: null, // Permite arrastrar sin presionar teclas extra
-                        threshold: 10,     // Pequeña tolerancia para diferenciar click de arrastre
+                        modifierKey: null,
+                        threshold: 10,
                         onPanStart: function ({ chart }) {
                             chart.canvas.style.cursor = 'grabbing';
+                            AppState.isPanning = true;
+                            hideCoordinatesTooltip();
                         },
                         onPanComplete: function ({ chart }) {
                             chart.canvas.style.cursor = 'grab';
-                            updateChart();
+                            AppState.isPanning = false;
+                            // No llamar updateChart() aquí: Chart.js ya actualizó la vista
+                            // durante el pan. Llamarlo genera un segundo redibujado que
+                            // produce el parpadeo visual que el usuario reportó.
                         }
                     },
                     limits: {
@@ -146,6 +151,10 @@ export function initChart() {
     canvas.addEventListener('mousemove', function(e) {
         if (!AppState.chart) return;
 
+        // Durante el arrastre (pan), no mostrar tooltip ni cambiar el cursor:
+        // el plugin de zoom ya maneja el cursor 'grabbing'.
+        if (AppState.isPanning) return;
+
         const elements = AppState.chart.getElementsAtEventForMode(
             e, 'nearest', { intersect: false, axis: 'x' }, false
         );
@@ -160,7 +169,6 @@ export function initChart() {
         const dataset = AppState.chart.data.datasets[datasetIndex];
         const label = dataset.label || '';
 
-        // Etiquetas de datasets internos que NO deben mostrar coordenadas
         const esInterno = label.includes('Caja Error')
             || label.includes('Tangente')
             || label.includes('Área')
@@ -168,7 +176,6 @@ export function initChart() {
             || label.includes('Punto Tangente')
             || label.includes('Incertidumbre');
 
-        // Mostrar coordenadas tanto en puntos del usuario (scatter) como en líneas de ajuste
         const esLineaAjuste = dataset.type === 'line' && !esInterno;
         const esPuntoUsuario = dataset.showLine === false && !esInterno;
 
