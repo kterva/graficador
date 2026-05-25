@@ -60,10 +60,12 @@ export function initChart() {
                             enabled: true
                         },
                         mode: 'xy',
+                        overScaleMode: 'xy', // Permite hacer zoom independiente en cada eje al posicionar el cursor sobre ellos
                         drag: {
                             enabled: false, // Deshabilitar drag zoom para evitar conflictos con pan
                         },
                         onZoomComplete: function ({ chart }) {
+                            syncZoomState(chart);
                             updateChart('none');
                         }
                     },
@@ -80,6 +82,8 @@ export function initChart() {
                         onPanComplete: function ({ chart }) {
                             chart.canvas.style.cursor = 'grab';
                             AppState.isPanning = false;
+                            // Sincronizar límites manuales con el nuevo estado del pan/zoom
+                            syncZoomState(chart);
                             // Llamar con 'none' para que recalcule la curva extrapolada
                             // a los nuevos límites sin hacer la animación de rebote/flicker.
                             updateChart('none');
@@ -194,6 +198,32 @@ export function initChart() {
     });
 
     // Los plugins se registran a nivel de módulo (ver arriba), no aquí.
+}
+
+/**
+ * Sincroniza los inputs de límites manuales con el estado del gráfico
+ * después de hacer pan o zoom. Si el usuario había fijado un límite manualmente,
+ * al arrastrar o hacer zoom ese límite debe actualizarse para no forzar
+ * un reseteo visual al llamar a chart.update().
+ * @param {Chart} chart - Instancia del gráfico
+ */
+function syncZoomState(chart) {
+    const syncLimit = (axis, limit, inputId) => {
+        if (chart.options.scales[axis][limit] !== null && chart.options.scales[axis][limit] !== undefined) {
+            const newValue = chart.scales[axis][limit];
+            chart.options.scales[axis][limit] = newValue;
+            const input = document.getElementById(inputId);
+            if (input) {
+                // Formatear a 4 decimales máximo, removiendo ceros extra
+                input.value = parseFloat(newValue.toFixed(4));
+            }
+        }
+    };
+
+    syncLimit('x', 'min', 'minX');
+    syncLimit('x', 'max', 'maxX');
+    syncLimit('y', 'min', 'minY');
+    syncLimit('y', 'max', 'maxY');
 }
 
 /**
@@ -690,6 +720,7 @@ export function resetZoom() {
 export function zoomIn() {
     if (!AppState.chart) return;
     AppState.chart.zoom(1.2);
+    syncZoomState(AppState.chart);
     updateChart('none');
 }
 
@@ -699,5 +730,6 @@ export function zoomIn() {
 export function zoomOut() {
     if (!AppState.chart) return;
     AppState.chart.zoom(0.8);
+    syncZoomState(AppState.chart);
     updateChart('none');
 }
