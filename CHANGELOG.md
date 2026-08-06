@@ -5,6 +5,16 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-08-06
+
+### Añadido
+- **Exportaciones**: la ecuación del ajuste y el R² de cada serie ahora se incluyen en las exportaciones a PDF, imagen (JPG) y CSV.
+- **Tests automatizados**: suite con `node --test` (sin dependencias nuevas) cubriendo regresión, cálculos, unidades y propagación de incertidumbre.
+- **Seguridad**: integridad de subrecursos (SRI) en las librerías cargadas por CDN (Chart.js, Hammer.js, plugin de zoom, jsPDF, jsPDF-AutoTable).
+
+### Corregido
+- Corregido signo duplicado (`+ -`) en ecuaciones generadas con coeficientes negativos (ajustes lineal, polinomial grado 2 y grado 3).
+
 ## [1.4.0] - 2025-12-05
 
 ### Añadido
