@@ -14,6 +14,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ### Corregido
 - Corregido signo duplicado (`+ -`) en ecuaciones generadas con coeficientes negativos (ajustes lineal, polinomial grado 2 y grado 3).
+- **Móvil**: eliminado overflow horizontal en pantallas ≤360px (faltaba `min-width: 0` en los items del grid `.layout`).
+- **Accesibilidad**: restaurado el pinch-to-zoom, removiendo `user-scalable=no` del viewport (incumplía WCAG 1.4.4).
+- Sincronizada la versión mostrada en el footer y el cache-buster del script principal, que seguían en 1.4.0.
 
 ## [1.4.0] - 2025-12-05
 
