@@ -513,6 +513,11 @@ select {
         gap: 20px;
     }
 
+    /* Evita que el contenido interno empuje el ancho del grid item y cause overflow horizontal */
+    .layout>* {
+        min-width: 0;
+    }
+
     /* Paneles con menos padding */
     .panel {
         padding: 15px;
