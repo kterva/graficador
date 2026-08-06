@@ -1,6 +1,6 @@
 {
   "name": "graficador",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "private": true,
   "type": "module",
   "description": "Graficador científico - análisis de datos experimentales con ajustes de regresión, incertidumbre y unidades",

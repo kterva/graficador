@@ -2,7 +2,7 @@
 
 Aplicación web interactiva para análisis de datos experimentales con ajustes de regresión, propagación de incertidumbre y conversión de unidades. Ideal para estudiantes, científicos e ingenieros.
 
-![Version](https://img.shields.io/badge/version-1.4.0-blue)
+![Version](https://img.shields.io/badge/version-1.5.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## ✨ Características
@@ -193,7 +193,7 @@ A = 10.5 ± 0.3
 B = 2.0 ± 0.1
 
 Resultado:
-P = 21.0 ± 1.2
+P = 21 ± 2
 ```
 
 ## 🎓 Casos de Uso Educativos
@@ -243,6 +243,12 @@ P = 21.0 ± 1.2
 - 🧪 Agregar tests
 
 ## 📝 Changelog
+
+### v1.5.0 (2026-08-06)
+- ✅ Ecuación y R² incluidos en exportaciones (PDF, JPG, CSV)
+- ✅ Suite de tests automatizados
+- ✅ Integridad de subrecursos (SRI) en librerías por CDN
+- ✅ Corregido signo duplicado en ecuaciones con coeficientes negativos
 
 ### v1.4.0 (2025-12-05)
 - ✅ Interfaz móvil mejorada (menú popover)
