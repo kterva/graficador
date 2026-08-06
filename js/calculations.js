@@ -196,6 +196,11 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
         fitFunc = x => result.a * Math.pow(x, result.b);
     }
 
+    // Limpiar "+ -" que aparece cuando un coeficiente negativo sigue a un "+" literal
+    if (equation) {
+        equation = equation.replace(/\+\s*-/g, '- ');
+    }
+
     // Calculate range including errors to ensure lines cover the error boxes
     let minX = Infinity;
     let maxX = -Infinity;

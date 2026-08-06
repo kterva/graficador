@@ -34,6 +34,13 @@ function formatError(err) {
     return parseFloat(err).toFixed(places);
 }
 
+// serie.equation puede contener HTML (línea de incertidumbre en <br><span>) cuando el
+// ajuste es lineal con errores; para exportar a PDF/imagen/CSV necesitamos solo texto plano.
+function getPlainEquation(equation) {
+    if (!equation) return '';
+    return equation.split('<br>')[0].replace(/<[^>]*>/g, '').trim();
+}
+
 
 export function downloadChartJPG() {
     const chart = AppState.chart;
@@ -114,6 +121,18 @@ export function downloadChartJPG() {
                 ctx.font = 'bold 13px Arial';
                 ctx.fillText(serie.name, 20, yPos);
                 yPos += 20;
+            }
+
+            const plainEquation = getPlainEquation(serie.equation);
+            if (plainEquation) {
+                ctx.font = '11px Arial';
+                ctx.fillStyle = '#000000';
+                ctx.fillText(`Ecuación: ${plainEquation}`, 20, yPos);
+                yPos += 15;
+                if (serie.r2 !== null && serie.r2 !== undefined) {
+                    ctx.fillText(`R² = ${parseFloat(serie.r2).toFixed(4)}`, 20, yPos);
+                    yPos += 15;
+                }
             }
 
             ctx.font = 'bold 12px Arial';
@@ -247,6 +266,18 @@ export function downloadChartPDF() {
                 currentY += 5;
             }
 
+            const plainEquation = getPlainEquation(serie.equation);
+            if (plainEquation) {
+                doc.setFontSize(9);
+                doc.text(`Ecuación: ${plainEquation}`, margin, currentY);
+                currentY += 5;
+                if (serie.r2 !== null && serie.r2 !== undefined) {
+                    doc.text(`R² = ${parseFloat(serie.r2).toFixed(4)}`, margin, currentY);
+                    currentY += 5;
+                }
+                doc.setFontSize(10);
+            }
+
             doc.autoTable({
                 head: [[headX, headY]],
                 body: body,
@@ -311,6 +342,15 @@ export function downloadAllCSV() {
 
         if (idx > 0) csv += '\n';
         csv += `# ${serie.name}\n`;
+
+        const plainEquation = getPlainEquation(serie.equation);
+        if (plainEquation) {
+            csv += `# Ecuación: ${plainEquation}\n`;
+            if (serie.r2 !== null && serie.r2 !== undefined) {
+                csv += `# R² = ${parseFloat(serie.r2).toFixed(4)}\n`;
+            }
+        }
+
         csv += `${colX},${colY}\n`;
 
         validPoints.forEach(p => {
