@@ -5,7 +5,7 @@
 
 import { AppState } from './state.js';
 import { linearRegression } from './regression.js';
-import { escapeHTML } from './utils.js';
+import { escapeHTML, parseDecimal, formatNumber } from './utils.js';
 
 export function toggleConfigPanel() {
     const content = document.getElementById('config-panel-content');
@@ -98,8 +98,8 @@ export function updateChartConfig() {
     const defaultXError = document.getElementById('defaultXError')?.value;
     const defaultYError = document.getElementById('defaultYError')?.value;
 
-    AppState.config.defaultXError = defaultXError !== undefined && defaultXError !== '' ? parseFloat(defaultXError) : 0;
-    AppState.config.defaultYError = defaultYError !== undefined && defaultYError !== '' ? parseFloat(defaultYError) : 0;
+    AppState.config.defaultXError = defaultXError !== undefined && defaultXError !== '' ? parseDecimal(defaultXError) : 0;
+    AppState.config.defaultYError = defaultYError !== undefined && defaultYError !== '' ? parseDecimal(defaultYError) : 0;
 
     function getComposedUnit(axis) {
         const prefixSelect = document.getElementById(`prefix${axis.toUpperCase()}`);
@@ -135,10 +135,10 @@ export function updateChartConfig() {
     const minY = document.getElementById('minY').value;
     const maxY = document.getElementById('maxY').value;
 
-    chart.options.scales.x.min = minX !== '' ? parseFloat(minX) : null;
-    chart.options.scales.x.max = maxX !== '' ? parseFloat(maxX) : null;
-    chart.options.scales.y.min = minY !== '' ? parseFloat(minY) : null;
-    chart.options.scales.y.max = maxY !== '' ? parseFloat(maxY) : null;
+    chart.options.scales.x.min = minX !== '' ? parseDecimal(minX) : null;
+    chart.options.scales.x.max = maxX !== '' ? parseDecimal(maxX) : null;
+    chart.options.scales.y.min = minY !== '' ? parseDecimal(minY) : null;
+    chart.options.scales.y.max = maxY !== '' ? parseDecimal(maxY) : null;
 
     // Grid
     const showGridCheckbox = document.getElementById('showGrid');
@@ -208,8 +208,8 @@ export function showIntersection() {
     const s1 = linearSeries[0];
     const s2 = linearSeries[1];
 
-    const data1 = s1.data.filter(p => p.x !== '' && p.y !== '').map(p => ({ x: parseFloat(p.x), y: parseFloat(p.y) }));
-    const data2 = s2.data.filter(p => p.x !== '' && p.y !== '').map(p => ({ x: parseFloat(p.x), y: parseFloat(p.y) }));
+    const data1 = s1.data.filter(p => p.x !== '' && p.y !== '').map(p => ({ x: parseDecimal(p.x), y: parseDecimal(p.y) }));
+    const data2 = s2.data.filter(p => p.x !== '' && p.y !== '').map(p => ({ x: parseDecimal(p.x), y: parseDecimal(p.y) }));
 
     // Regresión lineal simple: y = ax + b (misma implementación que el resto de la app)
     const r1 = linearRegression(data1);
@@ -234,8 +234,8 @@ export function showIntersection() {
     content.innerHTML = `
         <p><strong>Series:</strong> ${escapeHTML(s1.name)} ∩ ${escapeHTML(s2.name)}</p>
         <p style="font-size: 1.2em; margin-top: 10px;">
-            <strong>X = ${xInt.toFixed(4)}</strong><br>
-            <strong>Y = ${yInt.toFixed(4)}</strong>
+            <strong>X = ${formatNumber(xInt, 4)}</strong><br>
+            <strong>Y = ${formatNumber(yInt, 4)}</strong>
         </p>
     `;
     display.style.display = 'block';

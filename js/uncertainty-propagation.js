@@ -9,7 +9,7 @@
  * @module uncertainty-propagation
  */
 
-import { formatWithUncertainty } from './utils.js';
+import { formatWithUncertainty, formatNumber } from './utils.js';
 
 /**
  * Convierte un número a su representación decimal en texto, incluso si
@@ -91,7 +91,7 @@ export function propagateSumSubtract(valueA, deltaA, valueB, deltaB, operation =
         value: result,
         uncertainty: uncertainty,
         formula: `${symbol} = A ${operator} B ⇒ δ${symbol} = δA + δB`,
-        calculation: `δ${symbol} = ${deltaA} + ${deltaB} = ${uncertainty}`,
+        calculation: `δ${symbol} = ${formatNumber(deltaA)} + ${formatNumber(deltaB)} = ${formatNumber(uncertainty)}`,
         result: `${symbol} = ${formatted.value} ± ${formatted.uncertainty}`,
         formattedValue: formatted.value,
         formattedUncertainty: formatted.uncertainty
@@ -132,8 +132,8 @@ export function propagateProductQuotient(valueA, deltaA, valueB, deltaB, operati
         value: result,
         uncertainty: uncertainty,
         formula: `${symbol} = A ${operator} B ⇒ δ${symbol}/${symbol} = δA/A + δB/B`,
-        calculation: `δ${symbol}/${symbol} = ${deltaA}/${Math.abs(valueA)} + ${deltaB}/${Math.abs(valueB)} = ${relativeUncertainty.toFixed(6)}`,
-        uncertaintyCalc: `δ${symbol} = ${symbol} × (δ${symbol}/${symbol}) = ${formatted.value} × ${relativeUncertainty.toFixed(6)} = ${formatted.uncertainty}`,
+        calculation: `δ${symbol}/${symbol} = ${formatNumber(deltaA)}/${formatNumber(Math.abs(valueA))} + ${formatNumber(deltaB)}/${formatNumber(Math.abs(valueB))} = ${formatNumber(relativeUncertainty, 6)}`,
+        uncertaintyCalc: `δ${symbol} = ${symbol} × (δ${symbol}/${symbol}) = ${formatted.value} × ${formatNumber(relativeUncertainty, 6)} = ${formatted.uncertainty}`,
         result: `${symbol} = ${formatted.value} ± ${formatted.uncertainty}`,
         formattedValue: formatted.value,
         formattedUncertainty: formatted.uncertainty
@@ -208,7 +208,7 @@ export function validateInputPrecision(value, uncertainty, label) {
             type: 'value',
             message: `⚠️ El valor ${label} no está bien expresado en cifras significativas`,
             explanation: `No corresponde la cantidad de decimales con la de la incertidumbre. Si δ${label} tiene ${uncertaintyDecimals} decimal(es), entonces ${label} también debe tener ${uncertaintyDecimals} decimal(es).`,
-            suggestion: `Sugerencia: ${label} = ${correctedValue} ± ${uncertainty}`,
+            suggestion: `Sugerencia: ${label} = ${formatNumber(correctedValue)} ± ${formatNumber(uncertainty)}`,
             correctedValue: correctedValue
         };
     }
@@ -262,7 +262,7 @@ export function validateUncertaintyPrecision(uncertainty, label) {
             type: 'uncertainty',
             message: `⚠️ La incertidumbre δ${label} no está bien expresada`,
             explanation: `La incertidumbre debe tener solo 1 cifra significativa. Recordatorio: las cifras significativas son todas las cifras seguras de una medida más la primera afectada de error.`,
-            suggestion: `Sugerencia: δ${label} = ${correctedUncertainty}`,
+            suggestion: `Sugerencia: δ${label} = ${formatNumber(correctedUncertainty)}`,
             correctedUncertainty: correctedUncertainty
         };
     }

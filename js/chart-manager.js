@@ -11,7 +11,7 @@
 import { AppState } from './state.js';
 import { errorBarsPlugin, bullseyePointsPlugin } from './chart-plugins.js';
 import { calculateFit, calculateDerivative, calculateIntegral, getRegressionCoeffs } from './calculations.js';
-import { extractUnit, formatWithUncertainty, parseDecimal } from './utils.js';
+import { extractUnit, formatWithUncertainty, parseDecimal, formatNumber } from './utils.js';
 
 // Registrar plugins una sola vez al cargar el módulo.
 // Si se registran dentro de initChart() se duplican cada vez que se reinicializa el gráfico.
@@ -215,7 +215,7 @@ function syncZoomState(chart) {
             const input = document.getElementById(inputId);
             if (input) {
                 // Formatear a 4 decimales máximo, removiendo ceros extra
-                input.value = parseFloat(newValue.toFixed(4));
+                input.value = formatNumber(parseFloat(newValue.toFixed(4)));
             }
         }
     };
@@ -253,7 +253,7 @@ function showCoordinatesTooltip(e, x, y) {
         document.body.appendChild(tooltip);
     }
 
-    tooltip.textContent = `X: ${x.toFixed(4)}, Y: ${y.toFixed(4)}`;
+    tooltip.textContent = `X: ${formatNumber(x, 4)}, Y: ${formatNumber(y, 4)}`;
     tooltip.style.left = `${e.x + 10}px`;
     tooltip.style.top = `${e.y + 10}px`;
     tooltip.style.display = 'block';
@@ -342,8 +342,8 @@ export function updateChart(animationMode) {
         const validData = serie.data.filter(p => p.x !== '' && p.y !== '').map(p => ({
             x: parseDecimal(p.x),
             y: parseDecimal(p.y),
-            xError: parseDecimal(serie.defaultXError || 0),
-            yError: parseDecimal(serie.defaultYError || 0)
+            xError: parseDecimal(AppState.config.defaultXError || 0),
+            yError: parseDecimal(AppState.config.defaultYError || 0)
         }));
 
         if (validData.length === 0) return;
@@ -562,9 +562,9 @@ export function updateChart(animationMode) {
                         }
 
                         // Formatear con cifras significativas
-                        const formattedX = AppState.tools.tangentX.toFixed(4);
-                        const formattedY = y0.toFixed(4);
-                        const formattedSlope = slope.toFixed(4);
+                        const formattedX = formatNumber(AppState.tools.tangentX, 4);
+                        const formattedY = formatNumber(y0, 4);
+                        const formattedSlope = formatNumber(slope, 4);
 
                         tangentDisplay.innerHTML = `
                             <strong>x = ${formattedX}${xUnit ? ' ' + xUnit : ''}</strong><br>
@@ -626,9 +626,9 @@ export function updateChart(animationMode) {
                         }
 
                         // Formatear con cifras significativas
-                        const formattedX1 = AppState.tools.areaX1.toFixed(4);
-                        const formattedX2 = AppState.tools.areaX2.toFixed(4);
-                        const formattedArea = area.toFixed(4);
+                        const formattedX1 = formatNumber(AppState.tools.areaX1, 4);
+                        const formattedX2 = formatNumber(AppState.tools.areaX2, 4);
+                        const formattedArea = formatNumber(area, 4);
 
                         areaDisplay.innerHTML = `
                             <strong>Intervalo: [${formattedX1}, ${formattedX2}]${xUnit ? ' ' + xUnit : ''}</strong><br>
@@ -677,7 +677,7 @@ export function updateChart(animationMode) {
                 eqDiv.innerHTML = `
                     <strong>Ecuación:</strong> ${fit.equation}
                     <button class="help-btn" onclick="toggleHelp(${serie.id}, '${serie.fitType}')">i</button>
-                    ${fit.r2 !== null ? `<br><strong>R² =</strong> ${fit.r2.toFixed(6)}` : ''}
+                    ${fit.r2 !== null ? `<br><strong>R² =</strong> ${formatNumber(fit.r2, 6)}` : ''}
                     ${uncertaintyHtml}
                     <div class="help-text" id="help-${serie.id}"></div>
                 `;

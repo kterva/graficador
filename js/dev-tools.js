@@ -14,6 +14,8 @@
 import { AppState } from './state.js';
 import { updateChart } from './chart-manager.js';
 import { renderSeries } from './ui-handlers.js';
+import { updateChartConfig } from './chart_config.js';
+import { formatNumber } from './utils.js';
 
 /**
  * Carga datos de prueba predefinidos para agilizar el testing
@@ -24,13 +26,11 @@ export function loadTestData(type) {
     AppState.series = [];
     AppState.nextId = 1;
 
-    // Nota: el graficador solo soporta incertidumbre a nivel de columna
-    // (serie.defaultXError/defaultYError, ver el comentario en renderTable()
-    // de ui-handlers.js: "Los errores X/Y se aplican desde la configuración de
-    // columna, no desde cada fila"). Los xError/yError por punto de abajo son
-    // solo para que el valor de X/Y de ejemplo se vea razonable; el que
-    // realmente controla las barras de error y el ajuste ponderado es
-    // defaultXError/defaultYError, seteado más abajo al crear la serie.
+    // Nota: el graficador solo soporta incertidumbre a nivel de eje/columna
+    // (AppState.config.defaultXError/defaultYError, ingresado una sola vez en
+    // el panel "Incertidumbre de columna" de Configuración de Ejes — ver el
+    // comentario en renderTable() de ui-handlers.js). Por eso cada set de
+    // prueba abajo setea los inputs del DOM en vez de un campo por serie.
     const testSets = {
         linear: {
             name: 'Lineal',
@@ -125,16 +125,22 @@ export function loadTestData(type) {
         color: AppState.colors[0],
         data: testData.data,
         fitType: testData.fitType,
-        defaultXError: testData.defaultXError,
-        defaultYError: testData.defaultYError,
         equation: '',
         r2: null
     };
 
     AppState.series.push(serie);
 
+    // La incertidumbre es de eje/columna, no de la serie: reflejar los valores
+    // de prueba en los inputs del panel de Configuración de Ejes.
+    const xErrInput = document.getElementById('defaultXError');
+    const yErrInput = document.getElementById('defaultYError');
+    if (xErrInput) xErrInput.value = formatNumber(testData.defaultXError);
+    if (yErrInput) yErrInput.value = formatNumber(testData.defaultYError);
+
     // Actualizar UI
     renderSeries();
+    updateChartConfig();
     updateChart();
 
     console.log(`🧪 Datos de prueba cargados: ${type}`);

@@ -120,26 +120,6 @@ export function updateFitType(serieId, fitType) {
 }
 
 /**
- * Actualiza la incertidumbre por defecto (columna) de una serie
- * @param {number} serieId - ID de la serie
- * @param {string} axis - Eje ('x' o 'y')
- * @param {number} value - Valor de incertidumbre
- * @returns {boolean} true si se actualizó, false si no se encontró
- */
-export function updateDefaultError(serieId, axis, value) {
-    const serie = findSerieById(serieId);
-    if (!serie) return false;
-
-    const numValue = parseDecimal(value) || 0;
-    if (axis === 'x') {
-        serie.defaultXError = numValue;
-    } else if (axis === 'y') {
-        serie.defaultYError = numValue;
-    }
-    return true;
-}
-
-/**
  * Limpia todos los datos de una serie
  * @param {number} serieId - ID de la serie
  * @returns {boolean} true si se limpió, false si no se encontró
