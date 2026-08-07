@@ -518,19 +518,19 @@
 
                 <!-- Pestañas -->
                 <div style="display: flex; border-bottom: 2px solid #eee; background: #f8f9fa;">
-                    <button class="help-tab active" onclick="switchHelpTab('intro')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; 
+                    <button class="help-tab active" data-tab="intro" onclick="switchHelpTab('intro')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer;
                                 font-weight: bold; transition: all 0.3s; border-bottom: 3px solid transparent;">
                         👋 Introducción
                     </button>
-                    <button class="help-tab" onclick="switchHelpTab('quick')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; 
+                    <button class="help-tab" data-tab="quick" onclick="switchHelpTab('quick')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer;
                                 font-weight: bold; transition: all 0.3s; border-bottom: 3px solid transparent;">
                         🚀 Inicio Rápido
                     </button>
-                    <button class="help-tab" onclick="switchHelpTab('tools')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; 
+                    <button class="help-tab" data-tab="tools" onclick="switchHelpTab('tools')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer;
                                 font-weight: bold; transition: all 0.3s; border-bottom: 3px solid transparent;">
                         🛠️ Herramientas
                     </button>
-                    <button class="help-tab" onclick="switchHelpTab('tips')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; 
+                    <button class="help-tab" data-tab="tips" onclick="switchHelpTab('tips')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer;
                                 font-weight: bold; transition: all 0.3s; border-bottom: 3px solid transparent;">
                         💡 Consejos
                     </button>
@@ -760,7 +760,7 @@
                     🔗 Ver código fuente en GitHub
                 </a>
             </p>
-            <p style="margin: 5px 0; font-size: 13px; color: #999;">Versión 1.5.0</p>
+            <p id="footer-version" style="margin: 5px 0; font-size: 13px; color: #999;"></p>
             <p style="margin: 5px 0; font-size: 13px; color: #999;">
                 ¡Contribuciones y sugerencias son bienvenidas! 🚀 Escríbeme a <a
                     href="mailto:trujillo.leonardo@gmail.com" style="color: #3498db;">trujillo.leonardo@gmail.com</a>
@@ -990,11 +990,9 @@
         </div>
     </div>
 
-    <!-- Módulo principal (ES6) -->
+    <!-- Módulo principal (ES6). El "?v=" es un cache-buster manual: al cambiar
+         APP_VERSION en js/utils.js, actualizar también este número. -->
     <script type="module" src="js/main.js?v=1.5.0"></script>
-
-    <!-- Herramientas de desarrollo -->
-    <script type="module" src="js/dev-tools.js"></script>
 </body>
 
 </html>

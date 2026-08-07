@@ -12,6 +12,55 @@
 import { formatWithUncertainty } from './utils.js';
 
 /**
+ * Convierte un número a su representación decimal en texto, incluso si
+ * JS elegiría notación científica automáticamente (ej. 5e-7 para números
+ * muy chicos). Necesario porque num.toString() en esos casos no tiene
+ * punto decimal donde uno lo esperaría, lo que rompe el conteo de
+ * decimales/cifras significativas basado en string.split('.').
+ *
+ * @param {number} num - Número a convertir
+ * @returns {string} Representación decimal sin notación científica
+ */
+function toPlainDecimalString(num) {
+    if (Number.isInteger(num) && Math.abs(num) < 1e21) {
+        return num.toString();
+    }
+
+    const str = num.toString();
+    if (!str.toLowerCase().includes('e')) return str;
+
+    const [mantissaRaw, expRaw] = str.toLowerCase().split('e');
+    const exp = parseInt(expRaw, 10);
+    const negative = mantissaRaw.startsWith('-');
+    const mantissa = negative ? mantissaRaw.slice(1) : mantissaRaw;
+    const [intPart, fracPart = ''] = mantissa.split('.');
+    const digits = intPart + fracPart;
+    const pointPos = intPart.length + exp;
+
+    let result;
+    if (pointPos <= 0) {
+        result = '0.' + '0'.repeat(-pointPos) + digits;
+    } else if (pointPos >= digits.length) {
+        result = digits + '0'.repeat(pointPos - digits.length);
+    } else {
+        result = digits.slice(0, pointPos) + '.' + digits.slice(pointPos);
+    }
+    return negative ? '-' + result : result;
+}
+
+/**
+ * Cuenta la cantidad de decimales de un número, sin fallar en números que
+ * JS representa en notación científica.
+ *
+ * @param {number} value - Número a analizar
+ * @returns {number} Cantidad de decimales
+ */
+function countDecimals(value) {
+    const str = toPlainDecimalString(value);
+    return str.includes('.') ? str.split('.')[1].length : 0;
+}
+
+/**
  * Calcula la propagación de error para suma o resta
  * 
  * Fórmula: Si S = A ± B entonces δS = δA + δB
@@ -145,17 +194,9 @@ export function formatPropagationResult(result) {
 export function validateInputPrecision(value, uncertainty, label) {
     if (uncertainty === 0) return null; // Sin error, no hay restricción
 
-    // Obtener número de decimales del error
-    const uncertaintyStr = uncertainty.toString();
-    const uncertaintyDecimals = uncertaintyStr.includes('.')
-        ? uncertaintyStr.split('.')[1].length
-        : 0;
-
-    // Obtener número de decimales del valor
-    const valueStr = value.toString();
-    const valueDecimals = valueStr.includes('.')
-        ? valueStr.split('.')[1].length
-        : 0;
+    // Obtener número de decimales del error y del valor
+    const uncertaintyDecimals = countDecimals(uncertainty);
+    const valueDecimals = countDecimals(value);
 
     // El valor no debería tener más decimales que el error
     if (valueDecimals > uncertaintyDecimals) {
@@ -182,25 +223,21 @@ export function validateInputPrecision(value, uncertainty, label) {
  * @returns {number} Cantidad de cifras significativas
  */
 function countSignificantFigures(num) {
-    const str = num.toString();
+    if (num === 0) return 1;
 
-    // Remover notación científica si existe
-    if (str.includes('e')) {
-        const [mantissa] = str.split('e');
-        return countSignificantFigures(parseFloat(mantissa));
+    const str = toPlainDecimalString(Math.abs(num));
+    const hasDecimalPoint = str.includes('.');
+
+    // Ceros a la izquierda nunca son significativos
+    let digits = str.replace('.', '').replace(/^0+/, '');
+
+    // Sin punto decimal, los ceros finales son ambiguos (ej. "100" puede ser
+    // 1, 2 o 3 cifras significativas) y por convención no se cuentan.
+    if (!hasDecimalPoint) {
+        digits = digits.replace(/0+$/, '');
     }
 
-    // Remover el punto decimal para contar
-    const withoutDot = str.replace('.', '');
-
-    // Si el número es menor que 1, contar desde el primer dígito no cero
-    if (Math.abs(num) < 1) {
-        const match = withoutDot.match(/[1-9]\d*/);
-        return match ? match[0].length : 1;
-    }
-
-    // Para números >= 1, contar todos los dígitos
-    return withoutDot.length;
+    return digits.length || 1;
 }
 
 /**

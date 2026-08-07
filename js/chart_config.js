@@ -4,6 +4,7 @@
 // ============================================
 
 import { AppState } from './state.js';
+import { linearRegression } from './regression.js';
 
 export function toggleConfigPanel() {
     const content = document.getElementById('config-panel-content');
@@ -209,20 +210,15 @@ export function showIntersection() {
     const data1 = s1.data.filter(p => p.x !== '' && p.y !== '').map(p => ({ x: parseFloat(p.x), y: parseFloat(p.y) }));
     const data2 = s2.data.filter(p => p.x !== '' && p.y !== '').map(p => ({ x: parseFloat(p.x), y: parseFloat(p.y) }));
 
-    // Regresión lineal simple: y = ax + b
-    const regress = (data) => {
-        const n = data.length;
-        const sumX = data.reduce((s, p) => s + p.x, 0);
-        const sumY = data.reduce((s, p) => s + p.y, 0);
-        const sumXY = data.reduce((s, p) => s + p.x * p.y, 0);
-        const sumX2 = data.reduce((s, p) => s + p.x * p.x, 0);
-        const a = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-        const b = (sumY - a * sumX) / n;
-        return { a, b };
-    };
+    // Regresión lineal simple: y = ax + b (misma implementación que el resto de la app)
+    const r1 = linearRegression(data1);
+    const r2 = linearRegression(data2);
 
-    const r1 = regress(data1);
-    const r2 = regress(data2);
+    if (!r1 || !r2) {
+        content.innerHTML = '<p style="color: #e67e22;">⚠️ No se puede calcular la intersección: una de las series tiene todos los valores de X iguales (línea vertical).</p>';
+        display.style.display = 'block';
+        return;
+    }
 
     // Intersección: a1*x + b1 = a2*x + b2  =>  x = (b2 - b1) / (a1 - a2)
     if (Math.abs(r1.a - r2.a) < 0.0001) {

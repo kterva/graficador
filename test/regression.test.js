@@ -44,6 +44,11 @@ test('linearRegression: max/min slope method with symmetric error boxes', () => 
     assert.equal(result.uncertainty.mBest, result.a);
 });
 
+test('linearRegression: vertical line (all X equal) returns null instead of NaN', () => {
+    const data = pointsFrom([5, 5, 5], () => 1).map((p, i) => ({ ...p, y: i }));
+    assert.equal(linearRegression(data), null);
+});
+
 test('linearRegression: negative slope still resolves mMax/mMin consistently', () => {
     const data = [
         { x: 0, y: 10, xError: 0.5, yError: 0.5 },
@@ -81,12 +86,13 @@ test('polynomialRegression: recovers exact cubic coefficients', () => {
     closeTo(coeffs[3], -5, 1e-3);
 });
 
-test('polynomialRegression: degenerate system (duplicate x) does not throw', () => {
-    // gaussianElimination doesn't detect a zero pivot as an error; it degrades to NaN
-    // rather than throwing, so polynomialRegression's null fallback is unreachable here.
-    const result = polynomialRegression([1, 1], [1, 1], 2);
-    assert.equal(result.length, 3);
-    assert.ok(result.every(Number.isNaN));
+test('polynomialRegression: too few distinct X values returns null instead of garbage coefficients', () => {
+    assert.equal(polynomialRegression([1, 2], [1, 4], 2), null);
+});
+
+test('polynomialRegression: degenerate system (duplicate x) returns null instead of NaN coefficients', () => {
+    const result = polynomialRegression([1, 1, 1], [1, 2, 3], 2);
+    assert.equal(result, null);
 });
 
 test('exponentialRegression: recovers a and b from y = a*e^(b*x)', () => {
@@ -117,4 +123,17 @@ test('powerRegression: recovers a and b from y = a*x^b', () => {
     closeTo(result.a, a, 1e-4);
     closeTo(result.b, b, 1e-4);
     closeTo(result.r2, 1, 1e-6);
+});
+
+test('exponentialRegression: returns null instead of NaN when Y has non-positive values', () => {
+    assert.equal(exponentialRegression([0, 1, 2], [1, 0, -1]), null);
+});
+
+test('logarithmicRegression: returns null instead of NaN when X has non-positive values', () => {
+    assert.equal(logarithmicRegression([0, 1, 2], [1, 2, 3]), null);
+});
+
+test('powerRegression: returns null instead of NaN when X or Y has non-positive values', () => {
+    assert.equal(powerRegression([1, 2, 3], [1, -2, 3]), null);
+    assert.equal(powerRegression([-1, 2, 3], [1, 2, 3]), null);
 });

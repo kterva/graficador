@@ -29,6 +29,13 @@ test('formatWithUncertainty: rounds the uncertainty to 1 significant figure', ()
     assert.equal(result.uncertainty, '0.7');
 });
 
+test('formatWithUncertainty: recomputes decimals when rounding crosses a power of 10', () => {
+    // 0.099 rounds to 0.1 (order of magnitude jumps from -2 to -1) -> should show 1 decimal, not 2
+    const result = formatWithUncertainty(5.4321, 0.099);
+    assert.equal(result.uncertainty, '0.1');
+    assert.equal(result.value, '5.4');
+});
+
 test('calculateR2: perfect fit is 1', () => {
     assert.equal(calculateR2([1, 2, 3, 4], [1, 2, 3, 4]), 1);
 });
@@ -36,6 +43,14 @@ test('calculateR2: perfect fit is 1', () => {
 test('calculateR2: worse-than-mean predictions can go negative', () => {
     const r2 = calculateR2([1, 2, 3, 4], [10, 10, 10, 10]);
     assert.ok(r2 < 0);
+});
+
+test('calculateR2: constant observed values with a perfect fit is 1, not NaN', () => {
+    assert.equal(calculateR2([5, 5, 5], [5, 5, 5]), 1);
+});
+
+test('calculateR2: constant observed values with an imperfect fit is 0, not -Infinity', () => {
+    assert.equal(calculateR2([5, 5, 5], [4, 5, 6]), 0);
 });
 
 test('parseDecimal: accepts comma or dot as decimal separator', () => {

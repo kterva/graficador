@@ -398,6 +398,13 @@ export function parseExpression(expr) {
 
             if (token === '*' || token === '/' || token === '^') {
                 operation = token;
+            } else if (operation === '^') {
+                // El exponente es un número (no una magnitud), ej: "velocidad^2"
+                const exponent = parseFloat(token);
+                if (result !== null && !isNaN(exponent)) {
+                    result = result.power(exponent);
+                }
+                operation = null;
             } else if (nameMap[token]) {
                 const dim = nameMap[token];
                 if (result === null) {

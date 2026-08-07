@@ -37,12 +37,12 @@ export function calculateDerivative(x, coeffs, type) {
         // coeffs = [a, b, c, d] (mayor grado primero)
         return 3 * coeffs[0] * x * x + 2 * coeffs[1] * x + coeffs[2];
     } else if (type === 'logarithmic') {
-        // y = a·ln(x)+b  →  y' = a/x
-        if (x <= 0) return 0;
+        // y = a·ln(x)+b  →  y' = a/x (indefinida para x <= 0, no cero)
+        if (x <= 0) return NaN;
         return coeffs.a / x;
     } else if (type === 'power') {
-        // y = a·x^b  →  y' = a·b·x^(b-1)
-        if (x <= 0) return 0;
+        // y = a·x^b  →  y' = a·b·x^(b-1) (indefinida para x <= 0, no cero)
+        if (x <= 0) return NaN;
         return coeffs.a * coeffs.b * Math.pow(x, coeffs.b - 1);
     }
 }
@@ -132,68 +132,93 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
 
     if (type === 'linear') {
         const result = linearRegression(data);
-        const a = result.a;
-        const b = result.b;
 
-        // Extraer unidades
-        const xUnit = extractUnit(xLabel);
-        const yUnit = extractUnit(yLabel);
-        let slopeUnit = '';
-        if (yUnit && xUnit) {
-            slopeUnit = ` ${yUnit}/${xUnit}`;
-        } else if (yUnit) {
-            slopeUnit = ` ${yUnit}`;
-        }
-        let interceptUnit = yUnit ? ` ${yUnit}` : '';
+        if (!result) {
+            equation = '⚠️ No se puede calcular un ajuste lineal: todos los valores de X son iguales (línea vertical).';
+        } else {
+            const a = result.a;
+            const b = result.b;
 
-        let eqStr = '';
-        if (result.uncertainty) {
-            const formattedA = formatWithUncertainty(a, result.uncertainty.slope);
-            const formattedB = formatWithUncertainty(b, result.uncertainty.intercept);
+            // Extraer unidades
+            const xUnit = extractUnit(xLabel);
+            const yUnit = extractUnit(yLabel);
+            let slopeUnit = '';
+            if (yUnit && xUnit) {
+                slopeUnit = ` ${yUnit}/${xUnit}`;
+            } else if (yUnit) {
+                slopeUnit = ` ${yUnit}`;
+            }
+            let interceptUnit = yUnit ? ` ${yUnit}` : '';
 
-            eqStr = `y = ${formattedA.value}x + ${formattedB.value}`;
-            eqStr += `<br><span style="font-size:0.9em; color:#666">
+            let eqStr = '';
+            if (result.uncertainty) {
+                const formattedA = formatWithUncertainty(a, result.uncertainty.slope);
+                const formattedB = formatWithUncertainty(b, result.uncertainty.intercept);
+
+                eqStr = `y = ${formattedA.value}x + ${formattedB.value}`;
+                eqStr += `<br><span style="font-size:0.9em; color:#666">
                         m = ${formattedA.value} ± ${formattedA.uncertainty}${slopeUnit}<br>
                         b = ${formattedB.value} ± ${formattedB.uncertainty}${interceptUnit}
                     </span>`;
-        } else {
-            eqStr = `y = ${a.toFixed(4)}x + ${b.toFixed(4)}`;
-        }
+            } else {
+                eqStr = `y = ${a.toFixed(4)}x + ${b.toFixed(4)}`;
+            }
 
-        equation = eqStr;
-        r2 = result.r2;
-        fitFunc = x => a * x + b;
-        uncertainty = result.uncertainty;
+            equation = eqStr;
+            r2 = result.r2;
+            fitFunc = x => a * x + b;
+            uncertainty = result.uncertainty;
+        }
     }
     else if (type === 'poly2') {
         const coeffs = polynomialRegression(xs, ys, 2);
-        equation = `y = ${coeffs[0].toFixed(4)}x² + ${coeffs[1].toFixed(4)}x + ${coeffs[2].toFixed(4)}`;
-        r2 = calculateR2(ys, xs.map(x => coeffs[0] * x * x + coeffs[1] * x + coeffs[2]));
-        fitFunc = x => coeffs[0] * x * x + coeffs[1] * x + coeffs[2];
+        if (!coeffs) {
+            equation = '⚠️ Se necesitan al menos 3 valores de X distintos para un ajuste cuadrático.';
+        } else {
+            equation = `y = ${coeffs[0].toFixed(4)}x² + ${coeffs[1].toFixed(4)}x + ${coeffs[2].toFixed(4)}`;
+            r2 = calculateR2(ys, xs.map(x => coeffs[0] * x * x + coeffs[1] * x + coeffs[2]));
+            fitFunc = x => coeffs[0] * x * x + coeffs[1] * x + coeffs[2];
+        }
     }
     else if (type === 'poly3') {
         const coeffs = polynomialRegression(xs, ys, 3);
-        equation = `y = ${coeffs[0].toFixed(4)}x³ + ${coeffs[1].toFixed(4)}x² + ${coeffs[2].toFixed(4)}x + ${coeffs[3].toFixed(4)}`;
-        r2 = calculateR2(ys, xs.map(x => coeffs[0] * x * x * x + coeffs[1] * x * x + coeffs[2] * x + coeffs[3]));
-        fitFunc = x => coeffs[0] * x * x * x + coeffs[1] * x * x + coeffs[2] * x + coeffs[3];
+        if (!coeffs) {
+            equation = '⚠️ Se necesitan al menos 4 valores de X distintos para un ajuste cúbico.';
+        } else {
+            equation = `y = ${coeffs[0].toFixed(4)}x³ + ${coeffs[1].toFixed(4)}x² + ${coeffs[2].toFixed(4)}x + ${coeffs[3].toFixed(4)}`;
+            r2 = calculateR2(ys, xs.map(x => coeffs[0] * x * x * x + coeffs[1] * x * x + coeffs[2] * x + coeffs[3]));
+            fitFunc = x => coeffs[0] * x * x * x + coeffs[1] * x * x + coeffs[2] * x + coeffs[3];
+        }
     }
     else if (type === 'exponential') {
         const result = exponentialRegression(xs, ys);
-        equation = `y = ${result.a.toFixed(4)}e^(${result.b.toFixed(4)}x)`;
-        r2 = result.r2;
-        fitFunc = x => result.a * Math.exp(result.b * x);
+        if (!result) {
+            equation = '⚠️ El ajuste exponencial requiere que todos los valores de Y sean positivos.';
+        } else {
+            equation = `y = ${result.a.toFixed(4)}e^(${result.b.toFixed(4)}x)`;
+            r2 = result.r2;
+            fitFunc = x => result.a * Math.exp(result.b * x);
+        }
     }
     else if (type === 'logarithmic') {
         const result = logarithmicRegression(xs, ys);
-        equation = `y = ${result.a.toFixed(4)}ln(x) + ${result.b.toFixed(4)}`;
-        r2 = result.r2;
-        fitFunc = x => result.a * Math.log(x) + result.b;
+        if (!result) {
+            equation = '⚠️ El ajuste logarítmico requiere que todos los valores de X sean positivos.';
+        } else {
+            equation = `y = ${result.a.toFixed(4)}ln(x) + ${result.b.toFixed(4)}`;
+            r2 = result.r2;
+            fitFunc = x => result.a * Math.log(x) + result.b;
+        }
     }
     else if (type === 'power') {
         const result = powerRegression(xs, ys);
-        equation = `y = ${result.a.toFixed(4)}x^(${result.b.toFixed(4)})`;
-        r2 = result.r2;
-        fitFunc = x => result.a * Math.pow(x, result.b);
+        if (!result) {
+            equation = '⚠️ El ajuste potencial requiere que todos los valores de X e Y sean positivos.';
+        } else {
+            equation = `y = ${result.a.toFixed(4)}x^(${result.b.toFixed(4)})`;
+            r2 = result.r2;
+            fitFunc = x => result.a * Math.pow(x, result.b);
+        }
     }
 
     // Limpiar "+ -" que aparece cuando un coeficiente negativo sigue a un "+" literal
@@ -235,7 +260,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
     const maxSlopePoints = [];
     const minSlopePoints = [];
 
-    for (let i = 0; i <= 100; i++) {
+    for (let i = 0; fitFunc && i <= 100; i++) {
         const x = minX + (range * i / 100);
         // Ensure x is valid for the function type
         if ((type === 'logarithmic' || type === 'power') && x <= 0) continue;

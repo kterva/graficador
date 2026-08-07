@@ -12,7 +12,7 @@ import { AppState } from './state.js';
 import { addSerie as addSerieData, removeSerie as removeSerieData, addRow as addRowData, removeRow as removeRowData, updatePoint as updatePointData, updateSerieColor as updateSerieColorData, updateFitType as updateFitTypeData, updateDefaultError as updateDefaultErrorData, clearTable as clearTableData, exportCSV as exportCSVData, importCSVFile } from './data-manager.js';
 import { updateChart, getDataRange } from './chart-manager.js';
 import { propagateUncertainty, formatPropagationResult, validateAllInputs, formatWarnings } from './uncertainty-propagation.js';
-import { showDecimalWarning, normalizeDecimalInput } from './utils.js';
+import { showDecimalWarning, normalizeDecimalInput, escapeHTML } from './utils.js';
 
 // Debounce para updateChart: evita recalcular en cada tecla mientras se escribe un número
 let _chartUpdateTimer = null;
@@ -33,7 +33,7 @@ export function renderSeries() {
         div.className = 'serie-section';
         div.innerHTML = `
             <div class="serie-header">
-                <span class="serie-name">${serie.name}</span>
+                <span class="serie-name">${escapeHTML(serie.name)}</span>
                 <div>
                     <input type="file" id="file-${serie.id}" style="display:none" accept=".csv" onchange="handleFileSelect(${serie.id}, this)">
                     <button class="btn btn-primary" style="padding: 2px 8px; font-size: 12px;" onclick="importCSV(${serie.id})">Importar CSV</button>
@@ -44,7 +44,7 @@ export function renderSeries() {
             </div>
             
             <label>Color:</label>
-            <input type="color" class="color-input" value="${serie.color}" 
+            <input type="color" class="color-input" value="${escapeHTML(serie.color)}"
                    onchange="updateSerieColor(${serie.id}, this.value)">
             
             <label style="display:block; margin-top:10px;">Tipo de Ajuste:</label>
@@ -96,12 +96,12 @@ export function renderTable(serieId) {
     serie.data.forEach((point, index) => {
         const row = tbody.insertRow();
         row.innerHTML = `
-            <td><input type="text" inputmode="decimal" step="any" value="${point.x}" 
+            <td><input type="text" inputmode="decimal" step="any" value="${escapeHTML(point.x)}"
                        data-serie="${serieId}" data-row="${index}" data-col="0"
                        onkeydown="handleKeyDown(event, ${serieId}, ${index}, 0)"
                        oninput="handleDecimalInput(event)"
                        onchange="updatePoint(${serieId}, ${index}, 'x', this.value)"></td>
-            <td><input type="text" inputmode="decimal" step="any" value="${point.y}" 
+            <td><input type="text" inputmode="decimal" step="any" value="${escapeHTML(point.y)}"
                        data-serie="${serieId}" data-row="${index}" data-col="1"
                        onkeydown="handleKeyDown(event, ${serieId}, ${index}, 1)"
                        oninput="handleDecimalInput(event)"
@@ -401,10 +401,13 @@ export function switchHelpTab(tabName) {
     // Mostrar contenido seleccionado
     document.getElementById(`help-${tabName}`).style.display = 'block';
 
-    // Activar pestaña seleccionada
-    event.target.classList.add('active');
-    event.target.style.borderBottom = '3px solid #667eea';
-    event.target.style.color = '#667eea';
+    // Activar pestaña seleccionada (buscada por data-tab, sin depender del global `event`)
+    const selectedTab = document.querySelector(`.help-tab[data-tab="${tabName}"]`);
+    if (selectedTab) {
+        selectedTab.classList.add('active');
+        selectedTab.style.borderBottom = '3px solid #667eea';
+        selectedTab.style.color = '#667eea';
+    }
 }
 
 // ============================================
@@ -793,15 +796,19 @@ export function showUnitHelp() {
     modal.appendChild(content);
     document.body.appendChild(modal);
 
-    const closeHandler = () => {
-        if (document.body.contains(modal)) {
-            document.body.removeChild(modal);
-        }
-    };
+    document.getElementById('closeUnitHelp').onclick = closeUnitHelp;
+    document.getElementById('closeUnitHelpBtn').onclick = closeUnitHelp;
+    modal.onclick = (e) => { if (e.target === modal) closeUnitHelp(); };
+}
 
-    document.getElementById('closeUnitHelp').onclick = closeHandler;
-    document.getElementById('closeUnitHelpBtn').onclick = closeHandler;
-    modal.onclick = (e) => { if (e.target === modal) closeHandler(); };
+/**
+ * Cierra el modal de ayuda de unidades, si está abierto
+ */
+export function closeUnitHelp() {
+    const modal = document.getElementById('unitHelpModal');
+    if (modal && document.body.contains(modal)) {
+        document.body.removeChild(modal);
+    }
 }
 
 // ============================================

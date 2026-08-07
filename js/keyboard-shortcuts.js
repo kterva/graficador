@@ -189,6 +189,32 @@ function closeAllModals() {
         document.body.style.overflow = 'auto';
     }
 
+    // Cerrar modal de ayuda (toggleHelpModal alterna, así que solo lo llamamos si está abierto)
+    const helpModal = document.getElementById('helpModal');
+    if (helpModal && helpModal.style.display === 'block' && typeof window.toggleHelpModal === 'function') {
+        window.toggleHelpModal();
+    }
+
+    // Cerrar modal de análisis dimensional
+    if (typeof window.closeDimensionalAnalysisModal === 'function') {
+        window.closeDimensionalAnalysisModal();
+    }
+
+    // Cerrar modal de datos de prueba
+    if (typeof window.closeTestDataModal === 'function') {
+        window.closeTestDataModal();
+    }
+
+    // Cerrar modal de compartir
+    if (typeof window.closeShareModal === 'function') {
+        window.closeShareModal();
+    }
+
+    // Cerrar modal de ayuda de unidades
+    if (typeof window.closeUnitHelp === 'function') {
+        window.closeUnitHelp();
+    }
+
     // Cerrar modal de atajos
     const shortcutsModal = document.getElementById('keyboardShortcutsModal');
     if (shortcutsModal) {
