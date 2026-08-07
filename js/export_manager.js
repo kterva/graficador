@@ -3,6 +3,10 @@
 // ============================================
 
 import { AppState } from './state.js';
+// updateChart() se importa dinámicamente donde se usa (no de forma estática arriba):
+// chart-manager.js registra plugins de Chart.js al cargarse, lo cual requiere que
+// exista el global `Chart` del navegador y rompe si este módulo se importa fuera de
+// ese contexto (ej. en los tests de Node, que solo necesitan sanitizeCSVField).
 
 // Helper: Redondeo a cifras significativas
 function getDecimalPlaces(uncertainty) {
@@ -41,10 +45,34 @@ function getPlainEquation(equation) {
     return equation.split('<br>')[0].replace(/<[^>]*>/g, '').trim();
 }
 
+// Sanea un campo antes de escribirlo en el CSV: evita que valores provenientes de un
+// proyecto importado o link compartido (título, etiquetas, nombres de serie) disparen
+// inyección de fórmulas al abrir el archivo en Excel/Sheets (OWASP CSV Injection), y
+// escapa comas/comillas/saltos de línea según RFC4180 para no romper la alineación de columnas.
+export function sanitizeCSVField(value) {
+    let str = String(value ?? '');
 
-export function downloadChartJPG() {
+    if (/^[=+\-@\t\r]/.test(str)) {
+        str = `'${str}`;
+    }
+
+    if (/[",\n\r]/.test(str)) {
+        str = `"${str.replace(/"/g, '""')}"`;
+    }
+
+    return str;
+}
+
+
+export async function downloadChartJPG() {
     const chart = AppState.chart;
     if (!chart) return;
+
+    // Forzar el redibujado ANTES de leer el canvas/ecuación/R²: updatePoint() actualiza
+    // AppState.series al toque pero el redibujado real está debounced 400ms, así que
+    // exportar justo después de editar un dato podía capturar la curva vieja.
+    const { updateChart } = await import('./chart-manager.js');
+    updateChart();
 
     const includeTable = document.getElementById('includeTableInExport')?.checked;
     const canvasOriginal = document.getElementById('myChart');
@@ -192,9 +220,14 @@ export function downloadChartJPG() {
     link.click();
 }
 
-export function downloadChartPDF() {
+export async function downloadChartPDF() {
     const chart = AppState.chart;
     if (!chart) return;
+
+    // Ver comentario equivalente en downloadChartJPG: evita exportar una curva/ecuación
+    // desactualizada si se exporta justo después de editar un dato.
+    const { updateChart } = await import('./chart-manager.js');
+    updateChart();
 
     const includeTable = document.getElementById('includeTableInExport')?.checked;
     const { jsPDF } = window.jspdf;
@@ -323,29 +356,34 @@ export function downloadChartPDF() {
  *   X,Y
  *   ...
  */
-export function downloadAllCSV() {
+export async function downloadAllCSV() {
     const series = AppState.series;
     if (!series || series.length === 0) return;
+
+    // Ver comentario equivalente en downloadChartJPG: serie.equation/serie.r2 se
+    // recalculan dentro de updateChart(), que puede estar pendiente por el debounce.
+    const { updateChart } = await import('./chart-manager.js');
+    updateChart();
 
     const title = document.getElementById('chartTitle')?.value || 'graficador';
     const labelX = document.getElementById('labelX')?.value || 'X';
     const labelY = document.getElementById('labelY')?.value || 'Y';
 
-    const colX = labelX;
-    const colY = labelY;
+    const colX = sanitizeCSVField(labelX);
+    const colY = sanitizeCSVField(labelY);
 
-    let csv = `# ${title}\n`;
+    let csv = `# ${sanitizeCSVField(title)}\n`;
 
     series.forEach((serie, idx) => {
         const validPoints = serie.data.filter(p => p.x !== '' && p.y !== '');
         if (validPoints.length === 0) return;
 
         if (idx > 0) csv += '\n';
-        csv += `# ${serie.name}\n`;
+        csv += `# ${sanitizeCSVField(serie.name)}\n`;
 
         const plainEquation = getPlainEquation(serie.equation);
         if (plainEquation) {
-            csv += `# Ecuación: ${plainEquation}\n`;
+            csv += `# Ecuación: ${sanitizeCSVField(plainEquation)}\n`;
             if (serie.r2 !== null && serie.r2 !== undefined) {
                 csv += `# R² = ${parseFloat(serie.r2).toFixed(4)}\n`;
             }
@@ -354,8 +392,8 @@ export function downloadAllCSV() {
         csv += `${colX},${colY}\n`;
 
         validPoints.forEach(p => {
-            const x = formatValue(p.x, 0);
-            const y = formatValue(p.y, 0);
+            const x = sanitizeCSVField(formatValue(p.x, 0));
+            const y = sanitizeCSVField(formatValue(p.y, 0));
             csv += `${x},${y}\n`;
         });
     });

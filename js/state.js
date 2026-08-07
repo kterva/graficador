@@ -74,12 +74,16 @@ export function findSerieById(id) {
 
 /**
  * Sanea un array de series proveniente de una fuente no confiable (proyecto
- * importado o link compartido). Fuerza que cada `id` sea un entero único y
- * no negativo, descartando cualquier otro valor (string, objeto, etc.) que
- * de otro modo se interpolaría sin comillas en atributos `onclick` del DOM.
+ * importado o link compartido). Descarta entradas que no sean objetos, fuerza
+ * que cada `id` sea un entero único y no negativo (de otro modo se interpolaría
+ * sin comillas en atributos `onclick` del DOM), y garantiza que `data` sea
+ * siempre un array de puntos {x,y} — sin esto, una serie malformada (ej. sin
+ * `data`, o con `data` no-array) hace explotar `renderTable` con
+ * `serie.data.forEach is not a function` recién DESPUÉS de que el estado previo
+ * del usuario ya fue reemplazado, perdiendo su trabajo.
  *
  * @param {Array} rawSeries - Series crudas, potencialmente no confiables
- * @returns {Array} Series con `id` saneado
+ * @returns {Array} Series saneadas, seguras de renderizar
  */
 export function sanitizeImportedSeries(rawSeries) {
     if (!Array.isArray(rawSeries)) return [];
@@ -91,13 +95,32 @@ export function sanitizeImportedSeries(rawSeries) {
         return fallbackId++;
     };
 
-    return rawSeries.map(raw => {
-        const serie = { ...raw };
-        const id = Number(serie.id);
-        serie.id = (Number.isInteger(id) && id >= 0 && !usedIds.has(id)) ? id : nextFallbackId();
-        usedIds.add(serie.id);
-        return serie;
-    });
+    return rawSeries
+        .filter(raw => raw !== null && typeof raw === 'object')
+        .map((raw, index) => {
+            const serie = { ...raw };
+
+            const id = Number(serie.id);
+            serie.id = (Number.isInteger(id) && id >= 0 && !usedIds.has(id)) ? id : nextFallbackId();
+            usedIds.add(serie.id);
+
+            serie.name = (typeof serie.name === 'string' && serie.name.trim()) ? serie.name : `Serie ${serie.id}`;
+            serie.color = (typeof serie.color === 'string' && serie.color) ? serie.color : COLORS[index % COLORS.length];
+            serie.fitType = typeof serie.fitType === 'string' ? serie.fitType : 'none';
+
+            const rawData = Array.isArray(serie.data) ? serie.data : [];
+            const cleanData = rawData
+                .filter(p => p !== null && typeof p === 'object')
+                .map(p => ({
+                    x: (typeof p.x === 'number' || typeof p.x === 'string') ? p.x : '',
+                    y: (typeof p.y === 'number' || typeof p.y === 'string') ? p.y : '',
+                    xError: typeof p.xError === 'number' ? p.xError : 0,
+                    yError: typeof p.yError === 'number' ? p.yError : 0
+                }));
+            serie.data = cleanData.length > 0 ? cleanData : [{ x: '', y: '' }];
+
+            return serie;
+        });
 }
 
 /**

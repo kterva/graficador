@@ -5,6 +5,7 @@
 
 import { AppState } from './state.js';
 import { linearRegression } from './regression.js';
+import { escapeHTML } from './utils.js';
 
 export function toggleConfigPanel() {
     const content = document.getElementById('config-panel-content');
@@ -231,7 +232,7 @@ export function showIntersection() {
     const yInt = r1.a * xInt + r1.b;
 
     content.innerHTML = `
-        <p><strong>Series:</strong> ${s1.name} ∩ ${s2.name}</p>
+        <p><strong>Series:</strong> ${escapeHTML(s1.name)} ∩ ${escapeHTML(s2.name)}</p>
         <p style="font-size: 1.2em; margin-top: 10px;">
             <strong>X = ${xInt.toFixed(4)}</strong><br>
             <strong>Y = ${yInt.toFixed(4)}</strong>

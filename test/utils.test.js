@@ -14,6 +14,13 @@ test('extractUnit: pulls the content between parentheses', () => {
     assert.equal(extractUnit('Sin unidad'), '');
 });
 
+test('extractUnit: escapes HTML in the extracted unit (labels can come from untrusted imports/share URLs)', () => {
+    assert.equal(
+        extractUnit('X (<img src=x onerror="window.pwned=true">)'),
+        '&lt;img src=x onerror=&quot;window.pwned=true&quot;&gt;'
+    );
+});
+
 test('formatWithUncertainty: matches the documented example', () => {
     const result = formatWithUncertainty(3.14159, 0.05);
     assert.deepEqual(result, { value: '3.14', uncertainty: '0.05' });

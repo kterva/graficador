@@ -41,7 +41,10 @@ export const PROJECT_FILE_FORMAT_VERSION = '1.4.0';
  */
 export function extractUnit(label) {
     const match = label.match(/\(([^)]+)\)/);
-    return match ? match[1] : '';
+    // Escapado porque el resultado se interpola sin más tratamiento en varios
+    // innerHTML (ecuación, tangente, área, incertidumbre) y `label` puede venir
+    // de un proyecto importado o de una URL compartida (dato no confiable).
+    return match ? escapeHTML(match[1]) : '';
 }
 
 /**

@@ -126,7 +126,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
     const n = xs.length;
 
     let equation = '';
-    let r2 = 0;
+    let r2 = null; // null = sin ajuste calculado (evita mostrar "R² = 0.0000" en un fallo)
     let fitFunc = null;
     let uncertainty = null;
 

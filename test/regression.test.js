@@ -90,6 +90,28 @@ test('polynomialRegression: too few distinct X values returns null instead of ga
     assert.equal(polynomialRegression([1, 2], [1, 4], 2), null);
 });
 
+test('polynomialRegression: recovers exact coefficients with very small-magnitude X (previously false-rejected as singular)', () => {
+    const f = x => 2 * x * x - 3 * x + 4;
+    const xs = [1e-6, 2e-6, 3e-6, 4e-6, 5e-6];
+    const ys = xs.map(f);
+    const coeffs = polynomialRegression(xs, ys, 2);
+    assert.notEqual(coeffs, null);
+    closeTo(coeffs[0], 2, 1e-3);
+    closeTo(coeffs[1], -3, 1e-3);
+    closeTo(coeffs[2], 4, 1e-3);
+});
+
+test('polynomialRegression: recovers exact coefficients with very large-magnitude X (previously silent garbage from catastrophic cancellation)', () => {
+    const f = x => 2 * x * x - 3 * x + 7;
+    const xs = [1e6, 1e6 + 1, 1e6 + 2, 1e6 + 3, 1e6 + 4];
+    const ys = xs.map(f);
+    const coeffs = polynomialRegression(xs, ys, 2);
+    assert.notEqual(coeffs, null);
+    closeTo(coeffs[0], 2, 1e-6);
+    closeTo(coeffs[1], -3, 1e-3);
+    closeTo(coeffs[2], 7, 1);
+});
+
 test('polynomialRegression: degenerate system (duplicate x) returns null instead of NaN coefficients', () => {
     const result = polynomialRegression([1, 1, 1], [1, 2, 3], 2);
     assert.equal(result, null);

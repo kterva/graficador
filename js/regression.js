@@ -181,6 +181,18 @@ export function polynomialRegression(xs, ys, degree) {
     }
 
     const n = xs.length;
+
+    // Centrar y escalar X antes de armar el sistema normal. Ajustar directamente sobre
+    // valores de X muy grandes o muy chicos genera un sistema mal condicionado (las sumas
+    // de potencias de X se vuelven astronómicas o minúsculas) que puede producir coeficientes
+    // basura por cancelación catastrófica en punto flotante, incluso con puntos suficientes
+    // y distintos. Ajustamos en X' = (X - media) / escala, que siempre queda en un rango
+    // razonable, y después convertimos los coeficientes de vuelta a la escala original.
+    const xMean = xs.reduce((a, b) => a + b, 0) / n;
+    const maxAbsDeviation = xs.reduce((max, x) => Math.max(max, Math.abs(x - xMean)), 0);
+    const xScale = maxAbsDeviation > 0 ? maxAbsDeviation : 1;
+    const scaledXs = xs.map(x => (x - xMean) / xScale);
+
     const matrix = [];
     const result = [];
 
@@ -189,7 +201,7 @@ export function polynomialRegression(xs, ys, degree) {
         for (let j = 0; j <= degree; j++) {
             let sum = 0;
             for (let k = 0; k < n; k++) {
-                sum += Math.pow(xs[k], i + j);
+                sum += Math.pow(scaledXs[k], i + j);
             }
             row.push(sum);
         }
@@ -197,17 +209,43 @@ export function polynomialRegression(xs, ys, degree) {
 
         let sum = 0;
         for (let k = 0; k < n; k++) {
-            sum += ys[k] * Math.pow(xs[k], i);
+            sum += ys[k] * Math.pow(scaledXs[k], i);
         }
         result.push(sum);
     }
 
+    let scaledCoeffs; // orden ascendente: [B0, B1, ..., Bd], coeficientes en X' = (X-media)/escala
     try {
-        return gaussianElimination(matrix, result).reverse();
+        scaledCoeffs = gaussianElimination(matrix, result);
     } catch (e) {
         console.warn('polynomialRegression: sistema singular o datos insuficientes.', e.message);
         return null;
     }
+
+    // Deshacer el centrado/escalado: expandir X' = (X-m)/s vía binomio de Newton para
+    // obtener los coeficientes en términos de X original.
+    const coeffs = new Array(degree + 1).fill(0); // orden ascendente [a0, a1, ..., ad]
+    for (let k = 0; k <= degree; k++) {
+        const Bk = scaledCoeffs[k];
+        for (let j = 0; j <= k; j++) {
+            coeffs[j] += Bk * binomialCoefficient(k, j) * Math.pow(-xMean, k - j) / Math.pow(xScale, k);
+        }
+    }
+
+    return coeffs.reverse(); // orden descendente [ad, ..., a1, a0], como antes
+}
+
+/**
+ * Coeficiente binomial C(n, k), usado para expandir (X - media)^k al deshacer
+ * el centrado/escalado de polynomialRegression.
+ */
+function binomialCoefficient(n, k) {
+    if (k < 0 || k > n) return 0;
+    let result = 1;
+    for (let i = 0; i < k; i++) {
+        result = (result * (n - i)) / (i + 1);
+    }
+    return result;
 }
 
 /**
@@ -218,7 +256,18 @@ export function polynomialRegression(xs, ys, degree) {
  */
 export function gaussianElimination(matrix, result) {
     const n = matrix.length;
-    const EPSILON = 1e-10;
+
+    // Umbral de pivote relativo a la magnitud de la matriz: un epsilon absoluto
+    // rechazaría sistemas válidos cuando los valores son muy chicos (ej. x ~ 1e-6) y
+    // no detectaría sistemas mal condicionados cuando los valores son muy grandes.
+    let maxAbs = 0;
+    for (const row of matrix) {
+        for (const value of row) {
+            const abs = Math.abs(value);
+            if (abs > maxAbs) maxAbs = abs;
+        }
+    }
+    const EPSILON = Math.max(maxAbs, 1) * 1e-10;
 
     for (let i = 0; i < n; i++) {
         let maxRow = i;
