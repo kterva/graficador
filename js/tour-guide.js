@@ -263,6 +263,11 @@ const TOUR_STEPS = [
 
 /**
  * Estado del tour
+ *
+ * Nota sobre z-index: el resto de los overlays de la app (modales, notificaciones,
+ * modo presentación) usan como máximo 10000. El tour usa 10007-10009 a propósito,
+ * para quedar siempre por encima — es un flujo guiado bloqueante y no debería quedar
+ * tapado si el usuario dispara otro overlay (ej. Ctrl+H) mientras está activo.
  */
 let tourState = {
     active: false,
@@ -310,7 +315,7 @@ function createTourUI() {
         width: 100%;
         height: 100%;
         background: rgba(0, 0, 0, 0.15);
-        z-index: 9998;
+        z-index: 10008;
         pointer-events: none;
     `;
 
@@ -323,7 +328,7 @@ function createTourUI() {
         border-radius: 12px;
         padding: 25px;
         box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        z-index: 9999;
+        z-index: 10009;
         max-width: 500px;
         min-width: 400px;
         pointer-events: auto;
@@ -499,7 +504,7 @@ function highlightElement(selector) {
             height: ${rect.height + 16}px;
             border: 4px solid #667eea;
             border-radius: 8px;
-            z-index: 9997;
+            z-index: 10007;
             pointer-events: none;
             box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.15), 0 0 20px rgba(102, 126, 234, 0.5);
             animation: pulse 2s infinite;
@@ -630,7 +635,7 @@ function showNotification(message, type = 'info') {
         color: white;
         padding: 12px 20px;
         border-radius: 8px;
-        z-index: 10000;
+        z-index: 10010;
         animation: slideInUp 0.3s ease-out;
     `;
 
@@ -684,13 +689,16 @@ export function initTour() {
  */
 function loadLinearDataForTour() {
     // Datos de ejemplo para función lineal: y = 2x + 1
+    // Nota: la incertidumbre se aplica a nivel de columna (defaultXError/defaultYError,
+    // ver comentario en renderTable() de ui-handlers.js), no por punto — por eso las
+    // barras de error se setean en la serie, no en cada punto.
     const linearData = [
-        { x: 0, y: 1, xError: 0.1, yError: 0.2 },
-        { x: 1, y: 3, xError: 0.1, yError: 0.2 },
-        { x: 2, y: 5, xError: 0.1, yError: 0.3 },
-        { x: 3, y: 7, xError: 0.1, yError: 0.2 },
-        { x: 4, y: 9, xError: 0.1, yError: 0.3 },
-        { x: 5, y: 11, xError: 0.1, yError: 0.2 }
+        { x: 0, y: 1 },
+        { x: 1, y: 3 },
+        { x: 2, y: 5 },
+        { x: 3, y: 7 },
+        { x: 4, y: 9 },
+        { x: 5, y: 11 }
     ];
 
     // Usar AppState global si está disponible, sino el importado
@@ -707,6 +715,8 @@ function loadLinearDataForTour() {
         data: linearData,
         color: '#3498db',
         fitType: 'linear',
+        defaultXError: 0.1,
+        defaultYError: 0.25,
         equation: '',
         r2: null
     };

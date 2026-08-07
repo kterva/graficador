@@ -20,11 +20,25 @@ export function initKeyboardShortcuts() {
 }
 
 /**
+ * true si el foco está en un elemento editable (input/textarea/select/contenteditable).
+ * Evita que Ctrl+N/S/E/H disparen sus acciones (nueva serie, exportar, etc.) mientras
+ * el usuario está tipeando un valor en la tabla de datos — ej. Ctrl+S como reflejo de
+ * "guardar" en medio de una edición no debería exportar el proyecto de golpe.
+ */
+function isTypingContext(target) {
+    if (!target) return false;
+    const tag = target.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
+}
+
+/**
  * Maneja los atajos de teclado
  */
 function handleKeyboardShortcut(event) {
+    const typing = isTypingContext(event.target);
+
     // Ctrl/Cmd + N: Nueva serie
-    if ((event.ctrlKey || event.metaKey) && event.key === 'n') {
+    if (!typing && (event.ctrlKey || event.metaKey) && event.key === 'n') {
         event.preventDefault();
         if (typeof window.addSerie === 'function') {
             window.addSerie();
@@ -33,7 +47,7 @@ function handleKeyboardShortcut(event) {
     }
 
     // Ctrl/Cmd + S: Guardar proyecto
-    if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+    if (!typing && (event.ctrlKey || event.metaKey) && event.key === 's') {
         event.preventDefault();
         if (typeof window.exportProject === 'function') {
             window.exportProject();
@@ -42,7 +56,7 @@ function handleKeyboardShortcut(event) {
     }
 
     // Ctrl/Cmd + E: Abrir menú de exportación
-    if ((event.ctrlKey || event.metaKey) && event.key === 'e') {
+    if (!typing && (event.ctrlKey || event.metaKey) && event.key === 'e') {
         event.preventDefault();
         const exportBtn = document.querySelector('[onclick*="exportCSV"]')?.closest('.btn-group');
         if (exportBtn) {
@@ -53,7 +67,7 @@ function handleKeyboardShortcut(event) {
     }
 
     // Ctrl/Cmd + H: Mostrar ayuda de atajos
-    if ((event.ctrlKey || event.metaKey) && event.key === 'h') {
+    if (!typing && (event.ctrlKey || event.metaKey) && event.key === 'h') {
         event.preventDefault();
         showKeyboardShortcutsHelp();
     }

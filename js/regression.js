@@ -191,6 +191,16 @@ export function polynomialRegression(xs, ys, degree) {
     const xMean = xs.reduce((a, b) => a + b, 0) / n;
     const maxAbsDeviation = xs.reduce((max, x) => Math.max(max, Math.abs(x - xMean)), 0);
     const xScale = maxAbsDeviation > 0 ? maxAbsDeviation : 1;
+
+    // Si X tiene una magnitud extrema (ej. ~1e-300), Math.pow(xScale, degree) puede
+    // hacer underflow/overflow a 0/Infinity y el des-escalado de los coeficientes más
+    // abajo (que divide por esa potencia) daría NaN/-Infinity en vez de un error claro.
+    const xScalePowDegree = Math.pow(xScale, degree);
+    if (!Number.isFinite(xScalePowDegree) || xScalePowDegree === 0) {
+        console.warn('polynomialRegression: la magnitud de los valores de X es demasiado extrema para ajustar con precisión numérica.');
+        return null;
+    }
+
     const scaledXs = xs.map(x => (x - xMean) / xScale);
 
     const matrix = [];

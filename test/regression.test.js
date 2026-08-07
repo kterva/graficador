@@ -90,6 +90,13 @@ test('polynomialRegression: too few distinct X values returns null instead of ga
     assert.equal(polynomialRegression([1, 2], [1, 4], 2), null);
 });
 
+test('polynomialRegression: extreme clustered X magnitude (underflow risk) returns null instead of NaN/-Infinity', () => {
+    const base = 1e-300;
+    const xs = [0, 1, 2, 3, 4, 5].map(i => base * (1 + i * 1e-15));
+    const ys = xs.map((x, i) => 2 * x * x * x - 5 * x * x + 3 * x - 7 + i);
+    assert.equal(polynomialRegression(xs, ys, 3), null);
+});
+
 test('polynomialRegression: recovers exact coefficients with very small-magnitude X (previously false-rejected as singular)', () => {
     const f = x => 2 * x * x - 3 * x + 4;
     const xs = [1e-6, 2e-6, 3e-6, 4e-6, 5e-6];
