@@ -108,3 +108,12 @@ test('calculateFit: sample points span the requested xRange', () => {
     closeTo(Math.min(...xs), -5);
     closeTo(Math.max(...xs), 5);
 });
+
+test('calculateFit: a failed fit reports r2 as null, not 0 (avoids a misleading "R² = 0.0000")', () => {
+    // Solo 2 puntos con X distintos para un ajuste cuadrático (necesita >= 3): falla.
+    const data = [{ x: 1, y: 1, xError: 0, yError: 0 }, { x: 2, y: 4, xError: 0, yError: 0 }];
+    const fit = calculateFit(data, 'poly2', 'X', 'Y');
+    assert.equal(fit.r2, null);
+    assert.match(fit.equation, /⚠️/);
+    assert.equal(fit.points.length, 0);
+});

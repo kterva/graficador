@@ -8,22 +8,21 @@
  * @module units
  */
 
+// Nota: resolveUnit() solo compara los primeros 1 o 2 caracteres del símbolo de
+// unidad contra estas claves, así que una clave más larga (ej. "kilo ") nunca
+// puede hacer match y quedaría muerta — no agregar alias de más de 2 caracteres.
 export const PREFIXES = {
     'p': { factor: 1e-12, name: 'pico' },
     'n': { factor: 1e-9, name: 'nano' },
     'μ': { factor: 1e-6, name: 'micro' },
     'u': { factor: 1e-6, name: 'micro' }, // Alias común
-    'micro ': { factor: 1e-6, name: 'micro' },
     'm': { factor: 1e-3, name: 'mili' },
-    'mili ': { factor: 1e-3, name: 'mili' },
     'c': { factor: 1e-2, name: 'centi' },
     'd': { factor: 1e-1, name: 'deci' },
     'da': { factor: 1e1, name: 'deca' },
     'h': { factor: 1e2, name: 'hecto' },
     'k': { factor: 1e3, name: 'kilo' },
-    'kilo ': { factor: 1e3, name: 'kilo' },
     'M': { factor: 1e6, name: 'mega' },
-    'mega ': { factor: 1e6, name: 'mega' },
     'G': { factor: 1e9, name: 'giga' },
     'T': { factor: 1e12, name: 'tera' }
 };

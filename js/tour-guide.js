@@ -268,7 +268,14 @@ let tourState = {
     active: false,
     currentStep: 0,
     overlay: null,
-    modal: null
+    modal: null,
+    // IDs de interval/timeout pendientes, para poder cancelarlos al navegar de paso
+    // o al terminar el tour (si no, siguen corriendo en segundo plano y pueden
+    // disparar un highlight/notificación "fantasma" de un paso que ya no está activo).
+    monitorIntervalId: null,
+    monitorTimeoutId: null,
+    monitorNotifyTimeoutId: null,
+    highlightTimeoutId: null
 };
 
 /**
@@ -331,6 +338,9 @@ function createTourUI() {
  */
 function showStep(stepIndex) {
     if (stepIndex < 0 || stepIndex >= TOUR_STEPS.length) return;
+
+    // Cancelar el monitoreo del paso anterior antes de mostrar uno nuevo
+    clearMonitor();
 
     const step = TOUR_STEPS[stepIndex];
     tourState.currentStep = stepIndex;
@@ -475,7 +485,8 @@ function highlightElement(selector) {
     });
 
     // Esperar un poco para que el scroll termine
-    setTimeout(() => {
+    tourState.highlightTimeoutId = setTimeout(() => {
+        tourState.highlightTimeoutId = null;
         const rect = element.getBoundingClientRect();
 
         const highlight = document.createElement('div');
@@ -499,9 +510,14 @@ function highlightElement(selector) {
 }
 
 /**
- * Remueve el highlight
+ * Remueve el highlight (y cancela un highlight pendiente de aparecer, para que
+ * no se posicione sobre el elemento equivocado si el usuario ya avanzó de paso)
  */
 function removeHighlight() {
+    if (tourState.highlightTimeoutId) {
+        clearTimeout(tourState.highlightTimeoutId);
+        tourState.highlightTimeoutId = null;
+    }
     const highlight = document.getElementById('tour-highlight');
     if (highlight) {
         highlight.remove();
@@ -512,18 +528,51 @@ function removeHighlight() {
  * Monitorea una condición y avanza automáticamente
  */
 function monitorCondition(condition) {
-    const interval = setInterval(() => {
+    // Por las dudas, cancelar cualquier monitoreo previo (no debería quedar ninguno
+    // activo ya que showStep() llama a clearMonitor(), pero es una función también
+    // usada de forma independiente).
+    clearMonitor();
+
+    tourState.monitorIntervalId = setInterval(() => {
         if (condition()) {
-            clearInterval(interval);
+            clearInterval(tourState.monitorIntervalId);
+            tourState.monitorIntervalId = null;
             // Pequeño delay antes de permitir avanzar
-            setTimeout(() => {
+            tourState.monitorNotifyTimeoutId = setTimeout(() => {
+                tourState.monitorNotifyTimeoutId = null;
                 showNotification('✓ ¡Paso completado!', 'success');
             }, 500);
         }
     }, 500);
 
     // Limpiar después de 30 segundos
-    setTimeout(() => clearInterval(interval), 30000);
+    tourState.monitorTimeoutId = setTimeout(() => {
+        if (tourState.monitorIntervalId) {
+            clearInterval(tourState.monitorIntervalId);
+            tourState.monitorIntervalId = null;
+        }
+        tourState.monitorTimeoutId = null;
+    }, 30000);
+}
+
+/**
+ * Cancela cualquier interval/timeout de monitoreo de condición pendiente. Se llama
+ * al navegar a otro paso y al finalizar el tour, para que un `waitFor` de un paso
+ * anterior no dispare una notificación "¡Paso completado!" fantasma más tarde.
+ */
+function clearMonitor() {
+    if (tourState.monitorIntervalId) {
+        clearInterval(tourState.monitorIntervalId);
+        tourState.monitorIntervalId = null;
+    }
+    if (tourState.monitorTimeoutId) {
+        clearTimeout(tourState.monitorTimeoutId);
+        tourState.monitorTimeoutId = null;
+    }
+    if (tourState.monitorNotifyTimeoutId) {
+        clearTimeout(tourState.monitorNotifyTimeoutId);
+        tourState.monitorNotifyTimeoutId = null;
+    }
 }
 
 /**
@@ -549,6 +598,7 @@ window.handleTourButton = function (action) {
  */
 function endTour() {
     tourState.active = false;
+    clearMonitor();
 
     if (tourState.overlay) tourState.overlay.remove();
     if (tourState.modal) tourState.modal.remove();

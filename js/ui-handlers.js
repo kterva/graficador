@@ -893,13 +893,10 @@ export function openDimensionalAnalysisModal() {
     menu.style.display = 'none';
 
     // Llenar catálogo si está vacío
-    import('./units.js').then(unitsModule => {
-        const { populateDimensionalCatalog } = unitsModule;
-        const catalog = document.getElementById('dimCatalog');
-        if (catalog.children.length === 0) {
-            populateDimensionalCatalog();
-        }
-    });
+    const catalog = document.getElementById('dimCatalog');
+    if (catalog.children.length === 0) {
+        populateDimensionalCatalog();
+    }
 }
 
 /**

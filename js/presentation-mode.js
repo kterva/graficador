@@ -97,6 +97,10 @@ export function initPresentationMode() {
                 canvas.removeAttribute('width');
                 canvas.removeAttribute('height');
                 AppState.chart.resize();
+                // Igual que en la salida manual (togglePresentationMode): sin este evento,
+                // salir de pantalla completa con la UI nativa del navegador (en vez de
+                // Alt+P/ESC manejado por la app) puede dejar el gráfico mal redimensionado.
+                window.dispatchEvent(new Event('resize'));
             }
         }
     });
