@@ -33,7 +33,14 @@ export function linearRegression(data) {
     const sumXY = xs.reduce((sum, x, i) => sum + x * ys[i], 0);
     const sumX2 = xs.reduce((sum, x) => sum + x * x, 0);
 
-    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const denominator = n * sumX2 - sumX * sumX;
+    if (Math.abs(denominator) < 1e-10) {
+        // Todos los X son iguales (línea vertical): la pendiente no está definida.
+        console.warn('linearRegression: los valores de X son todos iguales (línea vertical), la pendiente no está definida.');
+        return null;
+    }
+
+    const slope = (n * sumXY - sumX * sumY) / denominator;
     const intercept = (sumY - slope * sumX) / n;
 
     const yPred = xs.map(x => slope * x + intercept);
@@ -153,6 +160,7 @@ export function linearRegression(data) {
 function linearRegressionArrays(xs, ys) {
     const data = xs.map((x, i) => ({ x, y: ys[i], xError: 0, yError: 0 }));
     const result = linearRegression(data);
+    if (!result) return null;
     return { slope: result.a, intercept: result.b };
 }
 
@@ -166,6 +174,12 @@ function linearRegressionArrays(xs, ys) {
  * @returns {number[]} Coeficientes [aₙ, aₙ₋₁, ..., a₁, a₀]
  */
 export function polynomialRegression(xs, ys, degree) {
+    const distinctX = new Set(xs).size;
+    if (distinctX < degree + 1) {
+        console.warn(`polynomialRegression: se necesitan al menos ${degree + 1} valores de X distintos para un ajuste de grado ${degree} (hay ${distinctX}).`);
+        return null;
+    }
+
     const n = xs.length;
     const matrix = [];
     const result = [];
@@ -204,6 +218,7 @@ export function polynomialRegression(xs, ys, degree) {
  */
 export function gaussianElimination(matrix, result) {
     const n = matrix.length;
+    const EPSILON = 1e-10;
 
     for (let i = 0; i < n; i++) {
         let maxRow = i;
@@ -215,6 +230,10 @@ export function gaussianElimination(matrix, result) {
 
         [matrix[i], matrix[maxRow]] = [matrix[maxRow], matrix[i]];
         [result[i], result[maxRow]] = [result[maxRow], result[i]];
+
+        if (Math.abs(matrix[i][i]) < EPSILON) {
+            throw new Error('Sistema singular: no se puede resolver (puntos insuficientes o datos duplicados)');
+        }
 
         for (let k = i + 1; k < n; k++) {
             const factor = matrix[k][i] / matrix[i][i];
@@ -246,8 +265,15 @@ export function gaussianElimination(matrix, result) {
  * @returns {Object} Resultado con coeficientes a, b y r2
  */
 export function exponentialRegression(xs, ys) {
+    if (!ys.every(y => y > 0)) {
+        console.warn('exponentialRegression: todos los valores de Y deben ser positivos (y = a·e^(bx) requiere ln(y)).');
+        return null;
+    }
+
     const lnYs = ys.map(y => Math.log(y));
     const result = linearRegressionArrays(xs, lnYs);
+    if (!result) return null;
+
     const a = Math.exp(result.intercept);
     const b = result.slope;
 
@@ -266,8 +292,15 @@ export function exponentialRegression(xs, ys) {
  * @returns {Object} Resultado con coeficientes a, b y r2
  */
 export function logarithmicRegression(xs, ys) {
+    if (!xs.every(x => x > 0)) {
+        console.warn('logarithmicRegression: todos los valores de X deben ser positivos (y = a·ln(x)+b requiere ln(x)).');
+        return null;
+    }
+
     const lnXs = xs.map(x => Math.log(x));
     const result = linearRegressionArrays(lnXs, ys);
+    if (!result) return null;
+
     const a = result.slope;
     const b = result.intercept;
 
@@ -286,9 +319,16 @@ export function logarithmicRegression(xs, ys) {
  * @returns {Object} Resultado con coeficientes a, b y r2
  */
 export function powerRegression(xs, ys) {
+    if (!xs.every(x => x > 0) || !ys.every(y => y > 0)) {
+        console.warn('powerRegression: todos los valores de X e Y deben ser positivos (y = a·x^b requiere ln(x) y ln(y)).');
+        return null;
+    }
+
     const lnXs = xs.map(x => Math.log(x));
     const lnYs = ys.map(y => Math.log(y));
     const result = linearRegressionArrays(lnXs, lnYs);
+    if (!result) return null;
+
     const a = Math.exp(result.intercept);
     const b = result.slope;
 

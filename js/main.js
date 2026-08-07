@@ -7,7 +7,9 @@
  * ajustes de curvas con análisis de incertidumbre.
  * 
  * @author Leonardo Trujillo
- * @version 1.4.0 - Modular
+ *
+ * El número de versión de la app vive en una sola parte: APP_VERSION en
+ * utils.js. No lo dupliques acá (esto ya se desincronizó una vez).
  */
 
 // ============================================
@@ -17,6 +19,7 @@
 import { initChart, updateChart, resetZoom, zoomIn, zoomOut } from './chart-manager.js';
 import { toggleMobileMenu, toggleConfigPanel, toggleIntersection, showIntersection, updateChartConfig } from './chart_config.js';
 import { AppState } from './state.js';
+import { APP_VERSION } from './utils.js';
 import { initKeyboardShortcuts } from './keyboard-shortcuts.js';
 import { togglePresentationMode, initPresentationMode } from './presentation-mode.js';
 import { copyShareURL, closeShareModal, copyShareURLAgain, initShareManager } from './share-manager.js';
@@ -51,6 +54,7 @@ import {
     updateAxisPrefix,
     updateCustomUnit,
     showUnitHelp,
+    closeUnitHelp,
     toggleToolsMenu,
     openErrorPropagationModal,
     closeErrorPropagationModal,
@@ -121,6 +125,7 @@ window.updateAxisUnit = updateAxisUnit;
 window.updateAxisPrefix = updateAxisPrefix;
 window.updateCustomUnit = updateCustomUnit;
 window.showUnitHelp = showUnitHelp;
+window.closeUnitHelp = closeUnitHelp;
 window.toggleToolsMenu = toggleToolsMenu;
 window.openErrorPropagationModal = openErrorPropagationModal;
 window.closeErrorPropagationModal = closeErrorPropagationModal;
@@ -157,6 +162,10 @@ window.AppState = AppState;
 document.addEventListener('DOMContentLoaded', () => {
     initChart();
 
+    // Mostrar la versión de la app en el footer desde la única fuente de verdad (APP_VERSION)
+    const footerVersion = document.getElementById('footer-version');
+    if (footerVersion) footerVersion.textContent = `Versión ${APP_VERSION}`;
+
     // Crear primera serie automáticamente para que el usuario vea la tabla desde el inicio
     addSerie();
 
@@ -169,9 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Mostrar panel de desarrollo si está habilitado
     if (typeof window.IS_DEVELOPMENT !== 'undefined' && window.IS_DEVELOPMENT) {
-        const devPanel = document.getElementById('dev-panel');
-        if (devPanel) devPanel.style.display = 'block';
-
         const devTip = document.getElementById('help-dev-tip');
         if (devTip) devTip.style.display = 'block';
 

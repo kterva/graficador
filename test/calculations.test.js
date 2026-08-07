@@ -28,16 +28,16 @@ test('calculateDerivative: poly3 returns 3ax² + 2bx + c', () => {
     closeTo(calculateDerivative(2, [1, 2, -1, 4], 'poly3'), 19);
 });
 
-test('calculateDerivative: logarithmic returns a/x, guards x <= 0', () => {
+test('calculateDerivative: logarithmic returns a/x, is undefined (NaN) for x <= 0', () => {
     closeTo(calculateDerivative(2, { a: 4 }, 'logarithmic'), 2);
-    assert.equal(calculateDerivative(0, { a: 4 }, 'logarithmic'), 0);
-    assert.equal(calculateDerivative(-1, { a: 4 }, 'logarithmic'), 0);
+    assert.ok(Number.isNaN(calculateDerivative(0, { a: 4 }, 'logarithmic')));
+    assert.ok(Number.isNaN(calculateDerivative(-1, { a: 4 }, 'logarithmic')));
 });
 
-test('calculateDerivative: power returns a*b*x^(b-1), guards x <= 0', () => {
+test('calculateDerivative: power returns a*b*x^(b-1), is undefined (NaN) for x <= 0', () => {
     // y = 2x^3 -> y' = 6x^2
     closeTo(calculateDerivative(3, { a: 2, b: 3 }, 'power'), 54);
-    assert.equal(calculateDerivative(0, { a: 2, b: 3 }, 'power'), 0);
+    assert.ok(Number.isNaN(calculateDerivative(0, { a: 2, b: 3 }, 'power')));
 });
 
 test('calculateIntegral: linear matches analytic antiderivative', () => {

@@ -73,6 +73,34 @@ export function findSerieById(id) {
 }
 
 /**
+ * Sanea un array de series proveniente de una fuente no confiable (proyecto
+ * importado o link compartido). Fuerza que cada `id` sea un entero único y
+ * no negativo, descartando cualquier otro valor (string, objeto, etc.) que
+ * de otro modo se interpolaría sin comillas en atributos `onclick` del DOM.
+ *
+ * @param {Array} rawSeries - Series crudas, potencialmente no confiables
+ * @returns {Array} Series con `id` saneado
+ */
+export function sanitizeImportedSeries(rawSeries) {
+    if (!Array.isArray(rawSeries)) return [];
+
+    const usedIds = new Set();
+    let fallbackId = 1;
+    const nextFallbackId = () => {
+        while (usedIds.has(fallbackId)) fallbackId++;
+        return fallbackId++;
+    };
+
+    return rawSeries.map(raw => {
+        const serie = { ...raw };
+        const id = Number(serie.id);
+        serie.id = (Number.isInteger(id) && id >= 0 && !usedIds.has(id)) ? id : nextFallbackId();
+        usedIds.add(serie.id);
+        return serie;
+    });
+}
+
+/**
  * Estructura de una serie de datos
  * @typedef {Object} Serie
  * @property {number} id - ID único de la serie

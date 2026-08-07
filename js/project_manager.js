@@ -2,17 +2,18 @@
 // GESTIÓN DE PROYECTO (JSON)
 // ============================================
 
-import { AppState } from './state.js';
+import { AppState, sanitizeImportedSeries } from './state.js';
 import { renderSeries } from './ui-handlers.js';
 import { updateChart } from './chart-manager.js';
 import { updateChartConfig } from './chart_config.js';
+import { PROJECT_FILE_FORMAT_VERSION } from './utils.js';
 
 /**
  * Exporta el estado actual del proyecto a un archivo JSON
  */
 export function exportProject() {
     const projectData = {
-        version: '1.4.0',
+        version: PROJECT_FILE_FORMAT_VERSION,
         timestamp: new Date().toISOString(),
         config: {
             xLabel: document.getElementById('labelX').value,
@@ -74,11 +75,11 @@ export function importProject(input) {
             // Restaurar series
             AppState.series.length = 0; // Limpiar array existente manteniendo la referencia si fuera const (aunque AppState.series debería ser modificado en state, aquí asumimos mutabilidad directa del array del proxy o state)
             // Mejor: reemplazamos el contenido
-            AppState.series.push(...projectData.series);
+            AppState.series.push(...sanitizeImportedSeries(projectData.series));
 
             // Actualizar contador de IDs para evitar colisiones futuras
-            const maxId = AppState.series.reduce((max, s) => Math.max(max, s.id), -1);
-            AppState.serieCounter = maxId + 1;
+            const maxId = AppState.series.reduce((max, s) => Math.max(max, s.id), 0);
+            AppState.nextId = maxId + 1;
 
             // Restaurar configuración
             if (projectData.config) {

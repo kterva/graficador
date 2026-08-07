@@ -8,9 +8,11 @@
  * @module share-manager
  */
 
-import { AppState } from './state.js';
+import { AppState, sanitizeImportedSeries } from './state.js';
 import { renderSeries } from './ui-handlers.js';
 import { updateChart } from './chart-manager.js';
+import { updateChartConfig } from './chart_config.js';
+import { PROJECT_FILE_FORMAT_VERSION } from './utils.js';
 
 /**
  * Genera una URL compartible con el estado actual
@@ -18,7 +20,7 @@ import { updateChart } from './chart-manager.js';
  */
 export function generateShareURL() {
     const state = {
-        version: '1.4.0',
+        version: PROJECT_FILE_FORMAT_VERSION,
         series: AppState.series.map(s => ({
             id: s.id,
             name: s.name,
@@ -33,10 +35,10 @@ export function generateShareURL() {
             yLabel: document.getElementById('labelY')?.value || 'Y',
             xUnit: document.getElementById('unitX')?.value || '',
             yUnit: document.getElementById('unitY')?.value || '',
-            xMin: document.getElementById('xMin')?.value || '',
-            xMax: document.getElementById('xMax')?.value || '',
-            yMin: document.getElementById('yMin')?.value || '',
-            yMax: document.getElementById('yMax')?.value || ''
+            xMin: document.getElementById('minX')?.value || '',
+            xMax: document.getElementById('maxX')?.value || '',
+            yMin: document.getElementById('minY')?.value || '',
+            yMax: document.getElementById('maxY')?.value || ''
         }
     };
 
@@ -66,17 +68,17 @@ export function loadFromURL() {
         const state = JSON.parse(json);
 
         // Validar versión (opcional, por ahora solo advertir)
-        if (state.version && state.version !== '1.4.0') {
-            console.warn(`URL generada con versión ${state.version}, actual: 1.4.0`);
+        if (state.version && state.version !== PROJECT_FILE_FORMAT_VERSION) {
+            console.warn(`URL generada con versión ${state.version}, actual: ${PROJECT_FILE_FORMAT_VERSION}`);
         }
 
         // Cargar series
         if (state.series && Array.isArray(state.series)) {
-            AppState.series = state.series;
+            AppState.series = sanitizeImportedSeries(state.series);
 
             // Actualizar contador de IDs
-            const maxId = state.series.reduce((max, s) => Math.max(max, s.id || 0), -1);
-            AppState.serieCounter = maxId + 1;
+            const maxId = AppState.series.reduce((max, s) => Math.max(max, s.id), 0);
+            AppState.nextId = maxId + 1;
         }
 
         // Cargar configuración
@@ -86,10 +88,12 @@ export function loadFromURL() {
             if (state.config.yLabel) document.getElementById('labelY').value = state.config.yLabel;
             if (state.config.xUnit) document.getElementById('unitX').value = state.config.xUnit;
             if (state.config.yUnit) document.getElementById('unitY').value = state.config.yUnit;
-            if (state.config.xMin) document.getElementById('xMin').value = state.config.xMin;
-            if (state.config.xMax) document.getElementById('xMax').value = state.config.xMax;
-            if (state.config.yMin) document.getElementById('yMin').value = state.config.yMin;
-            if (state.config.yMax) document.getElementById('yMax').value = state.config.yMax;
+            if (state.config.xMin) document.getElementById('minX').value = state.config.xMin;
+            if (state.config.xMax) document.getElementById('maxX').value = state.config.xMax;
+            if (state.config.yMin) document.getElementById('minY').value = state.config.yMin;
+            if (state.config.yMax) document.getElementById('maxY').value = state.config.yMax;
+
+            updateChartConfig();
         }
 
         // Renderizar UI y actualizar gráfica

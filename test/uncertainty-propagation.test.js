@@ -76,6 +76,18 @@ test('validateUncertaintyPrecision: no warning for 1 significant figure or zero'
     assert.equal(validateUncertaintyPrecision(0, 'A'), null);
 });
 
+test('validateUncertaintyPrecision: trailing zeros without a decimal point are not significant (no false positive)', () => {
+    // 10 has 1 significant figure by convention (trailing zero without a decimal
+    // point is ambiguous); previously this incorrectly counted 2 sig figs.
+    assert.equal(validateUncertaintyPrecision(10, 'A'), null);
+});
+
+test('validateInputPrecision: handles uncertainties JS would print in scientific notation', () => {
+    // 0.0000005 stringifies as "5e-7"; previously that broke decimal counting
+    // (uncertaintyDecimals came out as 0), producing a nonsensical warning.
+    assert.equal(validateInputPrecision(3.14, 0.0000005, 'A'), null);
+});
+
 test('validateAllInputs: collects warnings for both operands', () => {
     const warnings = validateAllInputs(3.14159, 0.123, 2.71828, 0.05);
     // A tiene incertidumbre mal expresada (2 cifras) y valor con más decimales que la incertidumbre;
