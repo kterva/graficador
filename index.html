@@ -245,7 +245,8 @@
                                 <input type="text" id="unitXCustom" placeholder="Ej. A, RPM, Hz" oninput="updateCustomUnit('x', this.value)"
                                     style="width: 100%; padding: 5px; border-radius: 4px; border: 1px solid #ccc; display: none; margin-top: 4px;">
                                 <label style="display:block; margin-top: 8px; font-weight: 500; color: #444;">Incertidumbre de columna ±X:</label>
-                                <input type="number" id="defaultXError" step="any" placeholder="0" value="0" onchange="updateChartConfig()"
+                                <input type="text" inputmode="decimal" id="defaultXError" placeholder="0" value="0"
+                                    onchange="updateChartConfig()" oninput="handleDecimalInput(event)"
                                     style="width: 100%; padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
                             </div>
                             <div>
@@ -332,7 +333,8 @@
                                 <input type="text" id="unitYCustom" placeholder="Ej. A, RPM, Hz" oninput="updateCustomUnit('y', this.value)"
                                     style="width: 100%; padding: 5px; border-radius: 4px; border: 1px solid #ccc; display: none;">
                                 <label style="display:block; margin-top: 8px; font-weight: 500; color: #444;">Incertidumbre de columna ±Y:</label>
-                                <input type="number" id="defaultYError" step="any" placeholder="0" value="0" onchange="updateChartConfig()"
+                                <input type="text" inputmode="decimal" id="defaultYError" placeholder="0" value="0"
+                                    onchange="updateChartConfig()" oninput="handleDecimalInput(event)"
                                     style="width: 100%; padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
                             </div>
                         </div>
@@ -365,20 +367,24 @@
                                     <label style="display:block; margin-bottom:5px; color:#555;"><strong>Límites
                                             X</strong></label>
                                     <label style="font-size: 0.9em;">Mín:</label>
-                                    <input type="number" id="minX" placeholder="auto" onchange="updateChartConfig()"
+                                    <input type="text" inputmode="decimal" id="minX" placeholder="auto"
+                                        onchange="updateChartConfig()" oninput="handleDecimalInput(event)"
                                         style="width: 100%; margin-bottom: 5px;">
                                     <label style="font-size: 0.9em;">Máx:</label>
-                                    <input type="number" id="maxX" placeholder="auto" onchange="updateChartConfig()"
+                                    <input type="text" inputmode="decimal" id="maxX" placeholder="auto"
+                                        onchange="updateChartConfig()" oninput="handleDecimalInput(event)"
                                         style="width: 100%;">
                                 </div>
                                 <div>
                                     <label style="display:block; margin-bottom:5px; color:#555;"><strong>Límites
                                             Y</strong></label>
                                     <label style="font-size: 0.9em;">Mín:</label>
-                                    <input type="number" id="minY" placeholder="auto" onchange="updateChartConfig()"
+                                    <input type="text" inputmode="decimal" id="minY" placeholder="auto"
+                                        onchange="updateChartConfig()" oninput="handleDecimalInput(event)"
                                         style="width: 100%; margin-bottom: 5px;">
                                     <label style="font-size: 0.9em;">Máx:</label>
-                                    <input type="number" id="maxY" placeholder="auto" onchange="updateChartConfig()"
+                                    <input type="text" inputmode="decimal" id="maxY" placeholder="auto"
+                                        onchange="updateChartConfig()" oninput="handleDecimalInput(event)"
                                         style="width: 100%;">
                                 </div>
                             </div>
@@ -429,8 +435,8 @@
                                 <label for="tangentSlider" style="margin-right: 10px;">Posición X:</label>
                                 <input type="range" id="tangentSlider" style="flex-grow: 1; margin-right: 10px;"
                                     oninput="updateTangentFromSlider()">
-                                <input type="number" id="tangentXInput" style="width: 80px; padding: 5px;" step="any"
-                                    onchange="updateTangentFromInput()">
+                                <input type="text" inputmode="decimal" id="tangentXInput" style="width: 80px; padding: 5px;"
+                                    onchange="updateTangentFromInput()" oninput="handleDecimalInput(event)">
                             </div>
                             <div id="tangentDisplay"
                                 style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; border: 1px solid #ddd;">
@@ -449,10 +455,10 @@
                         <div id="areaControls" style="display: none; padding-left: 20px;">
                             <div
                                 style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
-                                <label>Desde x₁: <input type="number" id="areaX1" style="width: 80px; padding: 5px;"
-                                        step="any"></label>
-                                <label>Hasta x₂: <input type="number" id="areaX2" style="width: 80px; padding: 5px;"
-                                        step="any"></label>
+                                <label>Desde x₁: <input type="text" inputmode="decimal" id="areaX1" style="width: 80px; padding: 5px;"
+                                        oninput="handleDecimalInput(event)"></label>
+                                <label>Hasta x₂: <input type="text" inputmode="decimal" id="areaX2" style="width: 80px; padding: 5px;"
+                                        oninput="handleDecimalInput(event)"></label>
                                 <button class="btn btn-secondary" onclick="calculateArea()"
                                     style="background-color: #6c5ce7; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer;">Calcular
                                     Área</button>
@@ -864,12 +870,14 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                         <div>
                             <label style="font-weight: bold; display: block; margin-bottom: 5px;">A:</label>
-                            <input type="number" id="errorValueA" step="any" placeholder="Valor A"
+                            <input type="text" inputmode="decimal" id="errorValueA" placeholder="Valor A"
+                                oninput="handleDecimalInput(event)"
                                 style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em;">
                         </div>
                         <div>
                             <label style="font-weight: bold; display: block; margin-bottom: 5px;">δA:</label>
-                            <input type="number" id="errorDeltaA" step="any" placeholder="Error A"
+                            <input type="text" inputmode="decimal" id="errorDeltaA" placeholder="Error A"
+                                oninput="handleDecimalInput(event)"
                                 style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em;">
                         </div>
                     </div>
@@ -877,12 +885,14 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                         <div>
                             <label style="font-weight: bold; display: block; margin-bottom: 5px;">B:</label>
-                            <input type="number" id="errorValueB" step="any" placeholder="Valor B"
+                            <input type="text" inputmode="decimal" id="errorValueB" placeholder="Valor B"
+                                oninput="handleDecimalInput(event)"
                                 style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em;">
                         </div>
                         <div>
                             <label style="font-weight: bold; display: block; margin-bottom: 5px;">δB:</label>
-                            <input type="number" id="errorDeltaB" step="any" placeholder="Error B"
+                            <input type="text" inputmode="decimal" id="errorDeltaB" placeholder="Error B"
+                                oninput="handleDecimalInput(event)"
                                 style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em;">
                         </div>
                     </div>

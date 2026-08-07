@@ -3,6 +3,7 @@
 // ============================================
 
 import { AppState } from './state.js';
+import { parseDecimal, formatNumber } from './utils.js';
 // updateChart() se importa dinámicamente donde se usa (no de forma estática arriba):
 // chart-manager.js registra plugins de Chart.js al cargarse, lo cual requiere que
 // exista el global `Chart` del navegador y rompe si este módulo se importa fuera de
@@ -20,7 +21,7 @@ function getDecimalPlaces(uncertainty) {
 }
 
 function formatValue(val, uncertainty) {
-    if (uncertainty === 0) return parseFloat(val).toString(); // Sin incertidumbre, como venga
+    if (uncertainty === 0) return formatNumber(parseDecimal(val)); // Sin incertidumbre, como venga
 
     // Regla: El error se redondea a 1 cifra significativa.
     // Y el valor se redondea al mismo orden de magnitud.
@@ -29,13 +30,13 @@ function formatValue(val, uncertainty) {
 
     // Formatear error a 1 cifra sig (pero mostrando ceros necesarios)
     // Para visualización simple, toFixed va bien si places >= 0
-    return parseFloat(val).toFixed(places);
+    return formatNumber(parseDecimal(val), places);
 }
 
 function formatError(err) {
     if (err === 0) return "0";
     const places = getDecimalPlaces(err);
-    return parseFloat(err).toFixed(places);
+    return formatNumber(parseDecimal(err), places);
 }
 
 // serie.equation puede contener HTML (línea de incertidumbre en <br><span>) cuando el
@@ -48,7 +49,10 @@ function getPlainEquation(equation) {
 // Sanea un campo antes de escribirlo en el CSV: evita que valores provenientes de un
 // proyecto importado o link compartido (título, etiquetas, nombres de serie) disparen
 // inyección de fórmulas al abrir el archivo en Excel/Sheets (OWASP CSV Injection), y
-// escapa comas/comillas/saltos de línea según RFC4180 para no romper la alineación de columnas.
+// escapa punto y coma/comas/comillas/saltos de línea según RFC4180 para no romper la
+// alineación de columnas. El delimitador real del CSV exportado es ';' (no ',') porque
+// los números se escriben con coma decimal (formato uruguayo) — si el delimitador
+// también fuera ',', un valor como "3,14" partiría la fila en dos columnas.
 export function sanitizeCSVField(value) {
     let str = String(value ?? '');
 
@@ -56,7 +60,7 @@ export function sanitizeCSVField(value) {
         str = `'${str}`;
     }
 
-    if (/[",\n\r]/.test(str)) {
+    if (/[",;\n\r]/.test(str)) {
         str = `"${str.replace(/"/g, '""')}"`;
     }
 
@@ -109,10 +113,10 @@ export async function downloadChartJPG() {
         AppState.series.forEach((serie, index) => {
             if (index > 0) yPos += 20; // Espacio entre series 
 
-            // Detectar constancia usando la incertidumbre por defecto de la serie
+            // Detectar constancia usando la incertidumbre de columna configurada para los ejes
             const validData = serie.data.filter(p => p.x !== '');
-            const firstXErr = parseFloat(serie.defaultXError || 0);
-            const firstYErr = parseFloat(serie.defaultYError || 0);
+            const firstXErr = parseFloat(AppState.config.defaultXError || 0);
+            const firstYErr = parseFloat(AppState.config.defaultYError || 0);
 
             const isXErrConst = firstXErr > 0;
             const isYErrConst = firstYErr > 0;
@@ -158,7 +162,7 @@ export async function downloadChartJPG() {
                 ctx.fillText(`Ecuación: ${plainEquation}`, 20, yPos);
                 yPos += 15;
                 if (serie.r2 !== null && serie.r2 !== undefined) {
-                    ctx.fillText(`R² = ${parseFloat(serie.r2).toFixed(4)}`, 20, yPos);
+                    ctx.fillText(`R² = ${formatNumber(parseDecimal(serie.r2), 4)}`, 20, yPos);
                     yPos += 15;
                 }
             }
@@ -257,8 +261,8 @@ export async function downloadChartPDF() {
 
         AppState.series.forEach(serie => {
             const validData = serie.data.filter(p => p.x !== '');
-            const firstXErr = parseFloat(serie.defaultXError || 0);
-            const firstYErr = parseFloat(serie.defaultYError || 0);
+            const firstXErr = parseFloat(AppState.config.defaultXError || 0);
+            const firstYErr = parseFloat(AppState.config.defaultYError || 0);
 
             const isXErrConst = firstXErr > 0;
             const isYErrConst = firstYErr > 0;
@@ -305,7 +309,7 @@ export async function downloadChartPDF() {
                 doc.text(`Ecuación: ${plainEquation}`, margin, currentY);
                 currentY += 5;
                 if (serie.r2 !== null && serie.r2 !== undefined) {
-                    doc.text(`R² = ${parseFloat(serie.r2).toFixed(4)}`, margin, currentY);
+                    doc.text(`R² = ${formatNumber(parseDecimal(serie.r2), 4)}`, margin, currentY);
                     currentY += 5;
                 }
                 doc.setFontSize(10);
@@ -345,15 +349,19 @@ export async function downloadChartPDF() {
 
 /**
  * Exporta TODAS las series en un único archivo CSV.
- * Formato: secciones por serie, separadas por línea en blanco.
+ * Formato: secciones por serie, separadas por línea en blanco. Usa ';' como
+ * delimitador de columnas (no ',') porque los valores se escriben con coma
+ * decimal (formato uruguayo) — es el mismo formato que produce Excel/Sheets
+ * al exportar CSV en esa configuración regional, y el que importCSVFile()
+ * en data-manager.js ya sabe reconocer.
  *
  * Ejemplo:
  *   # Serie 1
- *   X,Y
- *   1,2
+ *   X;Y
+ *   1;2
  *
  *   # Serie 2
- *   X,Y
+ *   X;Y
  *   ...
  */
 export async function downloadAllCSV() {
@@ -385,16 +393,16 @@ export async function downloadAllCSV() {
         if (plainEquation) {
             csv += `# Ecuación: ${sanitizeCSVField(plainEquation)}\n`;
             if (serie.r2 !== null && serie.r2 !== undefined) {
-                csv += `# R² = ${parseFloat(serie.r2).toFixed(4)}\n`;
+                csv += `# R² = ${formatNumber(parseDecimal(serie.r2), 4)}\n`;
             }
         }
 
-        csv += `${colX},${colY}\n`;
+        csv += `${colX};${colY}\n`;
 
         validPoints.forEach(p => {
             const x = sanitizeCSVField(formatValue(p.x, 0));
             const y = sanitizeCSVField(formatValue(p.y, 0));
-            csv += `${x},${y}\n`;
+            csv += `${x};${y}\n`;
         });
     });
 

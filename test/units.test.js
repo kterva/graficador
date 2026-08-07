@@ -85,9 +85,9 @@ test('getUnitsForCategory: returns empty object for custom, throws for unknown',
     assert.throws(() => getUnitsForCategory('nope'));
 });
 
-test('formatWithUnit: appends unit or falls back to bare number', () => {
-    assert.equal(formatWithUnit(3.14159, 'm', 2), '3.14 m');
-    assert.equal(formatWithUnit(3.14159, '', 2), '3.14');
+test('formatWithUnit: appends unit or falls back to bare number (comma decimal, es-UY locale)', () => {
+    assert.equal(formatWithUnit(3.14159, 'm', 2), '3,14 m');
+    assert.equal(formatWithUnit(3.14159, '', 2), '3,14');
 });
 
 test('getCategoryName / getUnitLabel: custom category passes through unit as-is', () => {

@@ -32,7 +32,6 @@ import {
     updatePoint,
     updateSerieColor,
     updateFitType,
-    updateDefaultError,
     exportCSV,
     importCSV,
     clearTable,
@@ -100,7 +99,6 @@ window.removeRow = removeRow;
 window.updatePoint = updatePoint;
 window.updateSerieColor = updateSerieColor;
 window.updateFitType = updateFitType;
-window.updateDefaultError = updateDefaultError;
 window.exportCSV = exportCSV;
 window.importCSV = importCSV;
 window.clearTable = clearTable;

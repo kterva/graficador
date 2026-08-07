@@ -9,10 +9,10 @@
  */
 
 import { AppState } from './state.js';
-import { addSerie as addSerieData, removeSerie as removeSerieData, addRow as addRowData, removeRow as removeRowData, updatePoint as updatePointData, updateSerieColor as updateSerieColorData, updateFitType as updateFitTypeData, updateDefaultError as updateDefaultErrorData, clearTable as clearTableData, exportCSV as exportCSVData, importCSVFile } from './data-manager.js';
+import { addSerie as addSerieData, removeSerie as removeSerieData, addRow as addRowData, removeRow as removeRowData, updatePoint as updatePointData, updateSerieColor as updateSerieColorData, updateFitType as updateFitTypeData, clearTable as clearTableData, exportCSV as exportCSVData, importCSVFile } from './data-manager.js';
 import { updateChart, getDataRange } from './chart-manager.js';
 import { propagateUncertainty, formatPropagationResult, validateAllInputs, formatWarnings } from './uncertainty-propagation.js';
-import { showDecimalWarning, normalizeDecimalInput, escapeHTML } from './utils.js';
+import { showDecimalWarning, normalizeDecimalInput, escapeHTML, parseDecimal, formatNumber } from './utils.js';
 
 // Debounce para updateChart: evita recalcular en cada tecla mientras se escribe un número
 let _chartUpdateTimer = null;
@@ -72,7 +72,7 @@ export function renderSeries() {
             <button class="btn btn-primary" onclick="addRow(${serie.id})">+ Agregar Fila</button>
             <p style="margin: 6px 0 0 0; font-size: 11px; color: #aaa;">
                 💡 Podés pegar datos directamente desde Excel o Google Sheets (Ctrl+V sobre la tabla)<br>
-                💡 Los errores X/Y se aplican desde la configuración de columna, no desde cada fila
+                💡 Los errores ±X/±Y se ingresan una sola vez por eje en "Incertidumbre de columna" (panel de Configuración de Ejes), no por fila
             </p>
             
             <div class="equation-display" id="eq-${serie.id}" style="display:none;"></div>
@@ -96,12 +96,12 @@ export function renderTable(serieId) {
     serie.data.forEach((point, index) => {
         const row = tbody.insertRow();
         row.innerHTML = `
-            <td><input type="text" inputmode="decimal" step="any" value="${escapeHTML(point.x)}"
+            <td><input type="text" inputmode="decimal" step="any" value="${escapeHTML(formatNumber(point.x))}"
                        data-serie="${serieId}" data-row="${index}" data-col="0"
                        onkeydown="handleKeyDown(event, ${serieId}, ${index}, 0)"
                        oninput="handleDecimalInput(event)"
                        onchange="updatePoint(${serieId}, ${index}, 'x', this.value)"></td>
-            <td><input type="text" inputmode="decimal" step="any" value="${escapeHTML(point.y)}"
+            <td><input type="text" inputmode="decimal" step="any" value="${escapeHTML(formatNumber(point.y))}"
                        data-serie="${serieId}" data-row="${index}" data-col="1"
                        onkeydown="handleKeyDown(event, ${serieId}, ${index}, 1)"
                        oninput="handleDecimalInput(event)"
@@ -209,7 +209,7 @@ export function toggleTangent() {
         }
 
         slider.value = AppState.tools.tangentX;
-        input.value = AppState.tools.tangentX.toFixed(4);
+        input.value = formatNumber(AppState.tools.tangentX, 4);
     }
     updateChart();
 }
@@ -219,7 +219,7 @@ export function toggleTangent() {
  */
 export function updateTangentFromSlider() {
     AppState.tools.tangentX = parseFloat(document.getElementById('tangentSlider').value);
-    document.getElementById('tangentXInput').value = AppState.tools.tangentX.toFixed(4);
+    document.getElementById('tangentXInput').value = formatNumber(AppState.tools.tangentX, 4);
     updateChart('none');
 }
 
@@ -227,7 +227,7 @@ export function updateTangentFromSlider() {
  * Actualiza la tangente desde el input
  */
 export function updateTangentFromInput() {
-    AppState.tools.tangentX = parseFloat(document.getElementById('tangentXInput').value);
+    AppState.tools.tangentX = parseDecimal(document.getElementById('tangentXInput').value);
     document.getElementById('tangentSlider').value = AppState.tools.tangentX;
     updateChart();
 }
@@ -249,8 +249,8 @@ export function toggleArea() {
             AppState.tools.areaX2 = max;
         }
 
-        document.getElementById('areaX1').value = AppState.tools.areaX1.toFixed(4);
-        document.getElementById('areaX2').value = AppState.tools.areaX2.toFixed(4);
+        document.getElementById('areaX1').value = formatNumber(AppState.tools.areaX1, 4);
+        document.getElementById('areaX2').value = formatNumber(AppState.tools.areaX2, 4);
     }
     updateChart();
 }
@@ -259,8 +259,8 @@ export function toggleArea() {
  * Calcula el área (trigger para actualizar gráfico)
  */
 export function calculateArea() {
-    AppState.tools.areaX1 = parseFloat(document.getElementById('areaX1').value);
-    AppState.tools.areaX2 = parseFloat(document.getElementById('areaX2').value);
+    AppState.tools.areaX1 = parseDecimal(document.getElementById('areaX1').value);
+    AppState.tools.areaX2 = parseDecimal(document.getElementById('areaX2').value);
     updateChart();
 }
 
@@ -472,18 +472,6 @@ export function handleDecimalInput(event) {
 }
 
 /**
- * Actualiza la incertidumbre por defecto (columna) de una serie
- * @param {number} serieId - ID de la serie
- * @param {string} axis - Eje ('x' o 'y')
- * @param {number} value - Valor de incertidumbre
- */
-export function updateDefaultError(serieId, axis, value) {
-    updateDefaultErrorData(serieId, axis, value);
-    renderTable(serieId);
-    updateChart();
-}
-
-/**
  * Actualiza el color de una serie (wrapper para exponer)
  */
 export function updateSerieColor(serieId, color) {
@@ -559,10 +547,10 @@ export function toggleErrorPropagation() {
  */
 export function calculateErrorPropagation() {
     const operation = document.getElementById('errorOperation').value;
-    const valueA = parseFloat(document.getElementById('errorValueA').value);
-    const deltaA = parseFloat(document.getElementById('errorDeltaA').value);
-    const valueB = parseFloat(document.getElementById('errorValueB').value);
-    const deltaB = parseFloat(document.getElementById('errorDeltaB').value);
+    const valueA = parseDecimal(document.getElementById('errorValueA').value);
+    const deltaA = parseDecimal(document.getElementById('errorDeltaA').value);
+    const valueB = parseDecimal(document.getElementById('errorValueB').value);
+    const deltaB = parseDecimal(document.getElementById('errorDeltaB').value);
 
     // Validar inputs
     if (isNaN(valueA) || isNaN(deltaA) || isNaN(valueB) || isNaN(deltaB)) {
@@ -1067,13 +1055,14 @@ export function handleTablePaste(event, serieId) {
     const rows = text.split(/\r?\n/).filter(r => r.trim() !== '');
     if (rows.length === 0) return;
 
-    // Detectar separador: tab (Excel/Sheets) o coma (CSV)
-    const sep = rows[0].includes('\t') ? '\t' : ',';
+    // Detectar separador: tab (Excel/Sheets), punto y coma (CSV con coma decimal,
+    // formato uruguayo) o coma (CSV con punto decimal)
+    const sep = rows[0].includes('\t') ? '\t' : (rows[0].split(';').length >= 2 ? ';' : ',');
     const parsed = rows.map(r => r.split(sep).map(v => v.trim()));
     const numCols = parsed[0].length;
 
-    // Saltar cabecera si la primera celda no es numérica
-    const startIdx = isNaN(parseFloat(parsed[0][0])) ? 1 : 0;
+    // Saltar cabecera si la primera celda no es numérica (acepta coma o punto decimal)
+    const startIdx = isNaN(parseDecimal(parsed[0][0])) ? 1 : 0;
     const dataRows = parsed.slice(startIdx);
     if (dataRows.length === 0) return;
 
@@ -1081,7 +1070,7 @@ export function handleTablePaste(event, serieId) {
     if (!serie) return;
 
     serie.data = dataRows.map(cols => {
-        const toNum = (v) => (v !== undefined && v !== '' && !isNaN(parseFloat(v))) ? parseFloat(v) : '';
+        const toNum = (v) => (v !== undefined && v !== '' && !isNaN(parseDecimal(v))) ? parseDecimal(v) : '';
         return { x: toNum(cols[0]), y: toNum(cols[1]) };
     });
 

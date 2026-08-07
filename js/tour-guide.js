@@ -11,6 +11,8 @@
 import { AppState } from './state.js';
 import { updateChart } from './chart-manager.js';
 import { renderSeries } from './ui-handlers.js';
+import { updateChartConfig } from './chart_config.js';
+import { formatNumber } from './utils.js';
 
 /**
  * Configuración del tour
@@ -689,9 +691,10 @@ export function initTour() {
  */
 function loadLinearDataForTour() {
     // Datos de ejemplo para función lineal: y = 2x + 1
-    // Nota: la incertidumbre se aplica a nivel de columna (defaultXError/defaultYError,
-    // ver comentario en renderTable() de ui-handlers.js), no por punto — por eso las
-    // barras de error se setean en la serie, no en cada punto.
+    // Nota: la incertidumbre se aplica a nivel de eje/columna
+    // (AppState.config.defaultXError/defaultYError, ver comentario en
+    // renderTable() de ui-handlers.js), no por punto ni por serie — por eso
+    // se setean los inputs del panel de Configuración de Ejes más abajo.
     const linearData = [
         { x: 0, y: 1 },
         { x: 1, y: 3 },
@@ -715,17 +718,26 @@ function loadLinearDataForTour() {
         data: linearData,
         color: '#3498db',
         fitType: 'linear',
-        defaultXError: 0.1,
-        defaultYError: 0.25,
         equation: '',
         r2: null
     };
 
     state.series.push(serie);
 
+    // La incertidumbre es de eje/columna: reflejar los valores de ejemplo en
+    // los inputs del panel de Configuración de Ejes.
+    const xErrInput = document.getElementById('defaultXError');
+    const yErrInput = document.getElementById('defaultYError');
+    if (xErrInput) xErrInput.value = formatNumber(0.1);
+    if (yErrInput) yErrInput.value = formatNumber(0.25);
+
     // Actualizar UI de series (esto renderizará el select con el valor correcto)
     if (typeof renderSeries === 'function') renderSeries();
     else if (typeof window.renderSeries === 'function') window.renderSeries();
+
+    // Actualizar configuración (aplica la incertidumbre de eje recién seteada)
+    if (typeof updateChartConfig === 'function') updateChartConfig();
+    else if (typeof window.updateChartConfig === 'function') window.updateChartConfig();
 
     // Actualizar gráfica
     if (typeof updateChart === 'function') updateChart();

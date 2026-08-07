@@ -8,6 +8,8 @@
  * @module units
  */
 
+import { formatNumber } from './utils.js';
+
 // Nota: resolveUnit() solo compara los primeros 1 o 2 caracteres del símbolo de
 // unidad contra estas claves, así que una clave más larga (ej. "kilo ") nunca
 // puede hacer match y quedaría muerta — no agregar alias de más de 2 caracteres.
@@ -313,8 +315,8 @@ export function getUnitsForCategory(category) {
 }
 
 export function formatWithUnit(value, unit, decimals = 2) {
-    if (!unit) return value.toFixed(decimals);
-    return `${value.toFixed(decimals)} ${unit}`;
+    if (!unit) return formatNumber(value, decimals);
+    return `${formatNumber(value, decimals)} ${unit}`;
 }
 
 export function getCategoryName(category) {

@@ -69,7 +69,7 @@ test('calculateFit: poly2 equation has no dangling "+ -" for negative coefficien
     const data = [0, 1, 2, 3, 4].map(x => ({ x, y: 2 * x * x - 3 * x + 5, xError: 0, yError: 0 }));
     const fit = calculateFit(data, 'poly2', 'X', 'Y');
     assert.doesNotMatch(fit.equation, /\+\s*-/);
-    assert.match(fit.equation, /- 3\.0000x/);
+    assert.match(fit.equation, /- 3,0000x/);
     closeTo(fit.r2, 1, 1e-6);
 });
 
@@ -87,7 +87,7 @@ test('calculateFit: linear equation without uncertainty has no dangling "+ -"', 
     const data = [0, 1, 2, 3].map(x => ({ x, y: x - 7, xError: 0, yError: 0 }));
     const fit = calculateFit(data, 'linear', 'X', 'Y');
     assert.doesNotMatch(fit.equation, /\+\s*-/);
-    assert.match(fit.equation, /y = 1\.0000x - 7\.0000/);
+    assert.match(fit.equation, /y = 1,0000x - 7,0000/);
 });
 
 test('calculateFit: linear equation with uncertainty keeps the sign fix inside the HTML', () => {
@@ -97,7 +97,7 @@ test('calculateFit: linear equation with uncertainty keeps the sign fix inside t
     ];
     const fit = calculateFit(data, 'linear', 'X', 'Y');
     assert.doesNotMatch(fit.equation, /\+\s*-/);
-    assert.match(fit.equation, /y = 1\.0x - 1\.0/);
+    assert.match(fit.equation, /y = 1,0x - 1,0/);
     assert.ok(fit.uncertainty);
 });
 

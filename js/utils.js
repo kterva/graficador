@@ -66,6 +66,25 @@ export function escapeHTML(value) {
 }
 
 /**
+ * Formatea un número para mostrarlo en pantalla usando coma como separador
+ * decimal (convención uruguaya/rioplatense), en vez del punto que usa JS
+ * internamente. Es solo para salida/display — nunca usar el resultado para
+ * volver a parsear con parseFloat (usar parseDecimal para eso).
+ *
+ * @param {number} value - Número a formatear
+ * @param {number} [decimals] - Cantidad de decimales (usa toFixed); si se omite, usa la representación por defecto de JS
+ * @returns {string} Número formateado con coma decimal
+ *
+ * @example
+ * formatNumber(3.14159, 2) // returns "3,14"
+ * formatNumber(0.5) // returns "0,5"
+ */
+export function formatNumber(value, decimals) {
+    const str = typeof decimals === 'number' ? value.toFixed(decimals) : String(value);
+    return str.replace('.', ',');
+}
+
+/**
  * Calcula el número de cifras significativas basado en la incertidumbre
  * Regla: La incertidumbre se redondea a 1-2 cifras significativas,
  * y el valor se redondea al mismo decimal.
@@ -78,11 +97,11 @@ export function escapeHTML(value) {
  * 
  * @example
  * formatWithUncertainty(3.14159, 0.05)
- * // returns { value: "3.14", uncertainty: "0.05" }
+ * // returns { value: "3,14", uncertainty: "0,05" }
  */
 export function formatWithUncertainty(value, uncertainty) {
     if (!uncertainty || uncertainty === 0) {
-        return { value: value.toFixed(4), uncertainty: '0' };
+        return { value: formatNumber(value, 4), uncertainty: '0' };
     }
 
     // Encontrar el orden de magnitud de la incertidumbre
@@ -100,8 +119,8 @@ export function formatWithUncertainty(value, uncertainty) {
     const decimals = Math.max(0, -finalOrderOfMagnitude);
 
     return {
-        value: value.toFixed(decimals),
-        uncertainty: uncertaintyRounded.toFixed(decimals)
+        value: formatNumber(value, decimals),
+        uncertainty: formatNumber(uncertaintyRounded, decimals)
     };
 }
 

@@ -5,7 +5,8 @@ import {
     formatWithUncertainty,
     calculateR2,
     parseDecimal,
-    normalizeDecimalInput
+    normalizeDecimalInput,
+    formatNumber
 } from '../js/utils.js';
 
 test('extractUnit: pulls the content between parentheses', () => {
@@ -21,26 +22,26 @@ test('extractUnit: escapes HTML in the extracted unit (labels can come from untr
     );
 });
 
-test('formatWithUncertainty: matches the documented example', () => {
+test('formatWithUncertainty: matches the documented example (comma as decimal separator, es-UY locale)', () => {
     const result = formatWithUncertainty(3.14159, 0.05);
-    assert.deepEqual(result, { value: '3.14', uncertainty: '0.05' });
+    assert.deepEqual(result, { value: '3,14', uncertainty: '0,05' });
 });
 
 test('formatWithUncertainty: zero uncertainty falls back to 4 decimals', () => {
-    assert.deepEqual(formatWithUncertainty(3.14159, 0), { value: '3.1416', uncertainty: '0' });
+    assert.deepEqual(formatWithUncertainty(3.14159, 0), { value: '3,1416', uncertainty: '0' });
 });
 
 test('formatWithUncertainty: rounds the uncertainty to 1 significant figure', () => {
     // uncertainty 0.7 -> order of magnitude -1 -> 1 decimal place
     const result = formatWithUncertainty(1, 0.7);
-    assert.equal(result.uncertainty, '0.7');
+    assert.equal(result.uncertainty, '0,7');
 });
 
 test('formatWithUncertainty: recomputes decimals when rounding crosses a power of 10', () => {
     // 0.099 rounds to 0.1 (order of magnitude jumps from -2 to -1) -> should show 1 decimal, not 2
     const result = formatWithUncertainty(5.4321, 0.099);
-    assert.equal(result.uncertainty, '0.1');
-    assert.equal(result.value, '5.4');
+    assert.equal(result.uncertainty, '0,1');
+    assert.equal(result.value, '5,4');
 });
 
 test('calculateR2: perfect fit is 1', () => {
@@ -75,4 +76,15 @@ test('parseDecimal: empty/null/undefined is NaN', () => {
 test('normalizeDecimalInput: replaces comma with dot without parsing', () => {
     assert.equal(normalizeDecimalInput('3,14'), '3.14');
     assert.equal(normalizeDecimalInput(' 3,14 '), '3.14');
+});
+
+test('formatNumber: renders with comma as decimal separator', () => {
+    assert.equal(formatNumber(3.14159, 2), '3,14');
+    assert.equal(formatNumber(0.5), '0,5');
+    assert.equal(formatNumber(5, 2), '5,00');
+});
+
+test('formatNumber: integers and negatives round-trip correctly', () => {
+    assert.equal(formatNumber(-2.5, 1), '-2,5');
+    assert.equal(formatNumber(10), '10');
 });

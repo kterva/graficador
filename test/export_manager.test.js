@@ -18,6 +18,10 @@ test('sanitizeCSVField: quotes fields containing commas so columns do not shift'
     assert.equal(sanitizeCSVField('Distancia, m'), '"Distancia, m"');
 });
 
+test('sanitizeCSVField: quotes fields containing semicolons — the real column delimiter (CSV uses comma decimals, es-UY locale)', () => {
+    assert.equal(sanitizeCSVField('A;B'), '"A;B"');
+});
+
 test('sanitizeCSVField: escapes embedded quotes per RFC4180', () => {
     assert.equal(sanitizeCSVField('foo"bar'), '"foo""bar"');
 });
