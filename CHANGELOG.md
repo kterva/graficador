@@ -5,6 +5,12 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Sin publicar]
+
+### Añadido
+- **SEO**: `meta description`, Open Graph, Twitter Card, `<link rel="canonical">`, `robots.txt` y `sitemap.xml` para mejorar la indexación en buscadores.
+- **Imagen de vista previa** (`assets/og-image.png`) para que el link se vea bien al compartirlo (WhatsApp, Twitter, etc.).
+
 ## [1.5.0] - 2026-08-06
 
 ### Añadido
