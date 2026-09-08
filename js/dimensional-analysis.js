@@ -398,12 +398,16 @@ export function parseExpression(expr) {
 
             if (token === '*' || token === '/' || token === '^') {
                 operation = token;
+            } else if (token === '(' || token === ')') {
+                // E3: los paréntesis se tokenizan pero este parser no maneja
+                // precedencia. En vez de ignorarlos en silencio (y dar un
+                // resultado engañoso), fallamos claro.
+                return null;
             } else if (operation === '^') {
                 // El exponente es un número (no una magnitud), ej: "velocidad^2"
                 const exponent = parseFloat(token);
-                if (result !== null && !isNaN(exponent)) {
-                    result = result.power(exponent);
-                }
+                if (result === null || isNaN(exponent)) return null;
+                result = result.power(exponent);
                 operation = null;
             } else if (nameMap[token]) {
                 const dim = nameMap[token];
@@ -415,9 +419,20 @@ export function parseExpression(expr) {
                 } else if (operation === '/') {
                     result = result.divide(dim);
                     operation = null;
+                } else {
+                    // dos magnitudes seguidas sin operador ("masa tiempo")
+                    return null;
                 }
+            } else {
+                // E3: token que no es operador, número de exponente ni magnitud
+                // conocida ("foo", "masa + tiempo"...). Antes se ignoraba y podía
+                // devolver una dimensión parcial engañosa; ahora falla claro.
+                return null;
             }
         }
+
+        // Si quedó una operación pendiente sin operando ("masa *"), no es válida.
+        if (operation !== null) return null;
 
         return result;
     } catch (error) {

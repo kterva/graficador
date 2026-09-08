@@ -2,14 +2,17 @@
 
 > Documento de traspaso para retomar el trabajo en otra máquina / nueva sesión.
 > Última actualización: 2026-09-08. Base: commit `cec00ce`, versión 1.5.0.
-> Hechos: **F1**, **C1–C4**, **A1–A5**, **B1**, **B2**, **F2**, **F3**, **D1**, **D2**,
-> **G1**, **G2**, **G3**, **G5**, **G6**, **H1**, **H2**. Parciales: **E1**, **E2**
-> (CSP puesta, falta migrar los manejadores `on*=` para endurecerla del todo).
-> Siguiente: terminar **E2** (delegación de eventos) → endurecer **E1** (quitar
-> `script-src 'unsafe-inline'`). Menores: **G4**, **E3**.
+> Hechos: **F1**, **C1–C4**, **A1–A5**, **B1**, **B2**, **E3**, **F2**, **F3**, **D1**,
+> **D2**, **G1**, **G2**, **G3**, **G4**, **G5**, **G6**, **H1**, **H2**.
+> Parciales: **E1**, **E2** (CSP puesta, falta migrar los ~90+23 manejadores `on*=`
+> a delegación para poder quitar `script-src 'unsafe-inline'`).
+> **Único ítem que queda: terminar E2 → endurecer E1.** Conviene como PR revisado
+> con una pasada de test manual completa de la UI (toca cada botón/input/modal, va a
+> producción), no en commits directos a `main`.
 > Nota: `.github/workflows/tests.yml` está en disco pero SIN commitear — el push de
 > archivos en `.github/workflows/` necesita un token con scope `workflow`
-> (`gh auth refresh -s workflow` no está agarrando; alternativa: subirlo por la web).
+> (`gh auth refresh -s workflow` no lo está agregando; probable restricción de OAuth
+> App de la org — alternativa: subirlo por la web de GitHub o con un PAT clásico).
 
 ## Cómo retomar
 
@@ -138,8 +141,11 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
   `script-src`. Es un refactor grande y transversal (toca cada botón/input/modal);
   conviene hacerlo como PR revisado con una pasada de test manual completa de la UI,
   no en commits directos a `main`.
-- [ ] ⚪ **E3 — Revisar `parseExpression`** (análisis dimensional) por robustez,
-  aunque no procesa datos de red.
+- [x] ⚪ **E3 — Revisar `parseExpression`** (análisis dimensional) por robustez.
+  ✅ Ya era seguro (try/catch, sin `eval`, no toca datos de red). Se cambió el
+  fallo silencioso: tokens desconocidos, `+`/`-`, paréntesis, dos magnitudes sin
+  operador y operadores colgando ahora devuelven `null` (fallo claro en la UI) en
+  vez de una dimensión parcial engañosa. Tests nuevos en `dimensional-analysis.test.js`.
 
 ## F. Tests
 
@@ -167,10 +173,11 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
   módulo.** ✅ Movido a `initChart()` con flag `_pluginsRegistered` idempotente.
   Verificado: los módulos que dependen de chart-manager ya se importan en Node
   sin el global `Chart` (los tests y `export_manager`).
-- [ ] ⚪ **G4 — Cache-buster manual.** `index.html` (`js/main.js?v=1.5.0`) hay que
-  actualizarlo a mano cada release (ya se desincronizó una vez). Automatizar o quitar.
-  ⚠️ Ojo: los módulos hermanos que importa `main.js` **no** llevan `?v=`, así que
-  hoy el cache-busting es parcial. Decisión pendiente (build-step mínimo vs. quitar).
+- [x] ⚪ **G4 — Cache-buster manual.** ✅ Quitado el `?v=1.5.0` de `index.html`.
+  Sólo versionaba `main.js` (no sus módulos hermanos), daba falsa frescura y había
+  que bumpearlo a mano. GitHub Pages sirve todo con `Cache-Control: max-age=600`,
+  así que un release propaga en ~10 min de forma consistente. `APP_VERSION` queda
+  sólo para el footer.
 - [x] ⚪ **G5 — Limpiar código comentado / notas de proceso** ✅
   `project_manager.js` (nota sobre mutabilidad del array), `export_manager.js`
   (`bodies`/comentarios de autoTable), `chart_config.js` (bloque de razonamiento del
@@ -199,8 +206,7 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 5. ~~**G1, G3, G5, G6, D1, D2, F3**~~ ✅
 6. ~~**B1 + B2** — encuadre / escala~~ ✅
 7. **E2 → E1** — CSP inicial puesta ✅; falta la migración de ~90+23 manejadores
-   `on*=` a delegación para quitar `script-src 'unsafe-inline'`. ← siguiente
-8. ~~Menores: **G2**, **A5**~~ ✅. Quedan **G4** (cache-buster), **E3** (parser dimensional).
+   `on*=` a delegación para quitar `script-src 'unsafe-inline'`. ← ÚNICO ítem que queda
 
 ## Mapa rápido de archivos
 

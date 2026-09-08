@@ -34,8 +34,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ### Interno
 - **CI**: workflow de GitHub Actions que corre los tests en cada push a `main` y en los PR.
-- El análisis dimensional queda rotulado como **experimental** en la UI (chip en el modal, aclaración en el menú y nota sobre las limitaciones del parser).
+- El análisis dimensional queda rotulado como **experimental** en la UI (chip en el modal, aclaración en el menú y nota sobre las limitaciones del parser). Además, las expresiones que el parser no entiende (paréntesis, `+`/`-`, magnitudes desconocidas) ahora fallan con un mensaje claro en vez de devolver una dimensión parcial engañosa.
 - Tangente y área reutilizan los coeficientes que ya calculó el ajuste, en vez de repetir la regresión en cada refresco.
+- Quitado el cache-buster manual (`js/main.js?v=…`): sólo versionaba el módulo principal y había que actualizarlo a mano cada release.
 - Exportación CSV por serie unificada con la exportación combinada: delimitador `;`, saneo anti-inyección de fórmulas y descarga por Blob.
 - Aviso al copiar un link compartido demasiado largo (> 8 KB) que podría truncarse.
 - Notificaciones flotantes centralizadas en un único módulo (`notifications.js`); se eliminaron 4 implementaciones duplicadas.
