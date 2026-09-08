@@ -3,9 +3,10 @@
 > Documento de traspaso para retomar el trabajo en otra máquina / nueva sesión.
 > Última actualización: 2026-09-08. Base: commit `cec00ce`, versión 1.5.0.
 > Hechos: **F1**, **C1–C4**, **A1–A4**, **B1**, **B2**, **F2**, **F3**, **D1**, **D2**,
-> **G1**, **G3**, **G5**, **G6**, **H1**, **H2**.
-> Siguiente: **E2 → E1** (refactor grande de eventos + CSP — sesión dedicada).
-> Menores: **G2** (rótulo UI), **G4**, **A5**, **E3**.
+> **G1**, **G3**, **G5**, **G6**, **H1**, **H2**. Parciales: **E1**, **E2** (CSP puesta,
+> falta la migración de manejadores `on*=` para poder endurecerla del todo).
+> Siguiente: terminar **E2** (delegación de eventos) → endurecer **E1** (quitar
+> `script-src 'unsafe-inline'`). Menores: **G2** (rótulo UI), **G4**, **A5**, **E3**.
 > Nota: `.github/workflows/tests.yml` está commiteado localmente pero falta pushearlo
 > (el token de `gh` necesita scope `workflow`: `gh auth refresh -s workflow`).
 
@@ -117,12 +118,24 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 
 ## E. Seguridad
 
-- [ ] 🟡 **E1 — Sin CSP.** Agregar `<meta http-equiv="Content-Security-Policy">`
-  (defensa en profundidad frente a `innerHTML` + datos de `?data=`).
-  **Bloqueante previo: E2.**
-- [ ] 🟡 **E2 — ~55 funciones en `window` + `onclick` inline.**
-  Migrar a `addEventListener` / delegación de eventos. Habilita CSP estricta y
-  reduce fragilidad.
+- [~] 🟡 **E1 — Sin CSP.** ✅ *Parcial:* agregado `<meta http-equiv="Content-Security-Policy">`
+  en `index.html`. Fija los orígenes de script (los 4 CDN de cdnjs + `'self'`),
+  `connect-src 'self' blob:` (bloquea exfiltración), `object-src/base-uri/
+  form-action/frame-ancestors` cerrados. **Todavía incluye `script-src
+  'unsafe-inline'`** porque quedan ~90 manejadores `on*=` en el HTML + 23
+  generados en JS → falta E2 para poder quitarlo. Verificado en navegador: la app
+  carga y funciona (chart, export PDF/CSV/proyecto, share, `?data=`, tour, modales)
+  sin violaciones de CSP.
+- [~] 🟡 **E2 — ~55 funciones en `window` + `onclick` inline.**
+  ✅ *Parcial:* eliminados los 2 `<script>` inline de `index.html` (flag
+  `IS_DEVELOPMENT` → `body[data-development]` leído en `main.js`; carga condicional
+  de `dev-tools.js` movida a `main.js`).
+  ⏳ **Falta el grueso:** migrar los ~90 `on*=` de `index.html` + los 23 generados
+  en `ui-handlers`/`chart-manager`/`chart_config` a delegación de eventos
+  (`data-action` + un listener central), y recién ahí quitar `'unsafe-inline'` de
+  `script-src`. Es un refactor grande y transversal (toca cada botón/input/modal);
+  conviene hacerlo como PR revisado con una pasada de test manual completa de la UI,
+  no en commits directos a `main`.
 - [ ] ⚪ **E3 — Revisar `parseExpression`** (análisis dimensional) por robustez,
   aunque no procesa datos de red.
 
@@ -185,7 +198,8 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 4. ~~**A2, A3**.~~ ✅  (+ A4, H1, H2 docs)
 5. ~~**G1, G3, G5, G6, D1, D2, F3**~~ ✅
 6. ~~**B1 + B2** — encuadre / escala~~ ✅
-7. **E2 → E1** — refactor de eventos + CSP (sesión dedicada). ← siguiente
+7. **E2 → E1** — CSP inicial puesta ✅; falta la migración de ~90+23 manejadores
+   `on*=` a delegación para quitar `script-src 'unsafe-inline'`. ← siguiente
 8. Menores: **G2** (rótulo UI del análisis dimensional), **G4**, **A5**, **E3**.
 
 ## Mapa rápido de archivos
