@@ -4,11 +4,11 @@
 > Última actualización: 2026-09-08. `main` == `develop`, CI en verde.
 >
 > **Primera auditoría — COMPLETA.** F1, C1–C6, A1–A5, B1, B2, D1, D2, E1–E3, F2, F3,
-> G1–G6, H1, H2. Publicado como **v1.6.0** (C5/C6 bajo `[Sin publicar]`).
+> G1–G6, H1, H2. Publicado como **v1.6.0**.
+> **Segunda auditoría — COMPLETA.** R1–R13 (ver sección "SEGUNDA AUDITORÍA"), todo
+> en `main`+`develop` con CI en verde. 113 tests.
 >
-> **Segunda auditoría (2026-09-08)** — 13 hallazgos nuevos **R1–R13**, ninguno
-> empezado (ver sección "SEGUNDA AUDITORÍA"). El de mayor impacto: **R1** — datos
-> no numéricos en una celda / CSV malo → `NaN` en los ajustes y exportaciones.
+> **No hay backlog pendiente.** Para ideas nuevas, hacer otra pasada de revisión.
 >
 > Flujo de ramas: trabajar en `develop`, mergear a `main` (fast-forward) cuando quede bien.
 
@@ -211,35 +211,37 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 
 ## SEGUNDA AUDITORÍA (2026-09-08, post v1.6.0)
 
-Repaso de código sobre el estado ya con toda la primera auditoría cerrada. Ningún
-ítem empezado. Convención: 🔴 alta · 🟡 media · ⚪ baja. "(repro)" = confirmado en navegador.
+**COMPLETA.** Los 13 hallazgos (R1–R13) resueltos, verificados y en `main`+`develop`.
+Cada ítem lleva ✅ con el detalle. Convención: 🔴 alta · 🟡 media · ⚪ baja.
 
 ### 🔴 Alta
 
-- [ ] 🔴 **R1 — Datos no numéricos envenenan los ajustes y las exportaciones con `NaN`.** (repro)
+- [x] 🔴 **R1 — Datos no numéricos envenenan los ajustes y las exportaciones con `NaN`.** (repro)
   El filtro `serie.data.filter(p => p.x !== '' && p.y !== '')` aparece en **8 lugares**
   y ninguno chequea que el valor sea numérico (sólo `handleTablePaste` lo hace).
   Tipear letras en una celda (`type="text"`) o importar un CSV con basura →
   `parseDecimal("abc")` = `NaN` → regresión con NaN → **ecuación "y = NaNx + NaN",
   `R² = NaN`**, e igual en `chart_config.js` (intersección) y `export_manager.js` (×3).
-  Fix: un helper `getNumericData(serie)` con `!isNaN(parseDecimal(...))`, usado en:
-  `chart-manager.js:391`, `chart_config.js:238-239`, `data-manager.js:233`,
-  `export_manager.js:102,245,368`. + validar en `updatePoint` / `importCSVFile`.
+  ✅ `utils.numericPoints(serie)` — filtra (`Number.isFinite`) y parsea; usado en los
+  8 sitios. `handleTablePaste`/`importCSVFile` ahora validan al parsear (R2). +tests.
+  Reproducido: antes daba "y = NaNx + NaN", ahora la celda basura se ignora.
 
 ### 🟡 Media
 
-- [ ] 🟡 **R2 — `importCSVFile` (`data-manager.js`) es más laxo que el pegado.**
+- [x] 🟡 **R2 — `importCSVFile` (`data-manager.js`) es más laxo que el pegado.**
   Guarda `normalizeDecimalInput()` sin validar; detecta cabecera con `/[a-zA-Z]/`
   (una fila `1e5,2e5` en notación científica se descarta como cabecera); la
   ambigüedad `,` decimal vs `,` separador la resuelve distinto que `handleTablePaste`.
   Unificar el parseo CSV entre los dos caminos de import.
-- [ ] 🟡 **R3 — `getDataRange()` (`chart-manager.js:326`) filtra los datasets
+  ✅ `utils.parseTabular(text)` — parser único; `handleTablePaste` e `importCSVFile` lo comparten. Notación científica ya no se confunde con cabecera. +tests.
+- [x] 🟡 **R3 — `getDataRange()` (`chart-manager.js:326`) filtra los datasets
   generados por *string matching* del `label`** (`includes('Ajuste'|'Tangente'|'Área'|'Pendiente')`).
   El dataset del ajuste real tiene `label: serie.name` → **NO se filtra**, sus puntos
   (extrapolados si el toggle está activo) cuentan en el rango. Las "Cajas de Error"
   tampoco están en la lista. Y una serie llamada p.ej. "Tangente 1" queda excluida.
+  ✅ El dataset de puntos del usuario lleva `_userData: true`; `getDataRange` filtra por ese flag. Verificado: serie "Tangente 1" cuenta.
   Fix: marcar los datasets generados con un flag (`_generated: true`) y filtrar por eso.
-- [ ] 🟡 **R4 — La función de ajuste se evalúa a mano en 3 lugares.**
+- [x] 🟡 **R4 — La función de ajuste se evalúa a mano en 3 lugares.**
   `calculateFit` la calcula internamente (`fitFunc`, no la devuelve); `chart-manager`
   recalcula `y0` para la tangente y los puntos del área con su propio `switch` por
   tipo. A5 unificó los *coeficientes* pero no la *función*. Además las guardas
@@ -247,35 +249,45 @@ Repaso de código sobre el estado ya con toda la primera auditoría cerrada. Nin
   `y0` de la tangente devuelve `0` → el "Punto Tangente" se dibuja en `y=0` (engañoso)
   mientras el panel muestra "Pendiente = NaN". Fix: `calculateFit` devuelve `fitFunc`
   y `chart-manager` lo reusa.
-- [ ] 🟡 **R5 — `propagateProductQuotient` con un operando en 0** → `δA / |0|` = `Infinity`
+  ✅ `calculateFit` devuelve `fitFunc`; tangente y área lo usan. Fuera del dominio (log/potencial x≤0) → avisa "x está fuera del dominio" en vez de dibujar en y=0. Verificado.
+- [x] 🟡 **R5 — `propagateProductQuotient` con un operando en 0** → `δA / |0|` = `Infinity`
   → resultado *"P = 0 ± Infinity"*. La UI sólo bloquea `quotient && valueB === 0`.
   Falta guarda para `valueA === 0` (y `product` con cualquier operando 0), o avisar
   que el método de error relativo no aplica ahí.
-- [ ] 🟡 **R6 — `loadFromURL` no restaura `serie.units`.** Setea el `<select>` de unidad
+  ✅ `calculateErrorPropagation` rechaza producto/cociente con A o B en 0 (daba "± Infinity").
+- [x] 🟡 **R6 — `loadFromURL` no restaura `serie.units`.** Setea el `<select>` de unidad
   pero no la metadata que usan el título del eje y los headers de la tabla; tampoco
   guarda/restaura los prefijos SI. Un link compartido con unidades muestra el dropdown
   pero no la unidad en el eje ni en `Etiqueta (unidad ± error)`. `generateShareURL` +
   `loadFromURL` deben pasar por `updateAxisUnit` (o replicar su efecto sobre `serie.units`).
+  ✅ `generateShareURL` guarda `xPrefix/yPrefix`; `loadFromURL` los restaura y reconstruye `serie.units` vía `updateAxisUnit`. Verificado: roundtrip k+m → "Tiempo (km)" en eje y tabla.
 
 ### ⚪ Baja
 
-- [ ] ⚪ **R7 — `removeRow` con índice inválido borra la fila 0.** (repro)
+- [x] ⚪ **R7 — `removeRow` con índice inválido borra la fila 0.** (repro)
   `serie.data.splice(NaN, 1)` → `NaN` coacciona a `0`. Falta
   `Number.isInteger(index) && index >= 0 && index < serie.data.length`.
-- [ ] ⚪ **R8 — Overflow no controlado en exponencial.** `Math.exp(b·x)` con `b·x`
+  ✅ Guarda en `removeRow` / `moveRowUp` / `moveRowDown`. Verificado en Node.
+- [x] ⚪ **R8 — Overflow no controlado en exponencial.** `Math.exp(b·x)` con `b·x`
   grande → `Infinity` → área/tangente/puntos del ajuste con `Infinity`/`NaN`. Clamp o aviso.
-- [ ] ⚪ **R9 — Código muerto:** `data-manager.getValidData` (no lo usa nadie, ni los
+  ✅ Puntos no finitos no se grafican; el área avisa "desbordamiento numérico" en vez de "Área = Infinity".
+- [x] ⚪ **R9 — Código muerto:** `data-manager.getValidData` (no lo usa nadie, ni los
   tests), `ui-handlers.focusCell` exportado sin consumidor externo, el `return changed`
   de `reconcileManualLimits` que el llamador ignora.
-- [ ] ⚪ **R10 — ~36 `console.log/warn` en producción**, varios de debug ("Unidad del
+  ✅ Borrado `getValidData`; `focusCell` deja de exportarse.
+- [x] ⚪ **R10 — ~36 `console.log/warn` en producción**, varios de debug ("Unidad del
   eje X cambiada…", "⌨️ Atajos inicializados", "📊 Datos cargados…"). Gate detrás de
   `IS_DEVELOPMENT` o quitar.
-- [ ] ⚪ **R11 — Modales apilables** (Ctrl+H de atajos sobre otro modal abierto) →
+  ✅ Quitados los de debug (init de atajos, "unidad cambiada", "datos cargados"); los de fullscreen → `console.warn`.
+- [x] ⚪ **R11 — Modales apilables** (Ctrl+H de atajos sobre otro modal abierto) →
   focus traps + handlers de Escape anidados. Poco probable, pero define el comportamiento.
-- [ ] ⚪ **R12 — `updateChart` en cada `onZoomComplete` (rueda)** recomputa todos los
+  ✅ Pila de Escape en `modal.js`: con modales apilados / `confirmDialog` sobre un modal, Escape cierra sólo el de arriba. Verificado.
+- [x] ⚪ **R12 — `updateChart` en cada `onZoomComplete` (rueda)** recomputa todos los
   ajustes; la rueda dispara seguido. Considerar debounce como el del tipeo.
-- [ ] ⚪ **R13 — `main.js:190` re-consulta `window.IS_DEVELOPMENT`** cuando ya hay una
+  ✅ `onZoomComplete`/`onPanComplete` debouncean `updateChart('none')` ~120ms.
+- [x] ⚪ **R13 — `main.js:190` re-consulta `window.IS_DEVELOPMENT`** cuando ya hay una
   const `IS_DEVELOPMENT` calculada arriba en el módulo.
+  ✅ Usa la const.
 
 ---
 

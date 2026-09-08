@@ -7,9 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Sin publicar]
 
+### Corregido
+- **Datos no numéricos ya no rompen los ajustes**: escribir texto en una celda (o importar un CSV con basura) hacía que la ecuación quedara `y = NaNx + NaN`. Ahora esas celdas se ignoran para el cálculo (y para las exportaciones y la intersección).
+- **Importación de CSV**: usa el mismo parser que el pegado desde Excel/Sheets — detecta el separador, no confunde la notación científica (`1e3`) con una cabecera, y valida cada celda.
+- **Propagación de errores** con A o B en 0: antes daba `± Infinity`; ahora avisa que el método relativo no aplica.
+- **Links compartidos**: se restaura el prefijo SI (mili, kilo…) — antes el eje mostraba `(m)` mientras la tabla mostraba `(km)`.
+- **Tangente en logarítmico/potencial fuera de dominio** (x ≤ 0): avisa "fuera del dominio" en vez de dibujar el punto en y = 0.
+- **Área** con desbordamiento numérico (exponencial muy pronunciada): avisa en vez de mostrar `Área = Infinity`.
+- Reordenar/eliminar filas con un índice inválido ya no borra la fila 0.
+
 ### Cambiado
 - **Modales**: los `alert()` / `confirm()` nativos del navegador (que congelaban toda la página y no se podían estilar) se reemplazaron por notificaciones y un diálogo de confirmación propios (`js/modal.js`). Afecta a "Limpiar" / "Limpiar Todo", cargar proyecto, y las validaciones de Propagación de Errores y Análisis Dimensional.
-- **Accesibilidad**: todos los modales (ayuda, propagación, dimensional, datos de prueba, compartir, atajos, ayuda de unidades) ahora atrapan el foco de teclado mientras están abiertos, se cierran con `Escape`, y devuelven el foco al control que los abrió al cerrarse (WCAG 2.1.2 / 2.4.3).
+- **Accesibilidad**: todos los modales (ayuda, propagación, dimensional, datos de prueba, compartir, atajos, ayuda de unidades) ahora atrapan el foco de teclado mientras están abiertos, se cierran con `Escape`, y devuelven el foco al control que los abrió al cerrarse (WCAG 2.1.2 / 2.4.3). Con modales apilados, `Escape` cierra sólo el de arriba.
+
+### Interno
+- El zoom con la rueda ya no recompone la gráfica (y sus ajustes) en cada tick — se agrupa con un debounce.
+- Segunda pasada de auditoría de código (R1–R13): además de lo de arriba, `utils.numericPoints` / `parseTabular` como puntos únicos de verdad, `calculateFit` devuelve la función de ajuste (usada por tangente y área), limpieza de `console.log` de debug y de código muerto. +6 tests (113 total).
 
 ## [1.6.0] - 2026-09-08
 
