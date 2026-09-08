@@ -4,11 +4,11 @@
 > Última actualización: 2026-09-08. `main` == `develop`, CI en verde.
 >
 > **Primera auditoría — COMPLETA.** F1, C1–C6, A1–A5, B1, B2, D1, D2, E1–E3, F2, F3,
-> G1–G6, H1, H2. Publicado como **v1.6.0**.
-> **Segunda auditoría — COMPLETA.** R1–R13 (ver sección "SEGUNDA AUDITORÍA"), todo
-> en `main`+`develop` con CI en verde. 113 tests.
+> G1–G6, H1, H2. (v1.6.0)
+> **Segunda auditoría — COMPLETA.** R1–R13 (ver sección "SEGUNDA AUDITORÍA"). (v1.6.1)
 >
-> **No hay backlog pendiente.** Para ideas nuevas, hacer otra pasada de revisión.
+> **Sin backlog pendiente.** 113 tests, CI en verde. Publicado como **v1.6.1**.
+> Para ideas nuevas, hacer otra pasada de revisión.
 >
 > Flujo de ramas: trabajar en `develop`, mergear a `main` (fast-forward) cuando quede bien.
 

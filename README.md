@@ -2,7 +2,7 @@
 
 Aplicación web interactiva para análisis de datos experimentales con ajustes de regresión, propagación de incertidumbre y etiquetado de unidades. Ideal para estudiantes, científicos e ingenieros.
 
-![Version](https://img.shields.io/badge/version-1.6.0-blue)
+![Version](https://img.shields.io/badge/version-1.6.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## ✨ Características
@@ -77,7 +77,7 @@ Simplemente abre `index.html` en tu navegador moderno (Chrome, Firefox, Edge, Sa
 ## 📖 Guía de Uso
 
 > **Nota:** Para una guía de inicio rápido y configuración local, ver [🚀 Quick Start](quick_start.md).
-> Para detalles técnicos y arquitectura, ver [📘 Contexto del Proyecto](project_context.md).
+> Estado del código y trabajo pendiente: [`PENDING_WORK.md`](PENDING_WORK.md).
 
 ### 1️⃣ Agregar Datos
 
@@ -87,15 +87,12 @@ Simplemente abre `index.html` en tu navegador moderno (Chrome, Firefox, Edge, Sa
 3. Opcionalmente, la incertidumbre (Δx, Δy) se ingresa una vez por eje en "Configuración de Gráfica"
 4. Usar `Enter` para agregar filas rápidamente
 
-**Opción B: Importar CSV**
-1. Click en **"📂 Importar"**
-2. Seleccionar archivo CSV
-3. Formato: `x,y`
+**Opción B: Pegar desde Excel / Google Sheets**
+- `Ctrl + V` sobre la tabla. Detecta el separador (tab, `;` o `,`) y salta la fila de cabecera.
 
-**Opción C: Datos de Prueba**
-- En el menú "Herramientas" se encuentra una opción para cargar **Datos de prueba**
-- Click en botones de ejemplo: 📈 Lineal, 📊 Cuadrática, etc.
-- Se pueden probar todas las funcionalidades
+**Opción C: Importar CSV**
+1. Click en **"Importar CSV"** en la serie
+2. Dos columnas `X`, `Y` (separador `,`, `;` o tab; coma o punto decimal)
 
 ### 2️⃣ Configurar Ajuste
 
@@ -137,32 +134,51 @@ Simplemente abre `index.html` en tu navegador moderno (Chrome, Firefox, Edge, Sa
 
 ## 🏗️ Arquitectura
 
-### Estructura Modular (ES6)
+### Estructura Modular (ES6, sin bundler)
 
 ```
 graficador/
-├── index.html              # Interfaz principal
-├── css/
-│   └── styles.css         # Estilos
+├── index.html                     # Estructura + CSP; todos los eventos vía data-on-*
+├── css/styles.css
 └── js/
-    ├── main.js            # Punto de entrada (125 líneas)
-    ├── state.js           # Estado global
-    ├── chart-manager.js   # Gestión de Chart.js
-    ├── calculations.js    # Regresiones y cálculos
-    ├── ui-handlers.js     # Manejadores de eventos
-    ├── units.js           # Sistema de unidades
-    ├── uncertainty-propagation.js  # Propagación de errores
-    ├── utils.js           # Utilidades
-    └── chart-plugins.js   # Plugins personalizados
+    ├── main.js                    # Punto de entrada: importa todo y arranca la app
+    ├── events.js  + actions.js    # Delegación de eventos: data-on-<tipo> → función
+    ├── state.js                   # AppState + sanitizeImportedSeries
+    ├── data-manager.js            # CRUD de series/puntos, import/export CSV por serie
+    ├── ui-handlers.js             # Render de series y tabla, modales, herramientas
+    ├── chart-manager.js           # initChart, updateChart, zoom/pan, tangente/área
+    ├── chart_config.js            # Panel de configuración, leyenda, intersección
+    ├── chart-plugins.js           # Barras de error + puntos "diana"
+    ├── calculations.js            # calculateFit, derivada, integral
+    ├── regression.js              # Algoritmos de regresión + incertidumbre de pendiente
+    ├── uncertainty-propagation.js # Propagación de errores (suma/resta/prod/coc)
+    ├── units.js                   # Catálogo de unidades y prefijos
+    ├── dimensional-analysis.js    # Análisis dimensional (experimental)
+    ├── utils.js                   # numericPoints, parseTabular, formatNumber, parseDecimal…
+    ├── modal.js                   # confirmDialog + focus trap de los modales
+    ├── notifications.js           # Toast único
+    ├── project_manager.js         # Guardar/cargar proyecto .json
+    ├── export_manager.js          # Export JPG / PDF / CSV combinado
+    ├── share-manager.js           # URL compartible (?data= base64)
+    ├── keyboard-shortcuts.js      # Atajos de teclado
+    ├── presentation-mode.js       # Modo presentación (pantalla completa)
+    ├── tour-guide.js              # Tour guiado (desactivado en producción)
+    ├── axis_arrows_plugin.js      # Flechas en los extremos de los ejes
+    └── dev-tools.js               # Datos de prueba (sólo en la rama develop)
 ```
+
+La matemática (`calculations`, `regression`, `uncertainty-propagation`, `utils`, `units`,
+`dimensional-analysis`, `state`) es pura y se testea en Node (`npm test`, 113 tests).
 
 ### Tecnologías
 
-- **HTML5/CSS3** - Interfaz moderna y responsive
-- **JavaScript ES6+** - Módulos nativos, sin bundler
-- **[Chart.js 3.9](https://www.chartjs.org/)** - Visualización de gráficas
-- **[Chart.js Zoom Plugin](https://www.chartjs.org/chartjs-plugin-zoom/)** - Zoom interactivo
-- **[jsPDF](https://github.com/parallax/jsPDF)** - Generación de PDF
+- **HTML5/CSS3** — sin frameworks
+- **JavaScript ES6+** — módulos nativos, sin bundler ni build step
+- **[Chart.js 3.9](https://www.chartjs.org/)** + [plugin de zoom](https://www.chartjs.org/chartjs-plugin-zoom/) — gráfica y zoom/pan
+- **[jsPDF](https://github.com/parallax/jsPDF)** + jsPDF-AutoTable — exportación a PDF
+
+Todas las dependencias se cargan por CDN con integridad de subrecursos (SRI), y una
+CSP en `index.html` fija los orígenes permitidos.
 
 ## 🧮 Ejemplos de Uso
 
@@ -269,6 +285,11 @@ sumas/restas ni precedencia de paréntesis.
 ## 📝 Changelog
 
 > Detalle completo en [`CHANGELOG.md`](CHANGELOG.md).
+
+### v1.6.1 (2026-09-08)
+- ✅ Diálogos de confirmación propios (no bloqueantes) y focus trap en todos los modales
+- ✅ Segunda auditoría (R1–R13): datos no numéricos ya no rompen los ajustes, parser de CSV unificado, y varias guardas de correctitud numérica
+- ✅ 113 tests
 
 ### v1.6.0 (2026-09-08)
 - ✅ Pasada de auditoría: bugs de cálculo (tangente/área exponencial, Δm con cajas solapadas) y de UI (limpiar todo, encuadre, headers de tabla)

@@ -301,15 +301,6 @@ export const MAGNITUDE_INFO = {
 };
 
 /**
- * Obtiene la dimensión de una unidad
- * @param {string} unit - Unidad (ej: 'm', 'm/s', 'N')
- * @returns {Dimension|null} Dimensión correspondiente o null si no se encuentra
- */
-export function getDimensionFromUnit(unit) {
-    return UNIT_DIMENSIONS[unit] || null;
-}
-
-/**
  * Sugiere unidades apropiadas para una dimensión dada
  * @param {Dimension} dimension - Dimensión
  * @returns {string[]} Array de unidades sugeridas
@@ -338,16 +329,6 @@ export function identifyMagnitude(dimension) {
         }
     }
     return null;
-}
-
-/**
- * Verifica si dos dimensiones son compatibles para suma/resta
- * @param {Dimension} dim1 - Primera dimensión
- * @param {Dimension} dim2 - Segunda dimensión
- * @returns {boolean} true si son compatibles
- */
-export function areCompatibleForAddition(dim1, dim2) {
-    return dim1.equals(dim2);
 }
 
 /**

@@ -42,14 +42,11 @@ Si usas Visual Studio Code:
 3.  Click derecho -> "Open with Live Server".
 
 ## 🛠️ Modo Desarrollo
-En la rama `develop`, la variable `window.IS_DEVELOPMENT` está configurada en `true`. Esto habilita un panel flotante rojo ("Datos de Prueba (DEV)") que permite cargar datos de ejemplo con un solo click:
-
-- **📈 Lineal:** Carga datos con tendencia lineal y error.
-- **📊 Cuadrática:** Carga una parábola perfecta para pruebas de ajuste.
-- **📉 Exponencial:** Carga datos de decaimiento exponencial.
-- **🧹 Limpiar:** Borra todos los datos rápidamente.
-
-> **Nota:** En la rama `main`, este panel está oculto por defecto (`IS_DEVELOPMENT = false`).
+La rama `develop` sirve `index.html` con `<body data-development="true">`. Con eso,
+`js/main.js` carga `js/dev-tools.js` y aparece en **🧰 Herramientas** la opción
+**🧪 Cargar Datos de Prueba** (Lineal, Cuadrática, Exponencial, Logarítmica,
+Potencial, Con Incertidumbre). En `main` el atributo está en `"false"` y esa opción
+no se muestra.
 
 ## ⌨️ Atajos de Teclado
 - `Ctrl + N`: Nueva serie.

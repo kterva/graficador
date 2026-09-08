@@ -174,10 +174,14 @@ initEventDelegation();
 document.addEventListener('DOMContentLoaded', () => {
     initChart();
 
-    // Cargar herramientas de desarrollo sólo si el flag está activo (rama develop)
+    // Cargar herramientas de desarrollo sólo si el flag está activo (rama develop).
+    // El ítem "Cargar Datos de Prueba" del menú depende de dev-tools.js: se muestra
+    // sólo en ese caso (si no, sería un botón que no hace nada).
     if (IS_DEVELOPMENT) {
         console.log('🔧 Cargando herramientas de desarrollo...');
         import('./dev-tools.js').catch(e => console.error('No se pudo cargar dev-tools.js:', e));
+        const testDataItem = document.getElementById('testDataMenuItem');
+        if (testDataItem) testDataItem.style.display = '';
     }
 
     // Mostrar la versión de la app en el footer desde la única fuente de verdad (APP_VERSION)

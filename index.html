@@ -114,9 +114,10 @@
                             cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee;">
                             🔬 Análisis Dimensional <span style="font-size: 0.8em; color: #999;">(experimental)</span>
                         </button>
-                        <button data-on-click="openTestDataModal toggleToolsMenu" role="menuitem"
-                            aria-label="Cargar datos de prueba" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
-                            cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee;">
+                        <!-- Sólo hace algo con dev-tools.js cargado (rama develop); main.js lo oculta si no. -->
+                        <button id="testDataMenuItem" data-on-click="openTestDataModal toggleToolsMenu" role="menuitem"
+                            aria-label="Cargar datos de prueba" style="width: 100%; padding: 12px; border: none; background: white; text-align: left;
+                            cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee; display: none;">
                             🧪 Cargar Datos de Prueba
                         </button>
                         <button data-on-click="templatesComingSoon" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
@@ -703,7 +704,7 @@
                                     Permite cargar rápidamente conjuntos de datos predefinidos para explorar y probar las funciones del graficador, como los diferentes modelos de ajuste (Lineal, Cuadrático, Exponencial, etc.).
                                 </p>
                                 <ul style="margin: 0; padding-left: 20px; font-size: 0.9em; color: #555;">
-                                    <li><strong>Uso:</strong> Menú Herramientas > Cargar Datos de Prueba.</li>
+                                    <li><strong>Uso:</strong> Menú Herramientas &gt; Cargar Datos de Prueba (disponible en la versión de desarrollo).</li>
                                 </ul>
                             </div>
 

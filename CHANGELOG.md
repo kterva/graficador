@@ -7,6 +7,11 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Sin publicar]
 
+## [1.6.1] - 2026-09-08
+
+Diálogos y accesibilidad de los modales, y una segunda pasada de auditoría (R1–R13)
+centrada en correctitud numérica.
+
 ### Corregido
 - **Datos no numéricos ya no rompen los ajustes**: escribir texto en una celda (o importar un CSV con basura) hacía que la ecuación quedara `y = NaNx + NaN`. Ahora esas celdas se ignoran para el cálculo (y para las exportaciones y la intersección).
 - **Importación de CSV**: usa el mismo parser que el pegado desde Excel/Sheets — detecta el separador, no confunde la notación científica (`1e3`) con una cabecera, y valida cada celda.
