@@ -135,6 +135,26 @@ test('calculateFit: sample points span the requested xRange', () => {
     closeTo(Math.max(...xs), 5);
 });
 
+test('calculateFit: returns the raw coeffs so callers can reuse them (A5)', () => {
+    const linData = [
+        { x: 0, y: 1 }, { x: 1, y: 3 }, { x: 2, y: 5 }
+    ];
+    const lin = calculateFit(linData, 'linear');
+    closeTo(lin.coeffs.a, 2);
+    closeTo(lin.coeffs.b, 1);
+
+    const quadData = [
+        { x: -1, y: 1 }, { x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 4 }
+    ];
+    const quad = calculateFit(quadData, 'poly2');
+    assert.ok(Array.isArray(quad.coeffs));
+    closeTo(quad.coeffs[0], 1);
+
+    // el ajuste que falla deja coeffs en null
+    const bad = calculateFit([{ x: 1, y: 1 }, { x: 1, y: 2 }], 'linear');
+    assert.equal(bad.coeffs, null);
+});
+
 test('calculateFit: a failed fit reports r2 as null, not 0 (avoids a misleading "R² = 0.0000")', () => {
     // Solo 2 puntos con X distintos para un ajuste cuadrático (necesita >= 3): falla.
     const data = [{ x: 1, y: 1, xError: 0, yError: 0 }, { x: 2, y: 4, xError: 0, yError: 0 }];

@@ -2,13 +2,14 @@
 
 > Documento de traspaso para retomar el trabajo en otra máquina / nueva sesión.
 > Última actualización: 2026-09-08. Base: commit `cec00ce`, versión 1.5.0.
-> Hechos: **F1**, **C1–C4**, **A1–A4**, **B1**, **B2**, **F2**, **F3**, **D1**, **D2**,
-> **G1**, **G3**, **G5**, **G6**, **H1**, **H2**. Parciales: **E1**, **E2** (CSP puesta,
-> falta la migración de manejadores `on*=` para poder endurecerla del todo).
+> Hechos: **F1**, **C1–C4**, **A1–A5**, **B1**, **B2**, **F2**, **F3**, **D1**, **D2**,
+> **G1**, **G2**, **G3**, **G5**, **G6**, **H1**, **H2**. Parciales: **E1**, **E2**
+> (CSP puesta, falta migrar los manejadores `on*=` para endurecerla del todo).
 > Siguiente: terminar **E2** (delegación de eventos) → endurecer **E1** (quitar
-> `script-src 'unsafe-inline'`). Menores: **G2** (rótulo UI), **G4**, **A5**, **E3**.
-> Nota: `.github/workflows/tests.yml` está commiteado localmente pero falta pushearlo
-> (el token de `gh` necesita scope `workflow`: `gh auth refresh -s workflow`).
+> `script-src 'unsafe-inline'`). Menores: **G4**, **E3**.
+> Nota: `.github/workflows/tests.yml` está en disco pero SIN commitear — el push de
+> archivos en `.github/workflows/` necesita un token con scope `workflow`
+> (`gh auth refresh -s workflow` no está agarrando; alternativa: subirlo por la web).
 
 ## Cómo retomar
 
@@ -55,9 +56,10 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 - [x] ⚪ **A4 — Regresiones no lineales sin ponderar.**
   ✅ Documentado en la ayuda in-app (exp/log/potencial) y en README ("Notas
   metodológicas y limitaciones").
-- [ ] ⚪ **A5 — Doble regresión por refresco.**
-  `updateChart` llama `calculateFit()` y luego `getRegressionCoeffs()` por
-  separado para cada serie en cada update (incluye pan/zoom). Reusar coeficientes.
+- [x] ⚪ **A5 — Doble regresión por refresco.**
+  ✅ `calculateFit()` ahora devuelve `coeffs` (misma forma que `getRegressionCoeffs`)
+  y `chart-manager` los reusa para tangente/área en lugar de rehacer la regresión
+  en cada refresco. Verificado en navegador (exp + poly2: tangente y área correctas).
 
 ## B. Vista de la gráfica / escala
 
@@ -157,12 +159,10 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
   RESERVADO en el header del módulo (`convert`/`convertTemperature`/`resolveUnit`
   se mantienen y testean como base para reintroducir la conversión opcional).
   `updateAxisUnit` ya no destructura `convert`/`getCategoryName` (no se usaban).
-- [ ] 🟡 **G2 — Análisis dimensional es "beta" presentado como completo.**
-  `parseExpression` (`dimensional-analysis.js`): sin precedencia, sin `+/-`, ignora
-  los paréntesis que tokeniza, `^` solo funciona tras una magnitud. Mejorar el
-  parser o rotular la feature como experimental en la UI.
-  ⏳ Parcial: documentado como "experimental" en README; falta rotularlo en la UI
-  del modal o mejorar el parser.
+- [x] 🟡 **G2 — Análisis dimensional es "beta" presentado como completo.**
+  ✅ Rotulado como "experimental": chip `EXPERIMENTAL` en el título del modal,
+  `(experimental)` en el menú Herramientas, y nota sobre las limitaciones del parser
+  bajo el input. (Mejorar el parser en sí queda para E3.)
 - [x] ⚪ **G3 — `chart-manager.js` registra plugins de `Chart` en la evaluación del
   módulo.** ✅ Movido a `initChart()` con flag `_pluginsRegistered` idempotente.
   Verificado: los módulos que dependen de chart-manager ya se importan en Node
@@ -200,7 +200,7 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 6. ~~**B1 + B2** — encuadre / escala~~ ✅
 7. **E2 → E1** — CSP inicial puesta ✅; falta la migración de ~90+23 manejadores
    `on*=` a delegación para quitar `script-src 'unsafe-inline'`. ← siguiente
-8. Menores: **G2** (rótulo UI del análisis dimensional), **G4**, **A5**, **E3**.
+8. ~~Menores: **G2**, **A5**~~ ✅. Quedan **G4** (cache-buster), **E3** (parser dimensional).
 
 ## Mapa rápido de archivos
 

@@ -33,7 +33,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Eliminados los `<script>` inline de `index.html`: el flag de desarrollo pasa a `body[data-development]` y la carga de `dev-tools.js` a `main.js`.
 
 ### Interno
-- **CI**: workflow de GitHub Actions que corre los 105 tests en cada push a `main` y en los PR.
+- **CI**: workflow de GitHub Actions que corre los tests en cada push a `main` y en los PR.
+- El análisis dimensional queda rotulado como **experimental** en la UI (chip en el modal, aclaración en el menú y nota sobre las limitaciones del parser).
+- Tangente y área reutilizan los coeficientes que ya calculó el ajuste, en vez de repetir la regresión en cada refresco.
 - Exportación CSV por serie unificada con la exportación combinada: delimitador `;`, saneo anti-inyección de fórmulas y descarga por Blob.
 - Aviso al copiar un link compartido demasiado largo (> 8 KB) que podría truncarse.
 - Notificaciones flotantes centralizadas en un único módulo (`notifications.js`); se eliminaron 4 implementaciones duplicadas.

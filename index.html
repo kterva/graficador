@@ -111,7 +111,7 @@
                             aria-label="Abrir análisis dimensional" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
                             cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee;"
                             onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
-                            🔬 Análisis Dimensional
+                            🔬 Análisis Dimensional <span style="font-size: 0.8em; color: #999;">(experimental)</span>
                         </button>
                         <button onclick="openTestDataModal(); toggleToolsMenu();" role="menuitem"
                             aria-label="Cargar datos de prueba" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
@@ -959,8 +959,9 @@
                         color: white; padding: 20px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin: 0; display: flex; align-items: center; gap: 10px;">
                     🔬 Análisis Dimensional
+                    <span style="font-size: 0.5em; font-weight: normal; background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 10px; letter-spacing: 0.5px;">EXPERIMENTAL</span>
                 </h2>
-                <button onclick="closeDimensionalAnalysisModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; 
+                <button onclick="closeDimensionalAnalysisModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px;
                     width: 35px; height: 35px; border-radius: 50%; cursor: pointer; transition: background 0.2s;"
                     onmouseover="this.style.background='rgba(255,255,255,0.3)'"
                     onmouseout="this.style.background='rgba(255,255,255,0.2)'">
@@ -979,7 +980,8 @@
                             onkeydown="if(event.key==='Enter'){analyzeDimension();}"
                             style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em;">
                         <small style="color: #666; display: block; margin-top: 5px;">
-                            Operadores: * (multiplicar), / (dividir), ^ (potencia)
+                            Operadores: * (multiplicar), / (dividir), ^ (potencia).
+                            <br><em>Función experimental: sin sumas/restas ni precedencia de paréntesis; el <code>^</code> sólo funciona después de una magnitud.</em>
                         </small>
                     </div>
 
