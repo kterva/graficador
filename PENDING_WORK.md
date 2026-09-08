@@ -2,11 +2,12 @@
 
 > Documento de traspaso para retomar el trabajo en otra máquina / nueva sesión.
 > Última actualización: 2026-09-08. Base: commit `cec00ce`, versión 1.5.0.
-> Hechos: **F1**, **C1–C4**, **A1–A4**, **F2**, **F3**, **D1**, **D2**,
+> Hechos: **F1**, **C1–C4**, **A1–A4**, **B1**, **B2**, **F2**, **F3**, **D1**, **D2**,
 > **G1**, **G3**, **G5**, **G6**, **H1**, **H2**.
-> Siguiente: **B1 + B2** (encuadre/escala, requiere sesión de repro hands-on:
-> el pan no se dispara con drag sintético) y **E2 → E1** (refactor grande de
-> eventos + CSP — conviene sesión dedicada). Menores: **G2** (rótulo UI), **G4**, **A5**, **E3**.
+> Siguiente: **E2 → E1** (refactor grande de eventos + CSP — sesión dedicada).
+> Menores: **G2** (rótulo UI), **G4**, **A5**, **E3**.
+> Nota: `.github/workflows/tests.yml` está commiteado localmente pero falta pushearlo
+> (el token de `gh` necesita scope `workflow`: `gh auth refresh -s workflow`).
 
 ## Cómo retomar
 
@@ -59,17 +60,22 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 
 ## B. Vista de la gráfica / escala
 
-- [ ] 🟡 **B1 — Ticks/escala quedan mal tras mover los ejes.** (repro)
-  `syncZoomState()` (`chart-manager.js`) redondea los límites a 4 decimales y los
-  reescribe en `chart.options.scales` **y** en los inputs; combinado con
-  `grace: '8%'` y `updateChart('none')` la escala "salta" o los valores no cierran.
-  Revisar: no redondear de forma destructiva en `options` (redondear solo el input
-  visible), revisar `grace` cuando hay min/max manual, y la generación de ticks
-  con rangos fraccionarios.
-- [ ] 🟡 **B2 — Ajuste de vista / encuadre general.**
-  Al agregar/borrar datos o cambiar el tipo de ajuste, la vista no siempre
-  reencuadra bien. Definir cuándo se autoajusta y cuándo respeta el zoom del
-  usuario, y aplicarlo consistentemente.
+- [x] 🟡 **B1 — Ticks/escala quedan mal tras mover los ejes.** (repro)
+  ✅ Reproducido: `syncZoomState()` dejaba el input redondeado a 4 decimales y las
+  `options.scales` con el valor exacto; al editar después cualquier campo del panel,
+  `updateChartConfig()` releía el input redondeado → la vista "derivaba" ~3e-5 por
+  ciclo pan/zoom→editar. Fix: `syncZoomState()` escribe el **mismo** valor redondeado
+  a 4 decimales en el input **y** en `options.scales` (imperceptible en píxeles,
+  idempotente). Verificado: drift = 0.
+- [x] 🟡 **B2 — Ajuste de vista / encuadre general.**
+  ✅ Política definida y aplicada: **los inputs del panel de límites son la única
+  fuente de verdad**. Input vacío ⇒ límite automático (Chart.js reencuadra al
+  agregar/quitar datos o cambiar el ajuste); input con valor ⇒ vista fija. El
+  pan/zoom completa los inputs (vía `syncZoomState`), así que el usuario siempre ve
+  por qué la vista quedó fija y puede vaciarlos para re-encuadrar. Implementado en
+  `reconcileManualLimits()`, llamado al inicio de `updateChart()`. Verificado en
+  navegador (auto-fit, pan respetado, limpiar inputs re-fitea, límites del panel
+  respetados, slider de tangente no perturba la vista).
 
 ## C. UI / estado
 
@@ -178,8 +184,8 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 3. ~~**A1** (exponencial) + **F2**.~~ ✅
 4. ~~**A2, A3**.~~ ✅  (+ A4, H1, H2 docs)
 5. ~~**G1, G3, G5, G6, D1, D2, F3**~~ ✅
-6. **B1 + B2** — encuadre / escala; necesita sesión de reproducción hands-on. ← siguiente
-7. **E2 → E1** — refactor de eventos + CSP (sesión dedicada).
+6. ~~**B1 + B2** — encuadre / escala~~ ✅
+7. **E2 → E1** — refactor de eventos + CSP (sesión dedicada). ← siguiente
 8. Menores: **G2** (rótulo UI del análisis dimensional), **G4**, **A5**, **E3**.
 
 ## Mapa rápido de archivos

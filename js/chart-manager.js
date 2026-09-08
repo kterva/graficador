@@ -210,17 +210,23 @@ export function initChart() {
  * después de hacer pan o zoom. Si el usuario había fijado un límite manualmente,
  * al arrastrar o hacer zoom ese límite debe actualizarse para no forzar
  * un reseteo visual al llamar a chart.update().
+ *
+ * B1: se escribe el MISMO valor redondeado a 4 decimales tanto en el input como
+ * en `chart.options.scales`. Antes el input quedaba redondeado y las options con
+ * el valor exacto; al editar después cualquier otro campo del panel,
+ * `updateChartConfig()` releía el input redondeado y la vista "derivaba" unos
+ * micro-pasos por ciclo pan/zoom → editar. 4 decimales están muy por debajo de
+ * la resolución en píxeles, así que el snap es imperceptible.
  * @param {Chart} chart - Instancia del gráfico
  */
 function syncZoomState(chart) {
     const syncLimit = (axis, limit, inputId) => {
         if (chart.options.scales[axis][limit] !== null && chart.options.scales[axis][limit] !== undefined) {
-            const newValue = chart.scales[axis][limit];
-            chart.options.scales[axis][limit] = newValue;
+            const rounded = parseFloat(chart.scales[axis][limit].toFixed(4));
+            chart.options.scales[axis][limit] = rounded;
             const input = document.getElementById(inputId);
             if (input) {
-                // Formatear a 4 decimales máximo, removiendo ceros extra
-                input.value = formatNumber(parseFloat(newValue.toFixed(4)));
+                input.value = formatNumber(rounded);
             }
         }
     };
@@ -229,6 +235,37 @@ function syncZoomState(chart) {
     syncLimit('x', 'max', 'maxX');
     syncLimit('y', 'min', 'minY');
     syncLimit('y', 'max', 'maxY');
+}
+
+/**
+ * B2: los inputs del panel son la única fuente de verdad para los límites manuales.
+ * Si un input está vacío, el límite correspondiente debe ser `null` para que Chart.js
+ * reencuadre solo (al agregar/quitar datos o cambiar el ajuste). El pan/zoom no se
+ * ve afectado porque `syncZoomState()` completa los inputs antes de que `updateChart`
+ * corra. Devuelve true si algún límite cambió (para forzar reflow).
+ * @param {Chart} chart
+ * @returns {boolean}
+ */
+function reconcileManualLimits(chart) {
+    let changed = false;
+    const apply = (axis, limit, inputId) => {
+        const el = document.getElementById(inputId);
+        const raw = el ? el.value.trim() : '';
+        const desired = raw === '' ? null : parseDecimal(raw);
+        const current = chart.options.scales[axis][limit];
+        if (raw === '' && current !== null && current !== undefined) {
+            chart.options.scales[axis][limit] = null;
+            changed = true;
+        } else if (raw !== '' && !isNaN(desired) && current !== desired) {
+            chart.options.scales[axis][limit] = desired;
+            changed = true;
+        }
+    };
+    apply('x', 'min', 'minX');
+    apply('x', 'max', 'maxX');
+    apply('y', 'min', 'minY');
+    apply('y', 'max', 'maxY');
+    return changed;
 }
 
 /**
@@ -338,6 +375,13 @@ function getVisibleXRange() {
  */
 export function updateChart(animationMode) {
     const datasets = [];
+
+    // B2: mantener los límites del gráfico alineados con los inputs del panel
+    // (un input vacío ⇒ límite automático) para que la vista reencuadre al
+    // agregar/quitar datos o cambiar el ajuste, respetando a la vez el pan/zoom
+    // (que rellena los inputs vía syncZoomState antes de llegar acá).
+    if (AppState.chart) reconcileManualLimits(AppState.chart);
+
     const showUncertaintyLinesCheckbox = document.getElementById('showUncertaintyLines');
     const showUncertaintyLines = showUncertaintyLinesCheckbox ? showUncertaintyLinesCheckbox.checked : false;
     const extrapolateNeg = document.getElementById('extrapolateNegInfinity')?.checked ?? false;
