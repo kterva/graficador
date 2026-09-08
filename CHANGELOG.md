@@ -20,6 +20,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Tangente y Área** en ajuste **exponencial**: antes mostraban `NaN` y no dibujaban la recta tangente (faltaban las ramas `exponential` en la derivada e integral).
 - **Incertidumbre de la pendiente**: cuando las cajas de error en X de los puntos extremos se solapan, ya no se muestra un `± Δm` sin sentido; se avisa que el método de máx/mín no aplica.
 - La incertidumbre por punto de proyectos/links viejos se descarta explícitamente al importar (la incertidumbre es por columna); antes quedaba como dato muerto en el estado.
+- **Vista de la gráfica**: tras hacer pan/zoom y luego editar cualquier campo del panel, la vista ya no "deriva" unos micro-pasos (el límite redondeado que se mostraba en el input volvía a escribirse como valor real).
+- **Encuadre**: los campos de límites de eje son ahora la única fuente de verdad — si están vacíos la vista se auto-encuadra al agregar/quitar datos o cambiar el ajuste; si tienen un valor (incluido el que deja un pan/zoom) la vista queda fija. Vaciar un campo vuelve a auto-encuadrar ese eje.
 
 ### Documentación
 - README: la incertidumbre se ingresa por columna (no por fila); el sistema de unidades sólo etiqueta, no convierte datos.
