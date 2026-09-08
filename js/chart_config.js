@@ -158,6 +158,59 @@ export function updateChartConfig() {
     chart.options.scales.y.beginAtZero = beginAtZero;
 
     chart.update();
+
+    // C3: los encabezados del cuadro de datos ("Etiqueta (unidad ± error)") dependen
+    // de estos valores; re-renderizar las series para mantenerlos sincronizados
+    // (mismo patrón que updateAxisUnit).
+    import('./ui-handlers.js').then(mod => mod.renderSeries());
+}
+
+/**
+ * Devuelve el panel de "Configuración de Gráfica" a sus valores por defecto.
+ * Se usa al "Limpiar Todo" (C2): título, etiquetas, unidades, prefijos, ± error,
+ * límites de ejes y checkboxes vuelven al estado inicial.
+ */
+export function resetChartConfigPanel() {
+    const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+    const setChk = (id, v) => { const el = document.getElementById(id); if (el) el.checked = v; };
+
+    setVal('chartTitle', 'Gráfica de Datos');
+    setVal('labelX', 'X');
+    setVal('labelY', 'Y');
+    setVal('prefixX', '');
+    setVal('prefixY', '');
+    setVal('unitX', '');
+    setVal('unitY', '');
+
+    for (const axis of ['X', 'Y']) {
+        const custom = document.getElementById(`unit${axis}Custom`);
+        if (custom) { custom.value = ''; custom.style.display = 'none'; }
+    }
+
+    setVal('defaultXError', '0');
+    setVal('defaultYError', '0');
+    setVal('minX', '');
+    setVal('maxX', '');
+    setVal('minY', '');
+    setVal('maxY', '');
+
+    setChk('showGrid', true);
+    setChk('beginAtZero', false);
+    setChk('showIntersectionCheck', false);
+    const intersection = document.getElementById('intersection-display');
+    if (intersection) intersection.style.display = 'none';
+
+    // Estado interno asociado
+    AppState.config.defaultXError = 0;
+    AppState.config.defaultYError = 0;
+    AppState.series.forEach(s => {
+        s.units = {
+            x: { unit: '', category: 'none', original: '' },
+            y: { unit: '', category: 'none', original: '' }
+        };
+    });
+
+    updateChartConfig();
 }
 
 /**

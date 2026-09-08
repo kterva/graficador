@@ -1,7 +1,8 @@
 # 📋 Trabajo pendiente — Graficador Científico
 
 > Documento de traspaso para retomar el trabajo en otra máquina / nueva sesión.
-> Última actualización: 2026-09-07. Base: commit `cec00ce`, versión 1.5.0.
+> Última actualización: 2026-09-08. Base: commit `cec00ce`, versión 1.5.0.
+> Hechos: **F1**, **C1**, **C2**, **C3**, **C4**. Siguiente: **A1 + F2**.
 
 ## Cómo retomar
 
@@ -75,24 +76,24 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 
 ## C. UI / estado
 
-- [ ] 🔴 **C1 — "Limpiar Todo" deja la gráfica desajustada (todo en un eje).** (repro)
+- [x] 🔴 **C1 — "Limpiar Todo" deja la gráfica desajustada (todo en un eje).** (repro)
+  ✅ Reproducido y arreglado (`cec00ce`+): `clearAllData()` ahora llama `resetChartConfigPanel()` y `resetZoom()` al final.
   `clearAllData()` (`ui-handlers.js:518`) agrega serie vacía + `renderSeries` +
   `updateChart` + `updateChartConfig`, pero **no** llama `resetZoom()` ni limpia
   `chart.options.scales.{x,y}.{min,max}`. Con los datos nuevos vacíos la vista
   queda pegada a los límites / zoom anteriores. Agregar `resetZoom()` al final.
-- [ ] 🟡 **C2 — "Limpiar" no resetea la Configuración de Gráfica.**
-  Ni `clearAllData()` ni el botón "Limpiar" por serie tocan los inputs de título,
-  etiquetas, unidades, prefijos, límites ni los checkboxes. Resetear todo el panel
-  a valores por defecto (o preguntar antes).
-- [ ] 🟡 **C3 — Cambiar etiquetas de ejes no actualiza el cuadro de datos.**
-  `renderTable()` (`ui-handlers.js:98`) tiene `<th>X</th><th>Y</th>` fijos.
-  `labelX/labelY` (`onchange="updateChartConfig()"`) no re-renderiza la tabla.
-  Que los encabezados reflejen `Etiqueta (unidad ± error)` y que
-  `updateChartConfig()` dispare `renderSeries()` (como ya hace `updateAxisUnit`).
-- [ ] 🟡 **C4 — Falta foco en la fila nueva.**
-  El botón "+ Agregar Fila" (`addRow` wrapper, `ui-handlers.js:437`) solo
-  re-renderiza. Enfocar y seleccionar el input X de la fila recién creada (como ya
-  hace el `Enter` en `handleKeyDown`). Extraer "focus a fila N" a un helper y reusarlo.
+- [x] 🟡 **C2 — "Limpiar" no resetea la Configuración de Gráfica.**
+  ✅ `clearAllData()` reinicia todo el panel vía `resetChartConfigPanel()` (nuevo
+  export en `chart_config.js`). El botón "Limpiar" por serie se deja como está
+  a propósito: resetear la config global al limpiar una serie de varias sería
+  incorrecto. La confirmación destructiva de "Limpiar Todo" ya cubre el "preguntar antes".
+- [x] 🟡 **C3 — Cambiar etiquetas de ejes no actualiza el cuadro de datos.**
+  ✅ Nuevo helper `axisHeaderLabel(serie, axis)` en `ui-handlers.js`; `renderTable()`
+  reescribe los `<th>` con `Etiqueta (unidad ± error)` y `updateChartConfig()`
+  dispara `renderSeries()`.
+- [x] 🟡 **C4 — Falta foco en la fila nueva.**
+  ✅ Helper `focusCell(serieId, rowIndex, colIndex)` extraído; lo reusan el wrapper
+  `addRow` y la rama `Enter` de `handleKeyDown`.
 - [ ] ⚪ **C5 — `alert()` / `confirm()` bloqueantes** para validaciones y
   confirmaciones destructivas. Migrar a modales no bloqueantes y estilables.
 - [ ] ⚪ **C6 — Sin *focus trap* en los modales** (salvo ayuda de unidades).
@@ -121,10 +122,8 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 
 ## F. Tests
 
-- [ ] 🟡 **F1 — `npm test` no corre.** `package.json` → cambiar a
-  `"test": "node --test test/*.test.js"` (el `node --test test/` falla en Node ≥ 22/24
-  con `Cannot find module '.../test'`). Ya está en la allowlist de
-  `.claude/settings.json` como si anduviera. Los 95 tests pasan con el glob.
+- [x] 🟡 **F1 — `npm test` no corre.** ✅ `package.json` ahora usa
+  `"test": "node --test test/*.test.js"`. Los 95 tests pasan (`npm test`).
 - [ ] 🟡 **F2 — Cobertura faltante:** `calculateDerivative/Integral` exponencial (A1),
   `linearRegression` con cajas solapadas (A2), `sanitizeImportedSeries` con entradas
   hostiles.
@@ -162,9 +161,9 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 
 ## Orden sugerido de ataque
 
-1. **F1** (test runner) — base para todo lo demás.
-2. **C1 + C3 + C4 + C2** — bugs de UI ya identificados, alto impacto y acotados.
-3. **A1** (exponencial) + **F2**.
+1. ~~**F1** (test runner) — base para todo lo demás.~~ ✅
+2. ~~**C1 + C3 + C4 + C2** — bugs de UI ya identificados, alto impacto y acotados.~~ ✅
+3. **A1** (exponencial) + **F2**.  ← siguiente
 4. **B1 + B2** — encuadre / escala; necesita sesión de reproducción en navegador.
 5. **A2, A3**.
 6. **E2 → E1** — refactor de eventos + CSP.

@@ -11,6 +11,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **SEO**: `meta description`, Open Graph, Twitter Card, `<link rel="canonical">`, `robots.txt` y `sitemap.xml` para mejorar la indexación en buscadores.
 - **Imagen de vista previa** (`assets/og-image.png`) para que el link se vea bien al compartirlo (WhatsApp, Twitter, etc.).
 
+### Corregido
+- **Tests**: `npm test` volvió a funcionar (`node --test test/*.test.js`); el patrón anterior fallaba en Node ≥ 22.
+- **"Limpiar Todo"**: ahora suelta el zoom y los límites manuales de los ejes; antes la gráfica quedaba pegada a la vista anterior con los datos ya vacíos.
+- **"Limpiar Todo"**: también reinicia el panel de Configuración de Gráfica (título, etiquetas, unidades, prefijos, ± error, límites y checkboxes) a sus valores por defecto.
+- Los encabezados del cuadro de datos reflejan la etiqueta, unidad e incertidumbre de cada eje (`Etiqueta (unidad ± error)`) y se actualizan al cambiar la configuración.
+- **"+ Agregar Fila"**: enfoca y selecciona la celda X de la fila recién creada, igual que ya hacía la tecla Enter.
+
 ## [1.5.0] - 2026-08-06
 
 ### Añadido
