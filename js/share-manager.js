@@ -37,6 +37,8 @@ export function generateShareURL() {
             yLabel: document.getElementById('labelY')?.value || 'Y',
             xUnit: document.getElementById('unitX')?.value || '',
             yUnit: document.getElementById('unitY')?.value || '',
+            xPrefix: document.getElementById('prefixX')?.value || '',   // R6
+            yPrefix: document.getElementById('prefixY')?.value || '',   // R6
             xMin: document.getElementById('minX')?.value || '',
             xMax: document.getElementById('maxX')?.value || '',
             yMin: document.getElementById('minY')?.value || '',
@@ -85,15 +87,25 @@ export function loadFromURL() {
 
         // Cargar configuración
         if (state.config) {
-            if (state.config.title) document.getElementById('chartTitle').value = state.config.title;
-            if (state.config.xLabel) document.getElementById('labelX').value = state.config.xLabel;
-            if (state.config.yLabel) document.getElementById('labelY').value = state.config.yLabel;
-            if (state.config.xUnit) document.getElementById('unitX').value = state.config.xUnit;
-            if (state.config.yUnit) document.getElementById('unitY').value = state.config.yUnit;
-            if (state.config.xMin) document.getElementById('minX').value = state.config.xMin;
-            if (state.config.xMax) document.getElementById('maxX').value = state.config.xMax;
-            if (state.config.yMin) document.getElementById('minY').value = state.config.yMin;
-            if (state.config.yMax) document.getElementById('maxY').value = state.config.yMax;
+            const setVal = (id, v) => { if (v !== undefined && v !== null) document.getElementById(id).value = v; };
+            setVal('chartTitle', state.config.title);
+            setVal('labelX', state.config.xLabel);
+            setVal('labelY', state.config.yLabel);
+            setVal('unitX', state.config.xUnit);
+            setVal('unitY', state.config.yUnit);
+            setVal('prefixX', state.config.xPrefix);   // R6
+            setVal('prefixY', state.config.yPrefix);   // R6
+            setVal('minX', state.config.xMin);
+            setVal('maxX', state.config.xMax);
+            setVal('minY', state.config.yMin);
+            setVal('maxY', state.config.yMax);
+
+            // R6: reconstruir serie.units desde los selects, para que el título del eje
+            // (usa prefix+unidad) y los headers de la tabla (usan serie.units) coincidan.
+            import('./ui-handlers.js').then(m => {
+                m.updateAxisUnit('x', state.config.xUnit || '');
+                m.updateAxisUnit('y', state.config.yUnit || '');
+            });
 
             updateChartConfig();
         }
