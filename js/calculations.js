@@ -141,9 +141,14 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
     let fitFunc = null;
     let uncertainty = null;
     let uncertaintyWarning = null; // 'overlap' = cajas de error en X solapadas (A2)
+    // A5: coeficientes crudos del ajuste (misma forma que getRegressionCoeffs).
+    // Se devuelven para que chart-manager los reuse en tangente/área sin recalcular
+    // la regresión en cada refresco (pan/zoom incluidos).
+    let coeffs = null;
 
     if (type === 'linear') {
         const result = linearRegression(data);
+        coeffs = result;
 
         if (!result) {
             equation = '⚠️ No se puede calcular un ajuste lineal: todos los valores de X son iguales (línea vertical).';
@@ -184,7 +189,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
         }
     }
     else if (type === 'poly2') {
-        const coeffs = polynomialRegression(xs, ys, 2);
+        coeffs = polynomialRegression(xs, ys, 2);
         if (!coeffs) {
             equation = '⚠️ Se necesitan al menos 3 valores de X distintos para un ajuste cuadrático.';
         } else {
@@ -194,7 +199,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
         }
     }
     else if (type === 'poly3') {
-        const coeffs = polynomialRegression(xs, ys, 3);
+        coeffs = polynomialRegression(xs, ys, 3);
         if (!coeffs) {
             equation = '⚠️ Se necesitan al menos 4 valores de X distintos para un ajuste cúbico.';
         } else {
@@ -205,6 +210,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
     }
     else if (type === 'exponential') {
         const result = exponentialRegression(xs, ys);
+        coeffs = result;
         if (!result) {
             equation = '⚠️ El ajuste exponencial requiere que todos los valores de Y sean positivos.';
         } else {
@@ -215,6 +221,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
     }
     else if (type === 'logarithmic') {
         const result = logarithmicRegression(xs, ys);
+        coeffs = result;
         if (!result) {
             equation = '⚠️ El ajuste logarítmico requiere que todos los valores de X sean positivos.';
         } else {
@@ -225,6 +232,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
     }
     else if (type === 'power') {
         const result = powerRegression(xs, ys);
+        coeffs = result;
         if (!result) {
             equation = '⚠️ El ajuste potencial requiere que todos los valores de X e Y sean positivos.';
         } else {
@@ -287,5 +295,5 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
         }
     }
 
-    return { equation, r2, points, uncertainty, uncertaintyWarning, maxSlopePoints, minSlopePoints };
+    return { equation, r2, points, coeffs, uncertainty, uncertaintyWarning, maxSlopePoints, minSlopePoints };
 }

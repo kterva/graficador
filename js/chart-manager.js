@@ -10,7 +10,7 @@
 
 import { AppState } from './state.js';
 import { errorBarsPlugin, bullseyePointsPlugin } from './chart-plugins.js';
-import { calculateFit, calculateDerivative, calculateIntegral, getRegressionCoeffs } from './calculations.js';
+import { calculateFit, calculateDerivative, calculateIntegral } from './calculations.js';
 import { extractUnit, formatWithUncertainty, parseDecimal, formatNumber } from './utils.js';
 
 // Los plugins se registran en initChart() (no en la evaluación del módulo): así este
@@ -535,8 +535,10 @@ export function updateChart(animationMode) {
             if (eqDiv) {
                 eqDiv.style.display = 'block';
 
-                // Visualización de herramientas de cálculo
-                const coeffs = getRegressionCoeffs(validData, serie.fitType);
+                // Visualización de herramientas de cálculo.
+                // A5: reutilizar los coeficientes que ya calculó calculateFit()
+                // en lugar de rehacer la regresión en cada refresco (pan/zoom incluidos).
+                const coeffs = fit.coeffs;
 
                 // 1. TANGENTE (DERIVADA)
                 if (AppState.tools.showTangent && coeffs) {
