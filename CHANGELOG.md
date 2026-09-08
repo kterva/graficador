@@ -7,9 +7,15 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Sin publicar]
 
+## [1.6.0] - 2026-09-08
+
+Pasada de auditoría completa del código: bugs de cálculo y de UI, endurecimiento de
+seguridad (CSP estricta + delegación de eventos), unificación de utilidades y CI.
+
 ### Añadido
 - **SEO**: `meta description`, Open Graph, Twitter Card, `<link rel="canonical">`, `robots.txt` y `sitemap.xml` para mejorar la indexación en buscadores.
 - **Imagen de vista previa** (`assets/og-image.png`) para que el link se vea bien al compartirlo (WhatsApp, Twitter, etc.).
+- **CI**: workflow de GitHub Actions (`.github/workflows/tests.yml`) que corre los 107 tests en cada push a `main`/`develop` y en cada PR.
 
 ### Corregido
 - **Tests**: `npm test` volvió a funcionar (`node --test test/*.test.js`); el patrón anterior fallaba en Node ≥ 22.
@@ -34,7 +40,6 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Efectos de hover que estaban como JS inline (`onmouseover="this.style…"`) migrados a reglas CSS.
 
 ### Interno
-- **CI**: workflow de GitHub Actions que corre los tests en cada push a `main` y en los PR.
 - El análisis dimensional queda rotulado como **experimental** en la UI (chip en el modal, aclaración en el menú y nota sobre las limitaciones del parser). Además, las expresiones que el parser no entiende (paréntesis, `+`/`-`, magnitudes desconocidas) ahora fallan con un mensaje claro en vez de devolver una dimensión parcial engañosa.
 - Tangente y área reutilizan los coeficientes que ya calculó el ajuste, en vez de repetir la regresión en cada refresco.
 - Quitado el cache-buster manual (`js/main.js?v=…`): sólo versionaba el módulo principal y había que actualizarlo a mano cada release.
@@ -43,6 +48,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Notificaciones flotantes centralizadas en un único módulo (`notifications.js`); se eliminaron 4 implementaciones duplicadas.
 - Los plugins de Chart.js se registran en `initChart()` (no al evaluar el módulo), lo que permite importar la lógica de gráfica en Node.
 - `units.js` marcado como reservado; limpieza de código comentado y notas de proceso.
+- Cobertura de tests ampliada de 95 a 107 (derivada/integral exponencial, cajas de error solapadas, `sanitizeImportedSeries` con entradas hostiles, `parseExpression`).
+- `.claude/settings.json` sacado del control de versiones (config local, ahora en `.gitignore`).
 
 ## [1.5.0] - 2026-08-06
 

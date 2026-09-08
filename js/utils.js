@@ -21,7 +21,7 @@ export const COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#
  * ya no lleva `?v=` (ver comentario ahí).
  * @type {string}
  */
-export const APP_VERSION = '1.5.0';
+export const APP_VERSION = '1.6.0';
 
 /**
  * Versión del formato de los archivos de proyecto (.json) y de las URLs

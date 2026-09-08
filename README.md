@@ -2,7 +2,7 @@
 
 Aplicación web interactiva para análisis de datos experimentales con ajustes de regresión, propagación de incertidumbre y etiquetado de unidades. Ideal para estudiantes, científicos e ingenieros.
 
-![Version](https://img.shields.io/badge/version-1.5.0-blue)
+![Version](https://img.shields.io/badge/version-1.6.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## ✨ Características
@@ -84,7 +84,7 @@ Simplemente abre `index.html` en tu navegador moderno (Chrome, Firefox, Edge, Sa
 **Opción A: Manual**
 1. Click en **"+ Nueva Serie"**
 2. Ingresar datos en la tabla
-3. Opcionalmente agregar errores (Δx, Δy)
+3. Opcionalmente, la incertidumbre (Δx, Δy) se ingresa una vez por eje en "Configuración de Gráfica"
 4. Usar `Enter` para agregar filas rápidamente
 
 **Opción B: Importar CSV**
@@ -107,8 +107,8 @@ Simplemente abre `index.html` en tu navegador moderno (Chrome, Firefox, Edge, Sa
 
 1. Abrir **"⚙️ Configuración de Gráfica"**
 2. Establecer etiquetas: "Tiempo", "Posición", etc.
-3. Seleccionar unidades: segundos (s), metros (m), etc.
-4. Los datos se convierten automáticamente
+3. Seleccionar unidades: segundos (s), metros (m), etc. (con prefijos SI opcionales)
+4. Las etiquetas de los ejes se actualizan; los datos numéricos **no** se convierten
 
 ### 4️⃣ Análisis Avanzado
 
@@ -267,6 +267,14 @@ sumas/restas ni precedencia de paréntesis.
 - 🧪 Agregar tests
 
 ## 📝 Changelog
+
+> Detalle completo en [`CHANGELOG.md`](CHANGELOG.md).
+
+### v1.6.0 (2026-09-08)
+- ✅ Pasada de auditoría: bugs de cálculo (tangente/área exponencial, Δm con cajas solapadas) y de UI (limpiar todo, encuadre, headers de tabla)
+- ✅ Seguridad: CSP estricta (sin `script-src 'unsafe-inline'`) + delegación de eventos
+- ✅ CI (GitHub Actions), 107 tests
+- ✅ Análisis dimensional rotulado como experimental
 
 ### v1.5.0 (2026-08-06)
 - ✅ Ecuación y R² incluidos en exportaciones (PDF, JPG, CSV)
