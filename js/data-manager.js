@@ -10,7 +10,7 @@
  */
 
 import { AppState, getNextColor, findSerieById } from './state.js';
-import { parseDecimal, normalizeDecimalInput, formatNumber, sanitizeCSVField } from './utils.js';
+import { parseDecimal, formatNumber, sanitizeCSVField, parseTabular } from './utils.js';
 
 /**
  * Agrega una nueva serie de datos
@@ -185,36 +185,12 @@ export function importCSVFile(serieId, file, callback) {
 
     const reader = new FileReader();
     reader.onload = function (e) {
-        const text = e.target.result;
-        const lines = text.split('\n');
-
-        // Clear existing data
-        serie.data = [];
-
-        lines.forEach((line, index) => {
-            const cleanLine = line.trim();
-            if (!cleanLine) return;
-
-            // Skip header if it contains letters
-            if (index === 0 && /[a-zA-Z]/.test(cleanLine)) return;
-
-            const parts = cleanLine.split(',');
-            // Si tiene 2 columnas separadas por coma, puede ser X,Y o "1,5","2,3" (coma decimal)
-            // Detectar si la línea usa punto y coma como separador de columnas
-            const partsSemicolon = cleanLine.split(';');
-            const usedParts = partsSemicolon.length >= 2 ? partsSemicolon : parts.length >= 2 ? parts : null;
-            if (usedParts && usedParts.length >= 2) {
-                serie.data.push({
-                    x: normalizeDecimalInput(usedParts[0]),
-                    y: normalizeDecimalInput(usedParts[1])
-                });
-            }
-        });
-
+        // R2: mismo parser que el pegado desde Excel/Sheets (detecta separador,
+        // salta cabecera por si la primera celda no es número, valida cada celda).
+        serie.data = parseTabular(e.target.result);
         if (serie.data.length === 0) {
             serie.data.push({ x: '', y: '' });
         }
-
         if (callback) callback(true);
     };
     reader.readAsText(file);

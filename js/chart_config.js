@@ -5,7 +5,7 @@
 
 import { AppState } from './state.js';
 import { linearRegression } from './regression.js';
-import { escapeHTML, parseDecimal, formatNumber } from './utils.js';
+import { escapeHTML, parseDecimal, formatNumber, numericPoints } from './utils.js';
 
 export function toggleConfigPanel() {
     const content = document.getElementById('config-panel-content');
@@ -223,7 +223,7 @@ export function showIntersection() {
     }
 
     // Obtener los ajustes de las primeras dos series con ajuste lineal
-    const linearSeries = series.filter(s => s.fitType === 'linear' && s.data.filter(p => p.x !== '' && p.y !== '').length >= 2);
+    const linearSeries = series.filter(s => s.fitType === 'linear' && numericPoints(s).length >= 2);
 
     if (linearSeries.length < 2) {
         content.innerHTML = '<p style="color: #e67e22;">⚠️ Necesitas al menos 2 series con ajuste lineal para calcular la intersección.</p>';
@@ -235,8 +235,8 @@ export function showIntersection() {
     const s1 = linearSeries[0];
     const s2 = linearSeries[1];
 
-    const data1 = s1.data.filter(p => p.x !== '' && p.y !== '').map(p => ({ x: parseDecimal(p.x), y: parseDecimal(p.y) }));
-    const data2 = s2.data.filter(p => p.x !== '' && p.y !== '').map(p => ({ x: parseDecimal(p.x), y: parseDecimal(p.y) }));
+    const data1 = numericPoints(s1);
+    const data2 = numericPoints(s2);
 
     // Regresión lineal simple: y = ax + b (misma implementación que el resto de la app)
     const r1 = linearRegression(data1);

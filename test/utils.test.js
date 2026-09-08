@@ -6,7 +6,9 @@ import {
     calculateR2,
     parseDecimal,
     normalizeDecimalInput,
-    formatNumber
+    formatNumber,
+    numericPoints,
+    parseTabular
 } from '../js/utils.js';
 
 test('extractUnit: pulls the content between parentheses', () => {
@@ -87,4 +89,38 @@ test('formatNumber: renders with comma as decimal separator', () => {
 test('formatNumber: integers and negatives round-trip correctly', () => {
     assert.equal(formatNumber(-2.5, 1), '-2,5');
     assert.equal(formatNumber(10), '10');
+});
+
+test('numericPoints: drops empty and non-numeric cells, parses the rest (R1)', () => {
+    const serie = { data: [
+        { x: '1', y: '2' },
+        { x: 'abc', y: 'xyz' },   // basura → descartada
+        { x: '3', y: '' },        // y vacío → descartada
+        { x: 3, y: 4 },
+        { x: '5,5', y: '6,6' }    // coma decimal
+    ] };
+    assert.deepEqual(numericPoints(serie), [
+        { x: 1, y: 2 }, { x: 3, y: 4 }, { x: 5.5, y: 6.6 }
+    ]);
+});
+
+test('numericPoints: Infinity / NaN strings are excluded', () => {
+    const serie = { data: [{ x: 'Infinity', y: '1' }, { x: '1', y: 'NaN' }, { x: '2', y: '2' }] };
+    assert.deepEqual(numericPoints(serie), [{ x: 2, y: 2 }]);
+});
+
+test('parseTabular: tab-separated with header row (Excel/Sheets)', () => {
+    assert.deepEqual(parseTabular('X\tY\n1\t2\n3\t4'), [{ x: 1, y: 2 }, { x: 3, y: 4 }]);
+});
+
+test('parseTabular: semicolon + comma decimal (es-UY CSV)', () => {
+    assert.deepEqual(parseTabular('1,5;2,5\n3,5;4,5'), [{ x: 1.5, y: 2.5 }, { x: 3.5, y: 4.5 }]);
+});
+
+test('parseTabular: scientific notation on the first row is NOT mistaken for a header (R2)', () => {
+    assert.deepEqual(parseTabular('1e3,2e3\n2e3,4e3'), [{ x: 1000, y: 2000 }, { x: 2000, y: 4000 }]);
+});
+
+test('parseTabular: non-numeric cells become empty strings, fully empty rows dropped', () => {
+    assert.deepEqual(parseTabular('1,foo\n,,\n2,3'), [{ x: 1, y: '' }, { x: 2, y: 3 }]);
 });

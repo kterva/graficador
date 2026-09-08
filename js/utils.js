@@ -184,6 +184,46 @@ export function normalizeDecimalInput(value) {
 }
 
 /**
+ * Único punto de verdad para "qué puntos de una serie sirven para calcular/graficar".
+ * Descarta celdas vacías y no-numéricas (ej. "abc", que antes se colaban como `NaN`
+ * y envenenaban las regresiones y las exportaciones — ver R1). Devuelve los puntos
+ * ya parseados a número.
+ *
+ * @param {{data: Array<{x:(string|number), y:(string|number)}>}} serie
+ * @returns {Array<{x:number, y:number}>}
+ */
+export function numericPoints(serie) {
+    return serie.data
+        .filter(p => Number.isFinite(parseDecimal(p.x)) && Number.isFinite(parseDecimal(p.y)))
+        .map(p => ({ x: parseDecimal(p.x), y: parseDecimal(p.y) }));
+}
+
+/**
+ * Parsea texto tabular (pegado desde Excel/Sheets, o un archivo CSV) a filas
+ * `{x, y}`. Único parser para los dos caminos de import (R2). Detecta el separador
+ * (tab · `;` · `,`), salta la cabecera si la primera celda no es un número, y deja
+ * cada celda como número o `''` (nunca un string no numérico que rompa los cálculos).
+ *
+ * @param {string} text
+ * @returns {Array<{x:(number|''), y:(number|'')}>}
+ */
+export function parseTabular(text) {
+    const rows = String(text).split(/\r?\n/).filter(r => r.trim() !== '');
+    if (rows.length === 0) return [];
+
+    // tab = Excel/Sheets · ';' = CSV con coma decimal (es-UY) · ',' = CSV con punto decimal
+    const sep = rows[0].includes('\t') ? '\t' : (rows[0].split(';').length >= 2 ? ';' : ',');
+    const parsed = rows.map(r => r.split(sep).map(v => v.trim()));
+
+    const startIdx = Number.isFinite(parseDecimal(parsed[0][0])) ? 0 : 1;
+    const toCell = (v) => (v !== undefined && Number.isFinite(parseDecimal(v))) ? parseDecimal(v) : '';
+
+    return parsed.slice(startIdx)
+        .map(cols => ({ x: toCell(cols[0]), y: toCell(cols[1]) }))
+        .filter(p => p.x !== '' || p.y !== '');
+}
+
+/**
  * Muestra un aviso flotante debajo del input cuando el usuario tipea punto
  * en lugar de coma como separador decimal.
  *

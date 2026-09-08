@@ -11,7 +11,7 @@
 import { AppState } from './state.js';
 import { errorBarsPlugin, bullseyePointsPlugin } from './chart-plugins.js';
 import { calculateFit, calculateDerivative, calculateIntegral } from './calculations.js';
-import { extractUnit, formatWithUncertainty, parseDecimal, formatNumber } from './utils.js';
+import { extractUnit, formatWithUncertainty, parseDecimal, formatNumber, numericPoints } from './utils.js';
 
 // Los plugins se registran en initChart() (no en la evaluación del módulo): así este
 // módulo se puede importar en Node —p.ej. desde los tests o export_manager— sin que
@@ -387,13 +387,12 @@ export function updateChart(animationMode) {
     const extrapolateNeg = document.getElementById('extrapolateNegInfinity')?.checked ?? false;
     const extrapolatePos = document.getElementById('extrapolatePosInfinity')?.checked ?? false;
 
+    const xErr = parseDecimal(AppState.config.defaultXError || 0) || 0;
+    const yErr = parseDecimal(AppState.config.defaultYError || 0) || 0;
+
     AppState.series.forEach(serie => {
-        const validData = serie.data.filter(p => p.x !== '' && p.y !== '').map(p => ({
-            x: parseDecimal(p.x),
-            y: parseDecimal(p.y),
-            xError: parseDecimal(AppState.config.defaultXError || 0),
-            yError: parseDecimal(AppState.config.defaultYError || 0)
-        }));
+        // R1: numericPoints descarta celdas no numéricas ("abc") que envenenaban los ajustes.
+        const validData = numericPoints(serie).map(p => ({ ...p, xError: xErr, yError: yErr }));
 
         if (validData.length === 0) return;
 

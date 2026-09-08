@@ -3,7 +3,7 @@
 // ============================================
 
 import { AppState } from './state.js';
-import { parseDecimal, formatNumber, sanitizeCSVField } from './utils.js';
+import { parseDecimal, formatNumber, sanitizeCSVField, numericPoints } from './utils.js';
 
 // Re-exportado por compatibilidad: la implementación vive ahora en utils.js y la
 // comparten este módulo y data-manager.js (export CSV por serie).
@@ -99,7 +99,7 @@ export async function downloadChartJPG() {
             if (index > 0) yPos += 20; // Espacio entre series 
 
             // Detectar constancia usando la incertidumbre de columna configurada para los ejes
-            const validData = serie.data.filter(p => p.x !== '');
+            const validData = numericPoints(serie); // R1
             const firstXErr = parseFloat(AppState.config.defaultXError || 0);
             const firstYErr = parseFloat(AppState.config.defaultYError || 0);
 
@@ -242,7 +242,7 @@ export async function downloadChartPDF() {
         const tableWidth = pageWidth * 0.35;
 
         AppState.series.forEach(serie => {
-            const validData = serie.data.filter(p => p.x !== '');
+            const validData = numericPoints(serie); // R1
             const firstXErr = parseFloat(AppState.config.defaultXError || 0);
             const firstYErr = parseFloat(AppState.config.defaultYError || 0);
 
@@ -365,7 +365,7 @@ export async function downloadAllCSV() {
     let csv = `# ${sanitizeCSVField(title)}\n`;
 
     series.forEach((serie, idx) => {
-        const validPoints = serie.data.filter(p => p.x !== '' && p.y !== '');
+        const validPoints = numericPoints(serie); // R1
         if (validPoints.length === 0) return;
 
         if (idx > 0) csv += '\n';

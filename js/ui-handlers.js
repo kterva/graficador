@@ -12,7 +12,7 @@ import { AppState } from './state.js';
 import { addSerie as addSerieData, removeSerie as removeSerieData, addRow as addRowData, removeRow as removeRowData, updatePoint as updatePointData, updateSerieColor as updateSerieColorData, updateFitType as updateFitTypeData, clearTable as clearTableData, exportCSV as exportCSVData, importCSVFile } from './data-manager.js';
 import { updateChart, getDataRange, resetZoom } from './chart-manager.js';
 import { propagateUncertainty, formatPropagationResult, validateAllInputs, formatWarnings } from './uncertainty-propagation.js';
-import { showDecimalWarning, normalizeDecimalInput, escapeHTML, parseDecimal, formatNumber } from './utils.js';
+import { showDecimalWarning, normalizeDecimalInput, escapeHTML, parseDecimal, formatNumber, parseTabular } from './utils.js';
 import { showNotification } from './notifications.js';
 import { confirmDialog, activateModal, deactivateModal } from './modal.js';
 
@@ -1110,30 +1110,13 @@ export function handleTablePaste(event, serieId) {
     const text = event.clipboardData?.getData('text');
     if (!text) return;
 
-    const rows = text.split(/\r?\n/).filter(r => r.trim() !== '');
-    if (rows.length === 0) return;
-
-    // Detectar separador: tab (Excel/Sheets), punto y coma (CSV con coma decimal,
-    // formato uruguayo) o coma (CSV con punto decimal)
-    const sep = rows[0].includes('\t') ? '\t' : (rows[0].split(';').length >= 2 ? ';' : ',');
-    const parsed = rows.map(r => r.split(sep).map(v => v.trim()));
-
-    // Saltar cabecera si la primera celda no es numérica (acepta coma o punto decimal)
-    const startIdx = isNaN(parseDecimal(parsed[0][0])) ? 1 : 0;
-    const dataRows = parsed.slice(startIdx);
-    if (dataRows.length === 0) return;
-
     const serie = AppState.series.find(s => s.id === serieId);
     if (!serie) return;
 
-    serie.data = dataRows.map(cols => {
-        const toNum = (v) => (v !== undefined && v !== '' && !isNaN(parseDecimal(v))) ? parseDecimal(v) : '';
-        return { x: toNum(cols[0]), y: toNum(cols[1]) };
-    });
-
-    if (serie.data.length === 0) {
-        serie.data = [{ x: '', y: '' }];
-    }
+    // R2: parser compartido con la importación de CSV (js/utils.js)
+    const points = parseTabular(text);
+    if (points.length === 0) return;
+    serie.data = points;
 
     // Prevenir el pegado nativo del navegador DESPUES de leer los datos
     event.preventDefault();
