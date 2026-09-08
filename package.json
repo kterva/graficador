@@ -5,6 +5,6 @@
   "type": "module",
   "description": "Graficador científico - análisis de datos experimentales con ajustes de regresión, incertidumbre y unidades",
   "scripts": {
-    "test": "node --test test/"
+    "test": "node --test test/*.test.js"
   }
 }
