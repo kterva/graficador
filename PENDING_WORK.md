@@ -2,17 +2,15 @@
 
 > Documento de traspaso para retomar el trabajo en otra máquina / nueva sesión.
 > Última actualización: 2026-09-08. Base: commit `cec00ce`, versión 1.5.0.
-> Hechos: **F1**, **C1–C4**, **A1–A5**, **B1**, **B2**, **E3**, **F2**, **F3**, **D1**,
-> **D2**, **G1**, **G2**, **G3**, **G4**, **G5**, **G6**, **H1**, **H2**.
-> Parciales: **E1**, **E2** (CSP puesta, falta migrar los ~90+23 manejadores `on*=`
-> a delegación para poder quitar `script-src 'unsafe-inline'`).
-> **Único ítem que queda: terminar E2 → endurecer E1.** Conviene como PR revisado
-> con una pasada de test manual completa de la UI (toca cada botón/input/modal, va a
-> producción), no en commits directos a `main`.
-> Nota: `.github/workflows/tests.yml` está en disco pero SIN commitear — el push de
-> archivos en `.github/workflows/` necesita un token con scope `workflow`
-> (`gh auth refresh -s workflow` no lo está agregando; probable restricción de OAuth
-> App de la org — alternativa: subirlo por la web de GitHub o con un PAT clásico).
+> **TODOS los ítems del backlog cerrados** (F1, C1–C4, A1–A5, B1, B2, E1, E2, E3,
+> F2, F3, D1, D2, G1–G6, H1, H2).
+> **E1 + E2** (delegación de eventos + CSP estricta) van en la rama
+> `refactor/event-delegation-csp` como PR — probados a mano en el navegador pero
+> conviene revisión antes de mergear a `main` (tocan cada botón/input/modal).
+> Nota: `.github/workflows/tests.yml` (F3) está en disco pero SIN commitear — el push
+> de archivos en `.github/workflows/` necesita un token con scope `workflow`
+> (`gh auth refresh -s workflow` no lo está agregando — alternativa: subirlo por la
+> web de GitHub o con un PAT clásico).
 
 ## Cómo retomar
 
@@ -123,43 +121,33 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 
 ## E. Seguridad
 
-- [~] 🟡 **E1 — Sin CSP.** ✅ *Parcial:* agregado `<meta http-equiv="Content-Security-Policy">`
-  en `index.html`. Fija los orígenes de script (los 4 CDN de cdnjs + `'self'`),
-  `connect-src 'self' blob:` (bloquea exfiltración), `object-src/base-uri/
-  form-action/frame-ancestors` cerrados. **Todavía incluye `script-src
-  'unsafe-inline'`** porque quedan ~90 manejadores `on*=` en el HTML + 23
-  generados en JS → falta E2 para poder quitarlo. Verificado en navegador: la app
-  carga y funciona (chart, export PDF/CSV/proyecto, share, `?data=`, tour, modales)
-  sin violaciones de CSP.
-- [~] 🟡 **E2 — ~55 funciones en `window` + `onclick` inline.**
-  ✅ *Parcial:* eliminados los 2 `<script>` inline de `index.html` (flag
-  `IS_DEVELOPMENT` → `body[data-development]` leído en `main.js`; carga condicional
-  de `dev-tools.js` movida a `main.js`).
-  ⏳ **Falta el grueso (hacerlo como PR revisado, no a `main` directo):**
-
-  Migrar ~90 `on*=` de `index.html` + estos generados en JS a delegación de eventos,
-  y recién ahí quitar `script-src 'unsafe-inline'` de la CSP:
-    - `ui-handlers.js` `renderSeries()` / `renderTable()`: color, tipo de ajuste,
-      importar/exportar/limpiar CSV, `handleFileSelect`, `addRow`, `handleTablePaste`
-      (¡evento `paste`!), `updatePoint`, `handleKeyDown`, `handleDecimalInput`,
-      `moveRowUp/Down`, `removeRow`.
-    - `chart-manager.js:738`: `toggleHelp(serie.id, fitType)` en el display de ecuación.
-    - `share-manager.js:183,187`: `copyShareURLAgain`, `closeShareModal` (modal share).
-    - `keyboard-shortcuts.js:151`: botón cerrar del modal de atajos (JS inline).
-    - `tour-guide.js:374`: `handleTourButton('${btn.action}')`.
-    - 8 `onmouseover/onmouseout="this.style…"` en `index.html` → mover a CSS `:hover`.
-    - El compuesto de `index.html:389` (`...open=true; toggleGenericHelp(...); preventDefault()`)
-      → función dedicada.
-    - `alert('Plantillas próximamente...')` → función real (toast).
-
-  Diseño sugerido: `js/events.js` con `registerActions({name: (event, el) => …})` +
-  `initEventDelegation()` que pone un listener delegado en `document` por tipo
-  (`click/change/input/keydown/paste/submit`) y despacha por `data-on-<tipo>="nombre"`
-  (soporta varias acciones separadas por espacio). Params por `data-*` (`data-axis`,
-  `data-serie`, `data-row`, `data-tab`, …). Los `window.*` pueden quedar (no son el
-  problema de CSP) o migrarse en el mismo PR. Tests: pasada manual de toda la UI
-  (toolbar, panel de config, unidades, tangente/área, propagación, dimensional,
-  datos de prueba, ayuda, share, presentación, tour, menú móvil, tabla por serie).
+- [x] 🟡 **E1 — Sin CSP.** ✅ `<meta http-equiv="Content-Security-Policy">` en
+  `index.html`, **sin `script-src 'unsafe-inline'`** (ya no hay `<script>` ni `on*=`
+  inline). `script-src 'self' https://cdnjs.cloudflare.com`; `style-src` mantiene
+  `'unsafe-inline'` (cientos de `style=` + `<style>` inyectados, impacto mucho menor);
+  `connect-src 'self' blob:`; `object-src/base-uri/form-action/frame-ancestors`
+  cerrados. Verificado en navegador: la app entera funciona sin violaciones de CSP.
+- [x] 🟡 **E2 — ~55 funciones en `window` + `onclick` inline.**
+  ✅ Migrados **todos** los manejadores inline a delegación de eventos:
+  `js/events.js` (`registerActions()` + `initEventDelegation()`, un listener
+  delegado en `document` por tipo `click/change/input/keydown/paste/submit`,
+  despacha por `data-on-<tipo>="nombre"` con soporte de varias acciones separadas
+  por espacio) + `js/actions.js` (registro de ~55 acciones `(event, el) => …` que
+  leen params de `data-*`).
+  - `index.html`: ~90 `on*=` → `data-on-*` + `data-axis/tab/test-type/help-id`.
+  - `ui-handlers.js` `renderSeries`/`renderTable`, `chart-manager.js` (botón de
+    ayuda), `share-manager.js`, `keyboard-shortcuts.js`, `tour-guide.js`: idem.
+  - 8 `onmouseover/onmouseout="this.style…"` → reglas CSS `:hover` en `styles.css`
+    (`#toolsMenu button:hover`, `.modal-close-x:hover`, `.btn-hover-scale:hover`).
+  - `document.getElementById('axis-limits-details').open=true; …` → acción
+    `openAxisLimitsHelp`.  ·  `alert('Plantillas…')` → toast `templatesComingSoon`.
+  Los `window.*` se **mantienen** (los usa el tour; no son problema de CSP).
+  Verificado a mano en navegador: data entry (change/input/keydown/Enter), add/remove
+  fila y serie, mover filas, pegar, tipo de ajuste, color, toda la toolbar, menú de
+  herramientas + compuestos, los 3 modales, panel de config (etiquetas/unidades/
+  prefijos/checkboxes/ayuda de límites), tangente, área, zoom, ayuda + pestañas,
+  presentación, menú móvil, intersección, export CSV/JPG, share, propagación de
+  errores, dimensional + Enter.
 - [x] ⚪ **E3 — Revisar `parseExpression`** (análisis dimensional) por robustez.
   ✅ Ya era seguro (try/catch, sin `eval`, no toca datos de red). Se cambió el
   fallo silencioso: tokens desconocidos, `+`/`-`, paréntesis, dos magnitudes sin
@@ -224,14 +212,18 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 4. ~~**A2, A3**.~~ ✅  (+ A4, H1, H2 docs)
 5. ~~**G1, G3, G5, G6, D1, D2, F3**~~ ✅
 6. ~~**B1 + B2** — encuadre / escala~~ ✅
-7. **E2 → E1** — CSP inicial puesta ✅; falta la migración de ~90+23 manejadores
-   `on*=` a delegación para quitar `script-src 'unsafe-inline'`. ← ÚNICO ítem que queda
+7. ~~**E2 → E1** — delegación de eventos + CSP estricta~~ ✅ (rama
+   `refactor/event-delegation-csp`, pendiente de merge/revisión).
+
+**Backlog completo.** Sólo queda mergear el PR de E1/E2 y commitear `tests.yml` (F3).
 
 ## Mapa rápido de archivos
 
 | Archivo | Responsabilidad |
 |---|---|
 | `js/state.js` | `AppState`, `sanitizeImportedSeries` |
+| `js/events.js` | Delegación de eventos: `registerActions` + `initEventDelegation` |
+| `js/actions.js` | Registro de acciones de UI (nombre → función) |
 | `js/data-manager.js` | CRUD de series/puntos, import/export CSV por serie |
 | `js/ui-handlers.js` | Render de series y tabla, eventos, modales, clear |
 | `js/chart-manager.js` | `initChart`, `updateChart`, zoom/pan, tangente/área |

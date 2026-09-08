@@ -29,8 +29,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Ayuda in-app del ajuste lineal, exponencial, logarítmico y potencial ampliada con esas notas.
 
 ### Seguridad
-- **Content-Security-Policy** (`<meta>`): fija los orígenes de script permitidos (cdnjs + el propio sitio), `connect-src 'self'` (evita exfiltración si se ejecutara JS inyectado), y cierra `object-src`, `base-uri`, `form-action` y `frame-ancestors`. Defensa en profundidad frente a XSS vía `innerHTML` + datos de `?data=`.
-- Eliminados los `<script>` inline de `index.html`: el flag de desarrollo pasa a `body[data-development]` y la carga de `dev-tools.js` a `main.js`.
+- **Content-Security-Policy** (`<meta>`) sin `script-src 'unsafe-inline'`: se eliminaron todos los `<script>` y manejadores `on*=` inline (pasan por una delegación de eventos central, `js/events.js` + `js/actions.js`). Un script inyectado —inline o desde otro host— queda bloqueado; sólo se permiten scripts propios y los 4 CDN de cdnjs (con SRI). `connect-src 'self'` evita exfiltración; `object-src`/`base-uri`/`form-action`/`frame-ancestors` cerrados.
+- El flag de desarrollo pasa a `body[data-development]` y la carga de `dev-tools.js` a `main.js`.
+- Efectos de hover que estaban como JS inline (`onmouseover="this.style…"`) migrados a reglas CSS.
 
 ### Interno
 - **CI**: workflow de GitHub Actions que corre los tests en cada push a `main` y en los PR.

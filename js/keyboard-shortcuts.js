@@ -62,7 +62,7 @@ function handleKeyboardShortcut(event) {
     // Ctrl/Cmd + E: Abrir menú de exportación
     if (!typing && (event.ctrlKey || event.metaKey) && event.key === 'e') {
         event.preventDefault();
-        const exportBtn = document.querySelector('[onclick*="exportCSV"]')?.closest('.btn-group');
+        const exportBtn = document.getElementById('export-section');
         if (exportBtn) {
             exportBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
             exportBtn.style.animation = 'pulse 0.5s';
@@ -148,8 +148,8 @@ function showKeyboardShortcutsHelp() {
                 </table>
             </div>
             
-            <button onclick="document.getElementById('keyboardShortcutsModal').remove()" 
-                style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            <button data-on-click="closeKeyboardShortcutsModal"
+                style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">
                 Cerrar
             </button>

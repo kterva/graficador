@@ -729,3 +729,25 @@ select {
 #myChart:active {
     cursor: grabbing;
 }
+
+/* ============================================
+   Hover states migrados desde onmouseover/onmouseout inline (E2, para CSP).
+   ============================================ */
+
+/* Items del menú de Herramientas */
+#toolsMenu button:hover {
+    background: #f8f9fa;
+}
+
+/* Botón circular "×" de cierre en cabeceras de modal (fondo translúcido) */
+.modal-close-x:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Botones de acción grandes que hacían scale al hover */
+.btn-hover-scale {
+    transition: transform 0.2s;
+}
+.btn-hover-scale:hover {
+    transform: scale(1.02);
+}

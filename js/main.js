@@ -78,6 +78,8 @@ import {
     downloadChartPDF,
     downloadAllCSV
 } from './export_manager.js';
+import { initEventDelegation, registerActions } from './events.js';
+import { ACTIONS } from './actions.js';
 
 // ============================================
 // EXPONER FUNCIONES AL SCOPE GLOBAL
@@ -162,6 +164,12 @@ window.AppState = AppState;
 // window.IS_DEVELOPMENT por compatibilidad con el código que lo consulta.
 const IS_DEVELOPMENT = document.body?.dataset.development === 'true';
 window.IS_DEVELOPMENT = IS_DEVELOPMENT;
+
+// Delegación de eventos: reemplaza los `on*=` inline del HTML (ver events.js /
+// actions.js). Se registra antes del primer render para que la tabla y las
+// series ya nazcan "conectadas".
+registerActions(ACTIONS);
+initEventDelegation();
 
 document.addEventListener('DOMContentLoaded', () => {
     initChart();
