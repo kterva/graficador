@@ -21,6 +21,7 @@ import { togglePresentationMode } from './presentation-mode.js';
 import { copyShareURL, closeShareModal, copyShareURLAgain } from './share-manager.js';
 import { startTour } from './tour-guide.js';
 import { showNotification } from './notifications.js';
+import { deactivateModal } from './modal.js';
 import {
     addSerie, removeSerie, addRow, removeRow, updatePoint, updateSerieColor,
     updateFitType, exportCSV, importCSV, clearTable, handleKeyDown, handleFileSelect,
@@ -65,7 +66,10 @@ export const ACTIONS = {
     toggleHelpModal: () => toggleHelpModal(),
     switchHelpTab: (e, el) => switchHelpTab(el.dataset.tab),
     tourButton: (e, el) => window.handleTourButton?.(el.dataset.tourAction),
-    closeKeyboardShortcutsModal: () => document.getElementById('keyboardShortcutsModal')?.remove(),
+    closeKeyboardShortcutsModal: () => {
+        const m = document.getElementById('keyboardShortcutsModal');
+        if (m) { deactivateModal(m); m.remove(); }
+    },
 
     // --- Series (panel izquierdo) ---
     addSerie: () => addSerie(),

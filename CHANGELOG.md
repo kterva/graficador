@@ -7,6 +7,10 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Sin publicar]
 
+### Cambiado
+- **Modales**: los `alert()` / `confirm()` nativos del navegador (que congelaban toda la página y no se podían estilar) se reemplazaron por notificaciones y un diálogo de confirmación propios (`js/modal.js`). Afecta a "Limpiar" / "Limpiar Todo", cargar proyecto, y las validaciones de Propagación de Errores y Análisis Dimensional.
+- **Accesibilidad**: todos los modales (ayuda, propagación, dimensional, datos de prueba, compartir, atajos, ayuda de unidades) ahora atrapan el foco de teclado mientras están abiertos, se cierran con `Escape`, y devuelven el foco al control que los abrió al cerrarse (WCAG 2.1.2 / 2.4.3).
+
 ## [1.6.0] - 2026-09-08
 
 Pasada de auditoría completa del código: bugs de cálculo y de UI, endurecimiento de

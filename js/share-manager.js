@@ -14,6 +14,7 @@ import { updateChart } from './chart-manager.js';
 import { updateChartConfig } from './chart_config.js';
 import { PROJECT_FILE_FORMAT_VERSION } from './utils.js';
 import { showNotification } from './notifications.js';
+import { activateModal, deactivateModal } from './modal.js';
 
 /**
  * Genera una URL compartible con el estado actual
@@ -205,6 +206,7 @@ function showShareModal(url) {
     // Actualizar URL en el modal
     document.getElementById('shareURLText').textContent = url;
     modal.style.display = 'flex';
+    activateModal(modal, closeShareModal); // C6: focus trap + Escape
 }
 
 /**
@@ -213,6 +215,7 @@ function showShareModal(url) {
 export function closeShareModal() {
     const modal = document.getElementById('shareModal');
     if (modal) {
+        deactivateModal(modal);
         modal.style.display = 'none';
     }
 }

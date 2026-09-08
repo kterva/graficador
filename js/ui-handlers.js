@@ -14,6 +14,7 @@ import { updateChart, getDataRange, resetZoom } from './chart-manager.js';
 import { propagateUncertainty, formatPropagationResult, validateAllInputs, formatWarnings } from './uncertainty-propagation.js';
 import { showDecimalWarning, normalizeDecimalInput, escapeHTML, parseDecimal, formatNumber } from './utils.js';
 import { showNotification } from './notifications.js';
+import { confirmDialog, activateModal, deactivateModal } from './modal.js';
 
 // Debounce para updateChart: evita recalcular en cada tecla mientras se escribe un número
 let _chartUpdateTimer = null;
@@ -429,7 +430,9 @@ export function toggleHelpModal() {
     if (modal.style.display === 'none' || modal.style.display === '') {
         modal.style.display = 'block';
         document.body.style.overflow = 'hidden';
+        activateModal(modal, toggleHelpModal); // C6: focus trap + Escape
     } else {
+        deactivateModal(modal);
         modal.style.display = 'none';
         document.body.style.overflow = 'auto';
     }
@@ -564,35 +567,42 @@ export function importCSV(serieId) {
 /**
  * Limpia la tabla (wrapper para exponer)
  */
-export function clearTable(serieId) {
-    if (confirm('¿Estás seguro de que quieres borrar todos los datos de esta serie?')) {
-        clearTableData(serieId);
-        renderTable(serieId);
-        updateChart();
-    }
+export async function clearTable(serieId) {
+    const ok = await confirmDialog({
+        message: '¿Borrar todos los datos de esta serie?',
+        confirmText: 'Borrar', danger: true
+    });
+    if (!ok) return;
+    clearTableData(serieId);
+    renderTable(serieId);
+    updateChart();
 }
 
 /**
  * Borra TODOS los datos de TODAS las series y reinicia el proyecto
  */
-export function clearAllData() {
-    if (confirm('⚠️ DESTRUCTIVO: ¿Estás seguro de que quieres BORRAR TODO el proyecto? \nSe perderán todas las series y configuraciones.')) {
-        AppState.series = [];
-        AppState.nextId = 1;
+export async function clearAllData() {
+    const ok = await confirmDialog({
+        message: '⚠️ Esto BORRA todo el proyecto.\nSe pierden todas las series y la configuración.',
+        confirmText: 'Borrar todo', danger: true
+    });
+    if (!ok) return;
 
-        // Agregar una serie vacía por defecto para que el usuario no quede en el limbo
-        addSerieData(); // Esta función ya existe en este módulo y usa AppState.
+    AppState.series = [];
+    AppState.nextId = 1;
 
-        renderSeries();
-        updateChart();
-        import('./chart_config.js').then(mod => {
-            // C2: devolver el panel de Configuración de Gráfica a sus valores por defecto
-            mod.resetChartConfigPanel();
-            // C1: soltar el zoom/límites previos; con datos vacíos la vista quedaba
-            // pegada a los límites anteriores
-            resetZoom();
-        });
-    }
+    // Agregar una serie vacía por defecto para que el usuario no quede en el limbo
+    addSerieData(); // Esta función ya existe en este módulo y usa AppState.
+
+    renderSeries();
+    updateChart();
+    import('./chart_config.js').then(mod => {
+        // C2: devolver el panel de Configuración de Gráfica a sus valores por defecto
+        mod.resetChartConfigPanel();
+        // C1: soltar el zoom/límites previos; con datos vacíos la vista quedaba
+        // pegada a los límites anteriores
+        resetZoom();
+    });
 }
 
 // ============================================
@@ -620,17 +630,17 @@ export function calculateErrorPropagation() {
 
     // Validar inputs
     if (isNaN(valueA) || isNaN(deltaA) || isNaN(valueB) || isNaN(deltaB)) {
-        alert('Por favor, ingresa todos los valores numéricos');
+        showNotification('Ingresá todos los valores numéricos', 'error');
         return;
     }
 
     if (deltaA < 0 || deltaB < 0) {
-        alert('Los errores deben ser valores positivos');
+        showNotification('Los errores deben ser valores positivos', 'error');
         return;
     }
 
     if (operation === 'quotient' && valueB === 0) {
-        alert('No se puede dividir por cero');
+        showNotification('No se puede dividir por cero', 'error');
         return;
     }
 
@@ -654,7 +664,7 @@ export function calculateErrorPropagation() {
         resultDiv.innerHTML = html;
         resultDiv.style.display = 'block';
     } catch (error) {
-        alert('Error en el cálculo: ' + error.message);
+        showNotification('Error en el cálculo: ' + error.message, 'error');
     }
 }
 
@@ -743,7 +753,7 @@ export function updateAxisUnit(axis, newUnit) {
         console.log(`Unidad del eje ${axis.toUpperCase()} cambiada a ${combinedUnit} (etiqueta actualizada).`);
     }).catch(error => {
         console.error('Error al cargar módulo de unidades:', error);
-        alert('Error al convertir unidades');
+        showNotification('Error al actualizar la unidad', 'error');
     });
 }
 
@@ -821,6 +831,7 @@ export function showUnitHelp() {
     document.getElementById('closeUnitHelp').onclick = closeUnitHelp;
     document.getElementById('closeUnitHelpBtn').onclick = closeUnitHelp;
     modal.onclick = (e) => { if (e.target === modal) closeUnitHelp(); };
+    activateModal(modal, closeUnitHelp); // C6
 }
 
 /**
@@ -829,6 +840,7 @@ export function showUnitHelp() {
 export function closeUnitHelp() {
     const modal = document.getElementById('unitHelpModal');
     if (modal && document.body.contains(modal)) {
+        deactivateModal(modal);
         document.body.removeChild(modal);
     }
 }
@@ -879,6 +891,7 @@ export function openErrorPropagationModal() {
     const modal = document.getElementById('errorPropagationModal');
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
+    activateModal(modal, closeErrorPropagationModal); // C6
 
     // Cerrar el menú de herramientas
     const menu = document.getElementById('toolsMenu');
@@ -890,6 +903,7 @@ export function openErrorPropagationModal() {
  */
 export function closeErrorPropagationModal() {
     const modal = document.getElementById('errorPropagationModal');
+    deactivateModal(modal);
     modal.style.display = 'none';
     document.body.style.overflow = 'auto';
 
@@ -909,6 +923,7 @@ export function openDimensionalAnalysisModal() {
     const modal = document.getElementById('dimensionalAnalysisModal');
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
+    activateModal(modal, closeDimensionalAnalysisModal); // C6
 
     // Cerrar el menú de herramientas
     const menu = document.getElementById('toolsMenu');
@@ -926,6 +941,7 @@ export function openDimensionalAnalysisModal() {
  */
 export function closeDimensionalAnalysisModal() {
     const modal = document.getElementById('dimensionalAnalysisModal');
+    deactivateModal(modal);
     modal.style.display = 'none';
     document.body.style.overflow = 'auto';
 
@@ -940,8 +956,12 @@ export function closeDimensionalAnalysisModal() {
  */
 export function openTestDataModal() {
     const modal = document.getElementById('testDataModal');
-    if (modal) modal.style.display = 'block';
-    
+    if (modal) {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        activateModal(modal, closeTestDataModal); // C6
+    }
+
     // Cerrar el menú de herramientas
     const menu = document.getElementById('toolsMenu');
     if (menu) menu.style.display = 'none';
@@ -952,7 +972,11 @@ export function openTestDataModal() {
  */
 export function closeTestDataModal() {
     const modal = document.getElementById('testDataModal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        deactivateModal(modal);
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
 }
 
 /**
@@ -991,7 +1015,7 @@ export function analyzeDimension() {
     const expression = document.getElementById('dimExpression').value.trim();
 
     if (!expression) {
-        alert('Por favor, ingresa una expresión');
+        showNotification('Ingresá una expresión', 'error');
         return;
     }
 
@@ -1003,7 +1027,7 @@ export function analyzeDimension() {
             const dimension = parseExpression(expression);
 
             if (!dimension) {
-                alert('No se pudo analizar la expresión. Verifica la sintaxis.');
+                showNotification('No se pudo analizar la expresión. Revisá la sintaxis (sólo *, /, ^).', 'error');
                 return;
             }
 
@@ -1027,7 +1051,7 @@ export function analyzeDimension() {
             resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } catch (error) {
             console.error('Error al analizar dimensión:', error);
-            alert('Error al analizar la expresión: ' + error.message);
+            showNotification('Error al analizar la expresión: ' + error.message, 'error');
         }
     }).catch(err => console.error("Error cargando units.js", err));
 }

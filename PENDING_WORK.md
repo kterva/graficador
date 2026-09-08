@@ -6,9 +6,8 @@
 > **Pasada de auditoría completa: cerrados** F1, C1–C4, A1–A5, B1, B2, E1, E2, E3,
 > F2, F3, D1, D2, G1–G6, H1, H2 (todo en `main` y `develop`, con CI en verde).
 >
-> **Quedan abiertos (⚪ baja, no se tocaron):**
-> - **C5** — migrar `alert()`/`confirm()` a modales no bloqueantes y estilables.
-> - **C6** — *focus trap* + retorno de foco en los modales (salvo el de ayuda de unidades).
+> **Backlog COMPLETO.** (C5 y C6 cerrados: `alert()`/`confirm()` → modales propios
+> `js/modal.js`; focus trap + Escape + retorno de foco en todos los modales.)
 >
 > Flujo de ramas: trabajar en `develop`, mergear a `main` (fast-forward) cuando quede bien.
 
@@ -20,7 +19,7 @@
 4. Servir localmente: `python3 -m http.server 8000` y abrir `http://localhost:8000`.
    ⚠️ Chrome cachea agresivo los módulos ES sin `Cache-Control`; para ver cambios,
    servir en un puerto nuevo cada vez (hard-reload no alcanza).
-5. Trabajar en `develop`. Quedan C5 y C6 (ver arriba); si no, ver "Orden sugerido de ataque".
+5. Trabajar en `develop`. El backlog de la auditoría está completo; ver "Orden sugerido de ataque" para ideas nuevas.
 
 ## Estado / contexto
 
@@ -103,10 +102,13 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 - [x] 🟡 **C4 — Falta foco en la fila nueva.**
   ✅ Helper `focusCell(serieId, rowIndex, colIndex)` extraído; lo reusan el wrapper
   `addRow` y la rama `Enter` de `handleKeyDown`.
-- [ ] ⚪ **C5 — `alert()` / `confirm()` bloqueantes** para validaciones y
-  confirmaciones destructivas. Migrar a modales no bloqueantes y estilables.
-- [ ] ⚪ **C6 — Sin *focus trap* en los modales** (salvo ayuda de unidades).
-  Añadir trampa de foco + retorno de foco al cerrar.
+- [x] ⚪ **C5 — `alert()` / `confirm()` bloqueantes.** ✅ `js/modal.js`:
+  `confirmDialog()` (Promise, estilable, no bloquea) reemplaza los `confirm()`;
+  los `alert()` informativos pasan al toast (`showNotification`).
+- [x] ⚪ **C6 — Sin *focus trap* en los modales.** ✅ `trapFocus()` +
+  `activateModal()/deactivateModal()` en `js/modal.js`, cableado en todos los
+  modales (ayuda, propagación, dimensional, datos de prueba, compartir, atajos,
+  ayuda de unidades): atrapan Tab, cierran con Escape, devuelven el foco al abrir.
 
 ## D. Exportación
 

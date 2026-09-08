@@ -7,6 +7,8 @@ import { renderSeries } from './ui-handlers.js';
 import { updateChart } from './chart-manager.js';
 import { updateChartConfig } from './chart_config.js';
 import { PROJECT_FILE_FORMAT_VERSION } from './utils.js';
+import { showNotification } from './notifications.js';
+import { confirmDialog } from './modal.js';
 
 /**
  * Exporta el estado actual del proyecto a un archivo JSON
@@ -55,7 +57,7 @@ export function importProject(input) {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = function (e) {
+    reader.onload = async function (e) {
         try {
             const projectData = JSON.parse(e.target.result);
 
@@ -66,7 +68,11 @@ export function importProject(input) {
 
             // Confirmar si hay datos existentes
             if (AppState.series.length > 0) {
-                if (!confirm("Cargar un proyecto reemplazará todos los datos actuales. ¿Desea continuar?")) {
+                const ok = await confirmDialog({
+                    message: 'Cargar un proyecto reemplaza todos los datos actuales. ¿Continuar?',
+                    confirmText: 'Cargar', danger: true
+                });
+                if (!ok) {
                     fileInput.value = '';
                     return;
                 }
@@ -95,12 +101,10 @@ export function importProject(input) {
             renderSeries();
             updateChart();
 
-            // Notificar éxito
-            // alert("Proyecto cargado exitosamente"); 
-
+            showNotification('✓ Proyecto cargado', 'success');
         } catch (error) {
             console.error("Error al importar proyecto:", error);
-            alert("Error al cargar el proyecto: " + error.message);
+            showNotification('Error al cargar el proyecto: ' + error.message, 'error');
         }
         fileInput.value = ''; // Reset input para permitir cargar el mismo archivo de nuevo
     };

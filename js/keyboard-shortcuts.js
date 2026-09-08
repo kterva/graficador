@@ -12,6 +12,7 @@
 // desde main.js que las expone en window
 
 import { showNotification } from './notifications.js';
+import { activateModal, deactivateModal } from './modal.js';
 
 const showShortcutNotification = (message) => showNotification(`⌨️ ${message}`, 'info', 2000);
 
@@ -158,23 +159,19 @@ function showKeyboardShortcutsHelp() {
 
     document.body.appendChild(modal);
 
-    // Cerrar al hacer click fuera
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
+    const close = () => { deactivateModal(modal); modal.remove(); };
+    modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+    activateModal(modal, close); // C6: focus trap + Escape
 }
 
 /**
  * Cierra todos los modales abiertos
  */
 function closeAllModals() {
-    // Cerrar modal de propagación de errores
+    // Cerrar modal de propagación de errores (vía su función, para liberar el focus trap)
     const errorModal = document.getElementById('errorPropagationModal');
-    if (errorModal && errorModal.style.display !== 'none') {
-        errorModal.style.display = 'none';
-        document.body.style.overflow = 'auto';
+    if (errorModal && errorModal.style.display !== 'none' && typeof window.closeErrorPropagationModal === 'function') {
+        window.closeErrorPropagationModal();
     }
 
     // Cerrar modal de ayuda (toggleHelpModal alterna, así que solo lo llamamos si está abierto)
