@@ -1,6 +1,6 @@
 # 📊 Graficador Científico
 
-Aplicación web interactiva para análisis de datos experimentales con ajustes de regresión, propagación de incertidumbre y conversión de unidades. Ideal para estudiantes, científicos e ingenieros.
+Aplicación web interactiva para análisis de datos experimentales con ajustes de regresión, propagación de incertidumbre y etiquetado de unidades. Ideal para estudiantes, científicos e ingenieros.
 
 ![Version](https://img.shields.io/badge/version-1.5.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -17,8 +17,8 @@ Aplicación web interactiva para análisis de datos experimentales con ajustes d
   - Logarítmico (y = a·ln(x) + b)
   - Potencial (y = ax^b)
 - **Cálculo automático de R²** y ecuaciones
-- **Barras de error** (Δx, Δy) con visualización
-- **Análisis de incertidumbre** en pendientes (método de pendiente máxima/mínima)
+- **Barras de error** (Δx, Δy) — se ingresan **una vez por eje** ("Incertidumbre de columna"), no por fila
+- **Análisis de incertidumbre** en pendientes (método de pendiente máxima/mínima; ver *Limitaciones*)
 
 ### 🧮 Cálculos Físicos Especializados
 - **Propagación de incertidumbre:**
@@ -27,11 +27,10 @@ Aplicación web interactiva para análisis de datos experimentales con ajustes d
   - Producto (P = A × B)
   - Cociente (C = A / B)
   - Validación educativa de cifras significativas
-- **Sistema de unidades completo:**
-  - Unidades básicas: longitud, masa, tiempo, temperatura
-  - Unidades derivadas: velocidad, aceleración, fuerza, energía
-  - Conversión automática entre unidades
-  - Etiquetas de ejes con formato "Label (unit)"
+- **Sistema de unidades:**
+  - Catálogo de unidades básicas y derivadas + prefijos SI (mili, kilo, …)
+  - Etiquetas de ejes con formato "Etiqueta (unidad)"
+  - Nota: la app **no** convierte los datos numéricos al cambiar de unidad (decisión de diseño); sólo actualiza las etiquetas
 - **Cálculos con unidades:**
   - Derivada muestra unidades correctas (ej: m/s para velocidad)
   - Integral muestra unidades correctas (ej: m·s)
@@ -195,6 +194,31 @@ B = 2.0 ± 0.1
 Resultado:
 P = 21 ± 2
 ```
+
+## 📐 Notas metodológicas y limitaciones
+
+### Incertidumbre de la pendiente (método de máx/mín)
+Se estima con el **método de los extremos**: se toman los puntos con menor y mayor X,
+se trazan la recta más empinada y la más plana que pasan por sus cajas de error
+(`x ± Δx`, `y ± Δy` de la incertidumbre de columna) y se reporta
+`Δm = (m_max − m_min) / 2` (ídem para `Δb`).
+
+Limitaciones:
+- Sólo usa los **dos puntos extremos**, no todo el conjunto.
+- Si las cajas de error en X de los extremos **se solapan**
+  (`x_n − Δx ≤ x_1 + Δx`), el método no aplica: la app no reporta `Δm` y avisa.
+- Requiere al menos un `Δx` o `Δy` distinto de cero.
+
+### Regresiones no lineales
+`exponencial`, `logarítmica` y `potencial` se ajustan por **mínimos cuadrados sobre
+los datos linealizados** (`ln y`, `ln x`), **sin ponderar**. Eso sesga el ajuste
+hacia los valores más chicos. El **R² sí se calcula en el espacio original** de los
+datos, así que es comparable con el de los ajustes polinómicos.
+
+### Análisis dimensional
+El analizador de expresiones (`🧰 Herramientas → Análisis Dimensional`) es
+**experimental**: soporta productos, cocientes y potencias de magnitudes, pero no
+sumas/restas ni precedencia de paréntesis.
 
 ## 🎓 Casos de Uso Educativos
 

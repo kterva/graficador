@@ -36,6 +36,11 @@ export function calculateDerivative(x, coeffs, type) {
         // y = ax³+bx²+cx+d  →  y' = 3ax²+2bx+c
         // coeffs = [a, b, c, d] (mayor grado primero)
         return 3 * coeffs[0] * x * x + 2 * coeffs[1] * x + coeffs[2];
+    } else if (type === 'exponential') {
+        // y = a·e^(bx)  →  y' = a·b·e^(bx)
+        // Si b ≈ 0 la curva es casi constante (y ≈ a) y su derivada es 0.
+        if (Math.abs(coeffs.b) < 1e-12) return 0;
+        return coeffs.a * coeffs.b * Math.exp(coeffs.b * x);
     } else if (type === 'logarithmic') {
         // y = a·ln(x)+b  →  y' = a/x (indefinida para x <= 0, no cero)
         if (x <= 0) return NaN;
@@ -67,6 +72,12 @@ export function calculateIntegral(x1, x2, coeffs, type) {
     } else if (type === 'poly3') {
         // y = ax³+bx²+cx+d  →  ∫y = (a/4)x⁴+(b/3)x³+(c/2)x²+dx
         const F = (x) => (coeffs[0] / 4) * Math.pow(x, 4) + (coeffs[1] / 3) * Math.pow(x, 3) + (coeffs[2] / 2) * x * x + coeffs[3] * x;
+        return F(x2) - F(x1);
+    } else if (type === 'exponential') {
+        // y = a·e^(bx)  →  ∫y = (a/b)·e^(bx)   (b ≠ 0)
+        // Si b ≈ 0 la curva es casi constante (y ≈ a) y ∫ ≈ a·(x2 - x1).
+        if (Math.abs(coeffs.b) < 1e-12) return coeffs.a * (x2 - x1);
+        const F = (x) => (coeffs.a / coeffs.b) * Math.exp(coeffs.b * x);
         return F(x2) - F(x1);
     } else if (type === 'logarithmic') {
         // y = a·ln(x)+b  →  ∫y = a·(x·ln(x)-x)+b·x
@@ -129,6 +140,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
     let r2 = null; // null = sin ajuste calculado (evita mostrar "R² = 0.0000" en un fallo)
     let fitFunc = null;
     let uncertainty = null;
+    let uncertaintyWarning = null; // 'overlap' = cajas de error en X solapadas (A2)
 
     if (type === 'linear') {
         const result = linearRegression(data);
@@ -168,6 +180,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
             r2 = result.r2;
             fitFunc = x => a * x + b;
             uncertainty = result.uncertainty;
+            uncertaintyWarning = result.uncertaintyWarning || null;
         }
     }
     else if (type === 'poly2') {
@@ -274,5 +287,5 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
         }
     }
 
-    return { equation, r2, points, uncertainty, maxSlopePoints, minSlopePoints };
+    return { equation, r2, points, uncertainty, uncertaintyWarning, maxSlopePoints, minSlopePoints };
 }

@@ -2,7 +2,8 @@
 
 > Documento de traspaso para retomar el trabajo en otra máquina / nueva sesión.
 > Última actualización: 2026-09-08. Base: commit `cec00ce`, versión 1.5.0.
-> Hechos: **F1**, **C1**, **C2**, **C3**, **C4**. Siguiente: **A1 + F2**.
+> Hechos: **F1**, **C1–C4**, **A1**, **A2**, **A3**, **A4**, **F2**, **H1**, **H2**.
+> Siguiente: **B1 + B2** (encuadre/escala, requiere repro en navegador).
 
 ## Cómo retomar
 
@@ -32,30 +33,23 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 
 ## A. Cálculo y gráfica
 
-- [ ] 🔴 **A1 — Tangente y Área rotas en ajuste exponencial.**
-  `calculateDerivative()` y `calculateIntegral()` (`js/calculations.js`) no tienen
-  rama `exponential` → devuelven `undefined` → el panel muestra `NaN` y la recta
-  tangente no se dibuja. El punto de tangencia sí aparece (rama exponencial
-  explícita en `chart-manager.js:509`), lo que confunde.
-  Agregar `y' = a·b·e^(bx)` y `∫ = (a/b)·e^(bx)` (con guarda `b≈0`) + tests.
-- [ ] 🟡 **A2 — Δm basura cuando las cajas de error se solapan.**
-  `regression.js` (`linearRegression`, método pendiente máx/mín): si `xError` es
-  grande vs. la separación en X, `xn_inner - x1_inner ≤ 0` → `mMax/mMin`
-  negativos o infinitos. Hay guarda `isFinite()` para **dibujar** las líneas pero
-  no para el `± Δm` que se muestra en la ecuación y en "Análisis de Pendiente".
-  Validar `xn_inner > x1_inner`; si no se cumple, no reportar incertidumbre y
-  avisar que las cajas de error se solapan.
-- [ ] 🟡 **A3 — Errores por punto se descartan silenciosamente.**
-  `chart-manager.js:344` siempre pisa `xError/yError` de cada punto con
-  `AppState.config.defaultXError/Y` (incertidumbre de columna). `sanitizeImportedSeries`
-  (state.js) todavía conserva los errores por punto y el README habla de "±X, ±Y"
-  por fila. Un proyecto/link viejo pierde esos datos sin aviso.
-  Decidir: soportar incertidumbre por punto, o limpiar de verdad (sanitizer +
-  formato de archivo + docs).
-- [ ] ⚪ **A4 — Regresiones no lineales sin ponderar.**
-  `exponential` / `logarithmic` / `power` hacen mínimos cuadrados sobre datos
-  linealizados con `log`, sin pesos (sesgo hacia valores chicos). El R² sí se
-  calcula en el espacio original (correcto). Documentarlo en la ayuda.
+- [x] 🔴 **A1 — Tangente y Área rotas en ajuste exponencial.**
+  ✅ Ramas `exponential` en `calculateDerivative` (`y' = a·b·e^(bx)`) y
+  `calculateIntegral` (`∫ = (a/b)·e^(bx)`, guarda `|b|<1e-12` → derivada 0 / área
+  `a·(x2−x1)`). Verificado en navegador (tangente y área numéricas, sin NaN) + tests F2.
+- [x] 🟡 **A2 — Δm basura cuando las cajas de error se solapan.**
+  ✅ `linearRegression` chequea `pn.x − Δxn > p1.x + Δx1`; si no, devuelve
+  `uncertainty: null` + `uncertaintyWarning: 'overlap'`. `calculateFit` lo propaga y
+  `chart-manager` muestra un aviso en lugar del `± Δm`/"Análisis de Pendiente" basura.
+  Reproducido y verificado en navegador. Tests en `regression.test.js`.
+- [x] 🟡 **A3 — Errores por punto se descartan silenciosamente.**
+  ✅ Decisión: **limpiar de verdad**. La incertidumbre es por columna (lo impone la
+  UI). `sanitizeImportedSeries` ahora descarta `xError/yError` por punto y a nivel
+  serie; el punto queda `{x, y}`. README/ayuda actualizados. Nadie consumía esos
+  campos (siempre se pisan con la incertidumbre de columna en `updateChart`).
+- [x] ⚪ **A4 — Regresiones no lineales sin ponderar.**
+  ✅ Documentado en la ayuda in-app (exp/log/potencial) y en README ("Notas
+  metodológicas y limitaciones").
 - [ ] ⚪ **A5 — Doble regresión por refresco.**
   `updateChart` llama `calculateFit()` y luego `getRegressionCoeffs()` por
   separado para cada serie en cada update (incluye pan/zoom). Reusar coeficientes.
@@ -124,9 +118,11 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 
 - [x] 🟡 **F1 — `npm test` no corre.** ✅ `package.json` ahora usa
   `"test": "node --test test/*.test.js"`. Los 95 tests pasan (`npm test`).
-- [ ] 🟡 **F2 — Cobertura faltante:** `calculateDerivative/Integral` exponencial (A1),
-  `linearRegression` con cajas solapadas (A2), `sanitizeImportedSeries` con entradas
-  hostiles.
+- [x] 🟡 **F2 — Cobertura faltante:** ✅ Tests agregados para `calculateDerivative/Integral`
+  exponencial (+ guarda `b≈0`), `linearRegression` con cajas solapadas / apenas
+  no solapadas, y `sanitizeImportedSeries` con entradas hostiles (ids no finitos,
+  strings tipo XSS, coords objeto, `__proto__`, drop de errores por punto).
+  95 → 105 tests.
 - [ ] ⚪ **F3 — Sin CI.** Workflow de GitHub Actions que corra los tests en cada push/PR.
 
 ## G. Calidad / deuda técnica
@@ -139,6 +135,8 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
   `parseExpression` (`dimensional-analysis.js`): sin precedencia, sin `+/-`, ignora
   los paréntesis que tokeniza, `^` solo funciona tras una magnitud. Mejorar el
   parser o rotular la feature como experimental en la UI.
+  ⏳ Parcial: documentado como "experimental" en README; falta rotularlo en la UI
+  del modal o mejorar el parser.
 - [ ] ⚪ **G3 — `chart-manager.js` registra plugins de `Chart` en la evaluación del
   módulo** → explota fuera del navegador (ya hay workaround con import dinámico en
   `export_manager.js`). Mover a `initChart()` con guarda idempotente.
@@ -152,10 +150,10 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 
 ## H. Documentación
 
-- [ ] ⚪ **H1 — README desactualizado:** habla de errores "±X, ±Y" por fila (hoy es
-  por columna) y de "conversión automática entre unidades" (deshabilitada).
-- [ ] ⚪ **H2 — Documentar el método de incertidumbre** (pendiente máx/mín por
-  extremos) y sus límites en la ayuda.
+- [x] ⚪ **H1 — README desactualizado:** ✅ corregido: errores por columna (no por fila),
+  y "sistema de unidades" ya no dice "conversión automática" (sólo etiquetas).
+- [x] ⚪ **H2 — Documentar el método de incertidumbre** ✅ ayuda in-app del ajuste
+  lineal ampliada + sección "Notas metodológicas y limitaciones" en README.
 
 ---
 
@@ -163,11 +161,11 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 
 1. ~~**F1** (test runner) — base para todo lo demás.~~ ✅
 2. ~~**C1 + C3 + C4 + C2** — bugs de UI ya identificados, alto impacto y acotados.~~ ✅
-3. **A1** (exponencial) + **F2**.  ← siguiente
-4. **B1 + B2** — encuadre / escala; necesita sesión de reproducción en navegador.
-5. **A2, A3**.
+3. ~~**A1** (exponencial) + **F2**.~~ ✅
+4. ~~**A2, A3**.~~ ✅  (+ A4, H1, H2 docs)
+5. **B1 + B2** — encuadre / escala; necesita sesión de reproducción en navegador. ← siguiente
 6. **E2 → E1** — refactor de eventos + CSP.
-7. **G1–G6, D1–D2**, docs.
+7. **G1–G6, D1–D2**, resto de docs.
 
 ## Mapa rápido de archivos
 
