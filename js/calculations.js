@@ -295,5 +295,8 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
         }
     }
 
-    return { equation, r2, points, coeffs, uncertainty, uncertaintyWarning, maxSlopePoints, minSlopePoints };
+    // R4: se devuelve `fitFunc` (la función de ajuste ya evaluable) para que
+    // chart-manager la reuse en la tangente y el área en vez de re-implementar
+    // el `switch` por tipo (que además divergía en las guardas de dominio).
+    return { equation, r2, points, coeffs, fitFunc, uncertainty, uncertaintyWarning, maxSlopePoints, minSlopePoints };
 }

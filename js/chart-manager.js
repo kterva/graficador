@@ -322,10 +322,11 @@ export function getDataRange() {
 
     if (AppState.chart && AppState.chart.data && AppState.chart.data.datasets) {
         AppState.chart.data.datasets.forEach(dataset => {
-            // Ignorar datasets generados (ajustes, tangentes, etc.)
-            if (dataset.label && (dataset.label.includes('Ajuste') || dataset.label.includes('Tangente') || dataset.label.includes('Área') || dataset.label.includes('Pendiente'))) {
-                return;
-            }
+            // R3: sólo cuenta el dataset con puntos reales del usuario. Antes se
+            // adivinaba por el texto del label (`includes('Tangente')`…), lo que
+            // dejaba pasar la línea de ajuste (label = nombre de serie) y sus
+            // puntos extrapolados, y excluía series con nombres como "Tangente 1".
+            if (!dataset._userData) return;
 
             if (dataset.data && dataset.data.length > 0) {
                 dataset.data.forEach(p => {
@@ -404,7 +405,8 @@ export function updateChart(animationMode) {
             showLine: false,
             pointRadius: 0,       // El plugin bullseyePoints dibuja los puntos visualmente
             pointHitRadius: 12,   // Área de detección de hover (invisible)
-            errorBars: true
+            errorBars: true,
+            _userData: true      // R3: el ÚNICO dataset con puntos reales del usuario
         });
 
         if (serie.fitType !== 'none' && validData.length >= 2) {
@@ -540,29 +542,23 @@ export function updateChart(animationMode) {
                 const coeffs = fit.coeffs;
 
                 // 1. TANGENTE (DERIVADA)
+                const tangentDisplay = document.getElementById('tangentDisplay');
                 if (AppState.tools.showTangent && coeffs) {
-                    const slope = calculateDerivative(AppState.tools.tangentX, coeffs, serie.fitType);
+                    const tx = AppState.tools.tangentX;
+                    const slope = calculateDerivative(tx, coeffs, serie.fitType);
+                    // R4: misma función de ajuste que usa calculateFit (sin re-switch por tipo)
+                    const y0 = fit.fitFunc ? fit.fitFunc(tx) : NaN;
 
+                    if (!Number.isFinite(slope) || !Number.isFinite(y0)) {
+                        // Fuera del dominio (ej. x ≤ 0 en logarítmico/potencial)
+                        if (tangentDisplay) {
+                            tangentDisplay.innerHTML = `<span style="color:#e67e22;">x = ${formatNumber(tx, 4)} está fuera del dominio de este ajuste.</span>`;
+                        }
+                    } else {
                     let minX = AppState.chart.scales.x ? AppState.chart.scales.x.min : validData[0].x;
                     let maxX = AppState.chart.scales.x ? AppState.chart.scales.x.max : validData[validData.length - 1].x;
                     const rangeX = maxX - minX;
                     const deltaX = rangeX * 0.15;
-
-                    let y0 = 0;
-                    if (serie.fitType === 'linear') {
-                        y0 = coeffs.a * AppState.tools.tangentX + coeffs.b;
-                    } else if (serie.fitType === 'poly2') {
-                        y0 = coeffs[0] * AppState.tools.tangentX * AppState.tools.tangentX + coeffs[1] * AppState.tools.tangentX + coeffs[2];
-                    } else if (serie.fitType === 'poly3') {
-                        const tx = AppState.tools.tangentX;
-                        y0 = coeffs[0] * tx * tx * tx + coeffs[1] * tx * tx + coeffs[2] * tx + coeffs[3];
-                    } else if (serie.fitType === 'exponential') {
-                        y0 = coeffs.a * Math.exp(coeffs.b * AppState.tools.tangentX);
-                    } else if (serie.fitType === 'logarithmic') {
-                        y0 = AppState.tools.tangentX > 0 ? coeffs.a * Math.log(AppState.tools.tangentX) + coeffs.b : 0;
-                    } else if (serie.fitType === 'power') {
-                        y0 = AppState.tools.tangentX > 0 ? coeffs.a * Math.pow(AppState.tools.tangentX, coeffs.b) : 0;
-                    }
 
                     // Clampear la tangente a los límites de los datos para evitar que el gráfico se estire
                     const dataXs = validData.map(p => p.x);
@@ -599,29 +595,18 @@ export function updateChart(animationMode) {
                         pointHoverRadius: 8
                     });
 
-                    const tangentDisplay = document.getElementById('tangentDisplay');
                     if (tangentDisplay) {
-                        // Extraer unidades de las etiquetas de los ejes
                         const xUnit = extractUnit(xLabel);
                         const yUnit = extractUnit(yLabel);
-
-                        // Construir unidad de la derivada (dy/dx = y/x)
-                        let derivativeUnit = '';
-                        if (yUnit && xUnit) {
-                            derivativeUnit = ` ${yUnit}/${xUnit}`;
-                        }
-
-                        // Formatear con cifras significativas
-                        const formattedX = formatNumber(AppState.tools.tangentX, 4);
-                        const formattedY = formatNumber(y0, 4);
-                        const formattedSlope = formatNumber(slope, 4);
+                        const derivativeUnit = (yUnit && xUnit) ? ` ${yUnit}/${xUnit}` : '';
 
                         tangentDisplay.innerHTML = `
-                            <strong>x = ${formattedX}${xUnit ? ' ' + xUnit : ''}</strong><br>
-                            y = ${formattedY}${yUnit ? ' ' + yUnit : ''}<br>
-                            <strong>Pendiente (dy/dx) = ${formattedSlope}${derivativeUnit}</strong>
+                            <strong>x = ${formatNumber(tx, 4)}${xUnit ? ' ' + xUnit : ''}</strong><br>
+                            y = ${formatNumber(y0, 4)}${yUnit ? ' ' + yUnit : ''}<br>
+                            <strong>Pendiente (dy/dx) = ${formatNumber(slope, 4)}${derivativeUnit}</strong>
                         `;
                     }
+                    } // fin else (tangente dentro del dominio)
                 }
 
                 // 2. ÁREA (INTEGRAL)
@@ -634,21 +619,9 @@ export function updateChart(animationMode) {
 
                     for (let i = 0; i <= steps; i++) {
                         const x = AppState.tools.areaX1 + i * stepSize;
-                        let y = 0;
-                        if (serie.fitType === 'linear') {
-                            y = coeffs.a * x + coeffs.b;
-                        } else if (serie.fitType === 'poly2') {
-                            y = coeffs[0] * x * x + coeffs[1] * x + coeffs[2];
-                        } else if (serie.fitType === 'poly3') {
-                            y = coeffs[0] * x * x * x + coeffs[1] * x * x + coeffs[2] * x + coeffs[3];
-                        } else if (serie.fitType === 'exponential') {
-                            y = coeffs.a * Math.exp(coeffs.b * x);
-                        } else if (serie.fitType === 'logarithmic') {
-                            y = x > 0 ? coeffs.a * Math.log(x) + coeffs.b : 0;
-                        } else if (serie.fitType === 'power') {
-                            y = x > 0 ? coeffs.a * Math.pow(x, coeffs.b) : 0;
-                        }
-                        areaPoints.push({ x, y });
+                        // R4: misma función de ajuste que la tangente y calculateFit
+                        const y = fit.fitFunc ? fit.fitFunc(x) : NaN;
+                        if (Number.isFinite(y)) areaPoints.push({ x, y });
                     }
 
                     datasets.push({
