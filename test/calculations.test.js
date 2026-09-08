@@ -127,6 +127,26 @@ test('calculateFit: linear equation with uncertainty keeps the sign fix inside t
     assert.ok(fit.uncertainty);
 });
 
+test('calculateFit: linear equation shows m/b with axis units even without uncertainty', () => {
+    const data = [0, 1, 2, 3].map(x => ({ x, y: 2 * x + 0.1, xError: 0, yError: 0 }));
+    const fit = calculateFit(data, 'linear', 'Tiempo (s)', 'Distancia (m)');
+    assert.match(fit.equation, /m = 2,0000 m\/s/);
+    assert.match(fit.equation, /b = 0,1000 m/);
+});
+
+test('calculateFit: linear equation without axis units keeps the plain single-line form', () => {
+    const data = [0, 1, 2, 3].map(x => ({ x, y: 2 * x, xError: 0, yError: 0 }));
+    const fit = calculateFit(data, 'linear', 'X', 'Y');
+    assert.doesNotMatch(fit.equation, /m = /);
+    assert.doesNotMatch(fit.equation, /<br>/);
+});
+
+test('calculateFit: non-linear equations carry a units note derived from axis labels', () => {
+    const data = [1, 2, 3, 4].map(x => ({ x, y: x * x, xError: 0, yError: 0 }));
+    const fit = calculateFit(data, 'poly2', 'Tiempo (s)', 'Distancia (m)');
+    assert.match(fit.equation, /\[y en m, x en s\]/);
+});
+
 test('calculateFit: sample points span the requested xRange', () => {
     const data = [0, 1, 2].map(x => ({ x, y: x, xError: 0, yError: 0 }));
     const fit = calculateFit(data, 'linear', 'X', 'Y', { min: -5, max: 5 });

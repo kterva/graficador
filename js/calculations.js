@@ -165,7 +165,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
             } else if (yUnit) {
                 slopeUnit = ` ${yUnit}`;
             }
-            let interceptUnit = yUnit ? ` ${yUnit}` : '';
+            const interceptUnit = yUnit ? ` ${yUnit}` : '';
 
             let eqStr = '';
             if (result.uncertainty) {
@@ -179,6 +179,15 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
                     </span>`;
             } else {
                 eqStr = `y = ${formatNumber(a, 4)}x + ${formatNumber(b, 4)}`;
+                // Aunque no haya incertidumbre, mostramos pendiente y ordenada con sus
+                // unidades físicas ([Y]/[X] y [Y]) para que la ecuación refleje las
+                // unidades de los ejes. Solo si alguna etiqueta trae unidad.
+                if (slopeUnit || interceptUnit) {
+                    eqStr += `<br><span style="font-size:0.9em; color:#666">
+                        m = ${formatNumber(a, 4)}${slopeUnit}<br>
+                        b = ${formatNumber(b, 4)}${interceptUnit}
+                    </span>`;
+                }
             }
 
             equation = eqStr;
@@ -245,6 +254,20 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
     // Limpiar "+ -" que aparece cuando un coeficiente negativo sigue a un "+" literal
     if (equation) {
         equation = equation.replace(/\+\s*-/g, '- ');
+    }
+
+    // Nota de unidades para los ajustes no lineales. Unidar coeficiente por
+    // coeficiente sería engañoso (p. ej. el coeficiente de x² tiene unidades
+    // [Y]/[X]²), así que solo aclaramos en qué unidades están x e y.
+    if (type !== 'linear' && fitFunc) {
+        const xU = extractUnit(xLabel);
+        const yU = extractUnit(yLabel);
+        if (xU || yU) {
+            const parts = [];
+            if (yU) parts.push(`y en ${yU}`);
+            if (xU) parts.push(`x en ${xU}`);
+            equation += `<br><span style="font-size:0.9em; color:#666">[${parts.join(', ')}]</span>`;
+        }
     }
 
     // Calculate range including errors to ensure lines cover the error boxes

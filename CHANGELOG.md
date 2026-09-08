@@ -7,6 +7,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Sin publicar]
 
+### Corregido
+- **La ecuación del ajuste ahora refleja las unidades de los ejes**: si los ejes tienen unidad (p. ej. "Tiempo (s)" / "Distancia (m)"), el ajuste lineal muestra siempre la pendiente y la ordenada con sus unidades físicas (`m = 2,0100 m/s`, `b = 0,0900 m`), no sólo cuando están activadas las líneas de incertidumbre. Los ajustes no lineales (cuadrático, cúbico, exponencial, logarítmico, potencial) llevan una nota `[y en m, x en s]`.
+
 ## [1.6.1] - 2026-09-08
 
 Diálogos y accesibilidad de los modales, y una segunda pasada de auditoría (R1–R13)
