@@ -735,7 +735,7 @@ export function updateChart(animationMode) {
 
                 eqDiv.innerHTML = `
                     <strong>Ecuación:</strong> ${fit.equation}
-                    <button class="help-btn" onclick="toggleHelp(${serie.id}, '${serie.fitType}')">i</button>
+                    <button class="help-btn" data-on-click="toggleHelp" data-serie="${serie.id}" data-fit-type="${serie.fitType}">i</button>
                     ${fit.r2 !== null ? `<br><strong>R² =</strong> ${formatNumber(fit.r2, 6)}` : ''}
                     ${uncertaintyHtml}
                     <div class="help-text" id="help-${serie.id}"></div>

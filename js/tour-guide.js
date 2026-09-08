@@ -370,9 +370,9 @@ function showStep(stepIndex) {
         </div>
         <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
             ${step.buttons.map(btn => `
-                <button 
-                    onclick="handleTourButton('${btn.action}')"
-                    style="padding: 10px 20px; background: ${btn.secondary ? '#95a5a6' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}; 
+                <button
+                    data-on-click="tourButton" data-tour-action="${btn.action}"
+                    style="padding: 10px 20px; background: ${btn.secondary ? '#95a5a6' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'};
                     color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
                     ${btn.text}
                 </button>

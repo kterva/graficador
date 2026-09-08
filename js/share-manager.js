@@ -180,11 +180,11 @@ function showShareModal(url) {
                 </div>
                 
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                    <button onclick="copyShareURLAgain()" 
+                    <button data-on-click="copyShareURLAgain"
                         style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
                         📋 Copiar de nuevo
                     </button>
-                    <button onclick="closeShareModal()" 
+                    <button data-on-click="closeShareModal"
                         style="padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
                         Cerrar
                     </button>

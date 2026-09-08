@@ -77,20 +77,20 @@ export function renderSeries() {
             <div class="serie-header">
                 <span class="serie-name">${escapeHTML(serie.name)}</span>
                 <div>
-                    <input type="file" id="file-${serie.id}" style="display:none" accept=".csv" onchange="handleFileSelect(${serie.id}, this)">
-                    <button class="btn btn-primary" style="padding: 2px 8px; font-size: 12px;" onclick="importCSV(${serie.id})">Importar CSV</button>
-                    <button class="btn btn-primary" style="padding: 2px 8px; font-size: 12px;" onclick="exportCSV(${serie.id})">Exportar CSV</button>
-                    <button class="btn btn-danger" style="padding: 2px 8px; font-size: 12px;" onclick="clearTable(${serie.id})">Limpiar</button>
-                    <button class="btn-remove-serie" onclick="removeSerie(${serie.id})">Eliminar</button>
+                    <input type="file" id="file-${serie.id}" style="display:none" accept=".csv" data-on-change="handleFileSelect" data-serie="${serie.id}">
+                    <button class="btn btn-primary" style="padding: 2px 8px; font-size: 12px;" data-on-click="importCSV" data-serie="${serie.id}">Importar CSV</button>
+                    <button class="btn btn-primary" style="padding: 2px 8px; font-size: 12px;" data-on-click="exportCSV" data-serie="${serie.id}">Exportar CSV</button>
+                    <button class="btn btn-danger" style="padding: 2px 8px; font-size: 12px;" data-on-click="clearTable" data-serie="${serie.id}">Limpiar</button>
+                    <button class="btn-remove-serie" data-on-click="removeSerie" data-serie="${serie.id}">Eliminar</button>
                 </div>
             </div>
-            
+
             <label>Color:</label>
             <input type="color" class="color-input" value="${escapeHTML(serie.color)}"
-                   onchange="updateSerieColor(${serie.id}, this.value)">
-            
+                   data-on-change="updateSerieColor" data-serie="${serie.id}">
+
             <label style="display:block; margin-top:10px;">Tipo de Ajuste:</label>
-            <select id="fit-type-${serie.id}" onchange="updateFitType(${serie.id}, this.value)">
+            <select id="fit-type-${serie.id}" data-on-change="updateFitType" data-serie="${serie.id}">
                 <option value="none" ${serie.fitType === 'none' ? 'selected' : ''}>Sin ajuste</option>
                 <option value="linear" ${serie.fitType === 'linear' ? 'selected' : ''}>Lineal</option>
                 <option value="poly2" ${serie.fitType === 'poly2' || serie.fitType === 'polynomial2' ? 'selected' : ''}>Polinomial (grado 2)</option>
@@ -108,10 +108,10 @@ export function renderSeries() {
                         <th></th>
                     </tr>
                 </thead>
-                <tbody id="table-${serie.id}" onpaste="handleTablePaste(event, ${serie.id})">
+                <tbody id="table-${serie.id}" data-on-paste="handleTablePaste" data-serie="${serie.id}">
                 </tbody>
             </table>
-            <button class="btn btn-primary" onclick="addRow(${serie.id})">+ Agregar Fila</button>
+            <button class="btn btn-primary" data-on-click="addRow" data-serie="${serie.id}">+ Agregar Fila</button>
             <p style="margin: 6px 0 0 0; font-size: 11px; color: #aaa;">
                 💡 Podés pegar datos directamente desde Excel o Google Sheets (Ctrl+V sobre la tabla)<br>
                 💡 Los errores ±X/±Y se ingresan una sola vez por eje en "Incertidumbre de columna" (panel de Configuración de Ejes), no por fila
@@ -148,20 +148,20 @@ export function renderTable(serieId) {
         const row = tbody.insertRow();
         row.innerHTML = `
             <td><input type="text" inputmode="decimal" step="any" value="${escapeHTML(formatNumber(point.x))}"
-                       data-serie="${serieId}" data-row="${index}" data-col="0"
-                       onkeydown="handleKeyDown(event, ${serieId}, ${index}, 0)"
-                       oninput="handleDecimalInput(event)"
-                       onchange="updatePoint(${serieId}, ${index}, 'x', this.value)"></td>
+                       data-serie="${serieId}" data-row="${index}" data-col="0" data-axis="x"
+                       data-on-keydown="handleKeyDown"
+                       data-on-input="handleDecimalInput"
+                       data-on-change="updatePoint"></td>
             <td><input type="text" inputmode="decimal" step="any" value="${escapeHTML(formatNumber(point.y))}"
-                       data-serie="${serieId}" data-row="${index}" data-col="1"
-                       onkeydown="handleKeyDown(event, ${serieId}, ${index}, 1)"
-                       oninput="handleDecimalInput(event)"
-                       onchange="updatePoint(${serieId}, ${index}, 'y', this.value)"></td>
+                       data-serie="${serieId}" data-row="${index}" data-col="1" data-axis="y"
+                       data-on-keydown="handleKeyDown"
+                       data-on-input="handleDecimalInput"
+                       data-on-change="updatePoint"></td>
             <td>
                 <div class="action-btn-group">
-                    <button class="btn btn-secondary btn-xs" onclick="moveRowUp(${serieId}, ${index})" ${index === 0 ? 'disabled' : ''} title="Subir">↑</button>
-                    <button class="btn btn-secondary btn-xs" onclick="moveRowDown(${serieId}, ${index})" ${index === serie.data.length - 1 ? 'disabled' : ''} title="Bajar">↓</button>
-                    <button class="btn btn-danger btn-xs" onclick="removeRow(${serieId}, ${index})" title="Eliminar">×</button>
+                    <button class="btn btn-secondary btn-xs" data-on-click="moveRowUp" data-serie="${serieId}" data-row="${index}" ${index === 0 ? 'disabled' : ''} title="Subir">↑</button>
+                    <button class="btn btn-secondary btn-xs" data-on-click="moveRowDown" data-serie="${serieId}" data-row="${index}" ${index === serie.data.length - 1 ? 'disabled' : ''} title="Bajar">↓</button>
+                    <button class="btn btn-danger btn-xs" data-on-click="removeRow" data-serie="${serieId}" data-row="${index}" title="Eliminar">×</button>
                 </div>
             </td>
         `;
