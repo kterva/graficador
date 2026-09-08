@@ -644,6 +644,13 @@ export function calculateErrorPropagation() {
         return;
     }
 
+    // R5: el método de error relativo (δP/P = δA/A + δB/B) divide por A y por B;
+    // con un operando en 0 daría "± Infinity". Ese caso queda fuera del método.
+    if ((operation === 'product' || operation === 'quotient') && (valueA === 0 || valueB === 0)) {
+        showNotification('El método de error relativo no aplica cuando A o B valen 0.', 'error');
+        return;
+    }
+
     try {
         // Validar precisión de los inputs
         const warnings = validateAllInputs(valueA, deltaA, valueB, deltaB);
@@ -1063,7 +1070,7 @@ export function analyzeDimension() {
  */
 export function moveRowUp(serieId, index) {
     const serie = AppState.series.find(s => s.id === serieId);
-    if (!serie || index <= 0) return;
+    if (!serie || !Number.isInteger(index) || index <= 0 || index >= serie.data.length) return;
 
     // Intercambiar datos
     const temp = serie.data[index];
@@ -1081,7 +1088,7 @@ export function moveRowUp(serieId, index) {
  */
 export function moveRowDown(serieId, index) {
     const serie = AppState.series.find(s => s.id === serieId);
-    if (!serie || index >= serie.data.length - 1) return;
+    if (!serie || !Number.isInteger(index) || index < 0 || index >= serie.data.length - 1) return;
 
     // Intercambiar datos
     const temp = serie.data[index];

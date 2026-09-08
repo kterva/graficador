@@ -638,25 +638,21 @@ export function updateChart(animationMode) {
 
                     const areaDisplay = document.getElementById('areaDisplay');
                     if (areaDisplay) {
-                        // Extraer unidades de las etiquetas de los ejes
                         const xUnit = extractUnit(xLabel);
                         const yUnit = extractUnit(yLabel);
-
-                        // Construir unidad de la integral (∫y dx = y·x)
-                        let integralUnit = '';
-                        if (yUnit && xUnit) {
-                            integralUnit = ` ${yUnit}·${xUnit}`;
-                        }
-
-                        // Formatear con cifras significativas
+                        const integralUnit = (yUnit && xUnit) ? ` ${yUnit}·${xUnit}` : '';
                         const formattedX1 = formatNumber(AppState.tools.areaX1, 4);
                         const formattedX2 = formatNumber(AppState.tools.areaX2, 4);
-                        const formattedArea = formatNumber(area, 4);
 
-                        areaDisplay.innerHTML = `
-                            <strong>Intervalo: [${formattedX1}, ${formattedX2}]${xUnit ? ' ' + xUnit : ''}</strong><br>
-                            <strong>Área (∫y dx) = ${formattedArea}${integralUnit}</strong>
-                        `;
+                        // R8: e^(bx) puede desbordar a Infinity con un intervalo/exponente grande.
+                        if (!Number.isFinite(area)) {
+                            areaDisplay.innerHTML = `<span style="color:#e67e22;">El área en [${formattedX1}, ${formattedX2}] es demasiado grande para calcularla (desbordamiento numérico).</span>`;
+                        } else {
+                            areaDisplay.innerHTML = `
+                                <strong>Intervalo: [${formattedX1}, ${formattedX2}]${xUnit ? ' ' + xUnit : ''}</strong><br>
+                                <strong>Área (∫y dx) = ${formatNumber(area, 4)}${integralUnit}</strong>
+                            `;
+                        }
                     }
                 }
 

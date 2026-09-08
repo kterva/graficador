@@ -68,6 +68,10 @@ export function removeRow(serieId, index) {
     const serie = findSerieById(serieId);
     if (!serie) return false;
 
+    // R7: un índice inválido (NaN, negativo, fuera de rango) hacía que splice()
+    // borrara la fila 0 o el final.
+    if (!Number.isInteger(index) || index < 0 || index >= serie.data.length) return false;
+
     if (serie.data.length > 1) {
         serie.data.splice(index, 1);
         return true;
