@@ -1,24 +1,26 @@
 # 📋 Trabajo pendiente — Graficador Científico
 
 > Documento de traspaso para retomar el trabajo en otra máquina / nueva sesión.
-> Última actualización: 2026-09-08. Base: commit `cec00ce`, versión 1.5.0.
-> **TODOS los ítems del backlog cerrados** (F1, C1–C4, A1–A5, B1, B2, E1, E2, E3,
-> F2, F3, D1, D2, G1–G6, H1, H2).
-> **E1 + E2** (delegación de eventos + CSP estricta) van en la rama
-> `refactor/event-delegation-csp` como PR — probados a mano en el navegador pero
-> conviene revisión antes de mergear a `main` (tocan cada botón/input/modal).
-> Nota: `.github/workflows/tests.yml` (F3) está en disco pero SIN commitear — el push
-> de archivos en `.github/workflows/` necesita un token con scope `workflow`
-> (`gh auth refresh -s workflow` no lo está agregando — alternativa: subirlo por la
-> web de GitHub o con un PAT clásico).
+> Última actualización: 2026-09-08. Publicado como **v1.6.0** (`main` == `develop` == `6d85c2d`).
+>
+> **Pasada de auditoría completa: cerrados** F1, C1–C4, A1–A5, B1, B2, E1, E2, E3,
+> F2, F3, D1, D2, G1–G6, H1, H2 (todo en `main` y `develop`, con CI en verde).
+>
+> **Quedan abiertos (⚪ baja, no se tocaron):**
+> - **C5** — migrar `alert()`/`confirm()` a modales no bloqueantes y estilables.
+> - **C6** — *focus trap* + retorno de foco en los modales (salvo el de ayuda de unidades).
+>
+> Flujo de ramas: trabajar en `develop`, mergear a `main` (fast-forward) cuando quede bien.
 
 ## Cómo retomar
 
-1. `git pull` en `main`.
-2. Leer este documento entero + `README.md` + `.agent/PROJECT_CONTEXT.md` (si existe localmente; está en `.gitignore`).
-3. Correr los tests: `node --test 'test/*.test.js'` (ver ítem **F1**: el `npm test` está roto).
+1. `git checkout develop && git pull`.
+2. Leer este documento + `README.md` + `.agent/PROJECT_CONTEXT.md` (si existe localmente; está en `.gitignore`).
+3. Correr los tests: `npm test` (o `node --test 'test/*.test.js'`). Deben pasar 107.
 4. Servir localmente: `python3 -m http.server 8000` y abrir `http://localhost:8000`.
-5. Elegir un ítem del backlog siguiendo el "Orden sugerido de ataque" del final.
+   ⚠️ Chrome cachea agresivo los módulos ES sin `Cache-Control`; para ver cambios,
+   servir en un puerto nuevo cada vez (hard-reload no alcanza).
+5. Trabajar en `develop`. Quedan C5 y C6 (ver arriba); si no, ver "Orden sugerido de ataque".
 
 ## Estado / contexto
 
