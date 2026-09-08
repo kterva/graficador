@@ -26,6 +26,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Nueva sección "Notas metodológicas y limitaciones" (método de máx/mín, regresiones no lineales sin ponderar, análisis dimensional experimental).
 - Ayuda in-app del ajuste lineal, exponencial, logarítmico y potencial ampliada con esas notas.
 
+### Interno
+- **CI**: workflow de GitHub Actions que corre los 105 tests en cada push a `main` y en los PR.
+- Exportación CSV por serie unificada con la exportación combinada: delimitador `;`, saneo anti-inyección de fórmulas y descarga por Blob.
+- Aviso al copiar un link compartido demasiado largo (> 8 KB) que podría truncarse.
+- Notificaciones flotantes centralizadas en un único módulo (`notifications.js`); se eliminaron 4 implementaciones duplicadas.
+- Los plugins de Chart.js se registran en `initChart()` (no al evaluar el módulo), lo que permite importar la lógica de gráfica en Node.
+- `units.js` marcado como reservado; limpieza de código comentado y notas de proceso.
+
 ## [1.5.0] - 2026-08-06
 
 ### Añadido

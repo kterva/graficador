@@ -218,3 +218,30 @@ export function showDecimalWarning(input) {
     // Auto-eliminar después de 2.5 segundos
     setTimeout(() => warning.remove(), 2500);
 }
+
+/**
+ * Sanea un campo antes de escribirlo en un CSV. Evita que valores provenientes de un
+ * proyecto importado o link compartido (título, etiquetas, nombres de serie, incluso
+ * datos) disparen inyección de fórmulas al abrir el archivo en Excel/Sheets
+ * (OWASP CSV Injection), y escapa comillas/comas/puntos y coma/saltos de línea según
+ * RFC 4180 para no romper la alineación de columnas.
+ *
+ * El delimitador del CSV exportado es ';' (no ','): los números se escriben con coma
+ * decimal (formato es-UY), así que un ',' como delimitador partiría "3,14" en dos.
+ *
+ * @param {*} value - Valor a escribir
+ * @returns {string} Campo seguro para el CSV
+ */
+export function sanitizeCSVField(value) {
+    let str = String(value ?? '');
+
+    if (/^[=+\-@\t\r]/.test(str)) {
+        str = `'${str}`;
+    }
+
+    if (/[",;\n\r]/.test(str)) {
+        str = `"${str.replace(/"/g, '""')}"`;
+    }
+
+    return str;
+}

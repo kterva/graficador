@@ -10,6 +10,7 @@
 
 import { AppState } from './state.js';
 import { updateChart } from './chart-manager.js';
+import { showNotification } from './notifications.js';
 
 /**
  * Alterna el estado del modo presentación
@@ -106,50 +107,13 @@ export function initPresentationMode() {
     });
 }
 
-/**
- * Muestra una notificación temporal
- * (Reutilizamos lógica similar a keyboard-shortcuts pero centralizada si fuera posible,
- * por ahora duplicamos simple para independencia del módulo)
- */
-function showNotification(message) {
-    const notification = document.createElement('div');
-    notification.className = 'presentation-notification';
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.8);
-        color: white;
-        padding: 12px 24px;
-        border-radius: 30px;
-        z-index: 10000;
-        font-size: 16px;
-        pointer-events: none;
-        animation: fadeInOut 3s forwards;
-    `;
+// Las notificaciones usan el toast centralizado (notifications.js).
 
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
-}
-
-// Agregar estilos de animación si no existen
 // Agregar estilos de animación si no existen
 if (!document.getElementById('presentation-styles')) {
     const style = document.createElement('style');
     style.id = 'presentation-styles';
     style.textContent = `
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translate(-50%, -20px); }
-            10% { opacity: 1; transform: translate(-50%, 0); }
-            90% { opacity: 1; transform: translate(-50%, 0); }
-            100% { opacity: 0; transform: translate(-50%, -20px); }
-        }
-        
         /* Estilos del Modo Presentación - ESTRATEGIA OVERLAY */
         /* No modificamos el layout base, solo superponemos la gráfica */
         
