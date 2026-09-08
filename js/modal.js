@@ -69,6 +69,30 @@ export function trapFocus(container) {
     };
 }
 
+// R11: pila de "cerrables con Escape". Con modales apilados (p.ej. Ctrl+H sobre
+// otro modal, o un confirmDialog sobre un modal) Escape cierra sólo el de arriba.
+const _escStack = [];
+let _escBound = false;
+function ensureEscListener() {
+    if (_escBound) return;
+    _escBound = true;
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape' || _escStack.length === 0) return;
+        e.preventDefault();
+        _escStack[_escStack.length - 1].onEscape();
+    }, true);
+}
+function pushEsc(entry) { ensureEscListener(); _escStack.push(entry); }
+function popEsc(entry) {
+    const i = _escStack.lastIndexOf(entry);
+    if (i !== -1) _escStack.splice(i, 1);
+}
+
+/** @returns {boolean} true si hay algún modal que ya responde a Escape por su cuenta. */
+export function hasOpenModal() {
+    return _escStack.length > 0;
+}
+
 // Registro de liberadores por elemento de modal (para modales show/hide).
 const _releasers = new WeakMap();
 
@@ -80,14 +104,11 @@ const _releasers = new WeakMap();
 export function activateModal(el, onEscape) {
     if (!el || _releasers.has(el)) return;
     const releaseTrap = trapFocus(el);
-    let onKey = null;
-    if (typeof onEscape === 'function') {
-        onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); onEscape(); } };
-        document.addEventListener('keydown', onKey, true);
-    }
+    const entry = (typeof onEscape === 'function') ? { onEscape } : null;
+    if (entry) pushEsc(entry);
     _releasers.set(el, () => {
         releaseTrap();
-        if (onKey) document.removeEventListener('keydown', onKey, true);
+        if (entry) popEsc(entry);
     });
 }
 
@@ -159,17 +180,16 @@ export function confirmDialog({ message, confirmText = 'Confirmar', cancelText =
         // El foco por defecto va al botón menos destructivo (Cancelar)
         cancelBtn.focus();
 
+        const escEntry = { onEscape: () => close(false) };
+
         const close = (result) => {
             release();
+            popEsc(escEntry);
             overlay.remove();
-            document.removeEventListener('keydown', onKey, true);
             resolve(result);
         };
 
-        const onKey = (e) => {
-            if (e.key === 'Escape') { e.preventDefault(); close(false); }
-        };
-        document.addEventListener('keydown', onKey, true);
+        pushEsc(escEntry); // R11: Escape cierra este diálogo (el de arriba de la pila)
 
         cancelBtn.addEventListener('click', () => close(false));
         okBtn.addEventListener('click', () => close(true));

@@ -19,6 +19,14 @@ import { extractUnit, formatWithUncertainty, parseDecimal, formatNumber, numeric
 // idempotente aunque se reinicialice el gráfico.
 let _pluginsRegistered = false;
 
+// R12: rueda de zoom / pan disparan sus "complete" en ráfaga. Se recompone la
+// gráfica (con sus ajustes) una sola vez, ~120ms después de que el usuario frena.
+let _fitRefreshTimer = null;
+function debouncedFitRefresh() {
+    clearTimeout(_fitRefreshTimer);
+    _fitRefreshTimer = setTimeout(() => updateChart('none'), 120);
+}
+
 /**
  * Inicializa el gráfico de Chart.js
  */
@@ -73,7 +81,9 @@ export function initChart() {
                         },
                         onZoomComplete: function ({ chart }) {
                             syncZoomState(chart);
-                            updateChart('none');
+                            // R12: la rueda dispara onZoomComplete en ráfaga; debounce
+                            // para recomputar los ajustes una sola vez al frenar.
+                            debouncedFitRefresh();
                         }
                     },
                     pan: {
@@ -91,9 +101,9 @@ export function initChart() {
                             AppState.isPanning = false;
                             // Sincronizar límites manuales con el nuevo estado del pan/zoom
                             syncZoomState(chart);
-                            // Llamar con 'none' para que recalcule la curva extrapolada
-                            // a los nuevos límites sin hacer la animación de rebote/flicker.
-                            updateChart('none');
+                            // Recalcula la curva extrapolada a los nuevos límites sin
+                            // animación de rebote/flicker (R12: debounced).
+                            debouncedFitRefresh();
                         }
                     },
                     limits: {

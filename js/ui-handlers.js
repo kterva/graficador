@@ -52,7 +52,7 @@ function axisHeaderLabel(serie, axis) {
  * @param {number} rowIndex - Índice de la fila
  * @param {number} [colIndex=0] - Índice de la columna (0 = X, 1 = Y)
  */
-export function focusCell(serieId, rowIndex, colIndex = 0) {
+function focusCell(serieId, rowIndex, colIndex = 0) {
     setTimeout(() => {
         const input = document.querySelector(
             `input[data-serie="${serieId}"][data-row="${rowIndex}"][data-col="${colIndex}"]`
@@ -729,12 +729,11 @@ export function updateAxisUnit(axis, newUnit) {
         let newCategory = detectCategory(combinedUnit);
         if (!newCategory) {
             newCategory = 'custom';
-            console.log(`Unidad desconocida detectada: ${combinedUnit}. Asignando categoría 'custom'`);
+            console.warn(`Unidad desconocida: ${combinedUnit} → categoría 'custom'`);
         }
 
         // Verificar si hay datos para convertir
         if (AppState.series.length === 0) {
-            console.log(`Unidad del eje ${axis.toUpperCase()} establecida a: ${combinedUnit}`);
             import('./chart_config.js').then(mod => mod.updateChartConfig());
             updateChart();
             return;
@@ -757,7 +756,6 @@ export function updateAxisUnit(axis, newUnit) {
         updateChart();
         renderSeries();
 
-        console.log(`Unidad del eje ${axis.toUpperCase()} cambiada a ${combinedUnit} (etiqueta actualizada).`);
     }).catch(error => {
         console.error('Error al cargar módulo de unidades:', error);
         showNotification('Error al actualizar la unidad', 'error');

@@ -248,6 +248,5 @@ export function initShareManager() {
     const loaded = loadFromURL();
 
     if (loaded) {
-        console.log('📊 Datos cargados desde URL compartida');
     }
 }

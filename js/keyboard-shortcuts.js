@@ -12,7 +12,7 @@
 // desde main.js que las expone en window
 
 import { showNotification } from './notifications.js';
-import { activateModal, deactivateModal } from './modal.js';
+import { activateModal, deactivateModal, hasOpenModal } from './modal.js';
 
 const showShortcutNotification = (message) => showNotification(`⌨️ ${message}`, 'info', 2000);
 
@@ -21,7 +21,6 @@ const showShortcutNotification = (message) => showNotification(`⌨️ ${message
  */
 export function initKeyboardShortcuts() {
     document.addEventListener('keydown', handleKeyboardShortcut);
-    console.log('⌨️ Atajos de teclado inicializados');
 }
 
 /**
@@ -83,8 +82,9 @@ function handleKeyboardShortcut(event) {
         showKeyboardShortcutsHelp();
     }
 
-    // Escape: Cerrar modales
-    if (event.key === 'Escape') {
+    // Escape: si hay un modal abierto, modal.js ya cierra el de arriba (R11).
+    // Sólo acá cerramos lo que modal.js no gestiona (menú de herramientas).
+    if (event.key === 'Escape' && !hasOpenModal()) {
         closeAllModals();
     }
 }

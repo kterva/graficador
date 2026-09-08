@@ -200,19 +200,3 @@ export function importCSVFile(serieId, file, callback) {
     reader.readAsText(file);
 }
 
-/**
- * Obtiene todos los datos válidos de una serie (filtra valores vacíos)
- * @param {number} serieId - ID de la serie
- * @returns {Array|null} Array de puntos válidos o null si no se encontró
- */
-export function getValidData(serieId) {
-    const serie = findSerieById(serieId);
-    if (!serie) return null;
-
-    return serie.data
-        .filter(p => p.x !== '' && p.y !== '')
-        .map(p => ({
-            x: parseDecimal(p.x),
-            y: parseDecimal(p.y)
-        }));
-}

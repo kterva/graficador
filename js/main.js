@@ -195,10 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupGlobalEventListeners();
 
     // Mostrar panel de desarrollo si está habilitado
-    if (typeof window.IS_DEVELOPMENT !== 'undefined' && window.IS_DEVELOPMENT) {
+    if (IS_DEVELOPMENT) {
         const devTip = document.getElementById('help-dev-tip');
         if (devTip) devTip.style.display = 'block';
-
         console.log('🔧 Modo Desarrollo Activado');
     }
 });

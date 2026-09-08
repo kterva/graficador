@@ -27,14 +27,14 @@ export function togglePresentationMode() {
         // Intentar poner el navegador en pantalla completa
         if (document.documentElement.requestFullscreen) {
             document.documentElement.requestFullscreen().catch(e => {
-                console.log('No se pudo activar pantalla completa del navegador:', e);
+                console.warn('No se pudo activar pantalla completa:', e && e.message);
             });
         }
     } else {
         // Salir de modo presentación
         if (document.exitFullscreen && document.fullscreenElement) {
             document.exitFullscreen().catch(e => {
-                console.log('No se pudo salir de pantalla completa:', e);
+                console.warn('No se pudo salir de pantalla completa:', e && e.message);
             });
         }
     }
