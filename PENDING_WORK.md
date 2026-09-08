@@ -135,12 +135,31 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
   ✅ *Parcial:* eliminados los 2 `<script>` inline de `index.html` (flag
   `IS_DEVELOPMENT` → `body[data-development]` leído en `main.js`; carga condicional
   de `dev-tools.js` movida a `main.js`).
-  ⏳ **Falta el grueso:** migrar los ~90 `on*=` de `index.html` + los 23 generados
-  en `ui-handlers`/`chart-manager`/`chart_config` a delegación de eventos
-  (`data-action` + un listener central), y recién ahí quitar `'unsafe-inline'` de
-  `script-src`. Es un refactor grande y transversal (toca cada botón/input/modal);
-  conviene hacerlo como PR revisado con una pasada de test manual completa de la UI,
-  no en commits directos a `main`.
+  ⏳ **Falta el grueso (hacerlo como PR revisado, no a `main` directo):**
+
+  Migrar ~90 `on*=` de `index.html` + estos generados en JS a delegación de eventos,
+  y recién ahí quitar `script-src 'unsafe-inline'` de la CSP:
+    - `ui-handlers.js` `renderSeries()` / `renderTable()`: color, tipo de ajuste,
+      importar/exportar/limpiar CSV, `handleFileSelect`, `addRow`, `handleTablePaste`
+      (¡evento `paste`!), `updatePoint`, `handleKeyDown`, `handleDecimalInput`,
+      `moveRowUp/Down`, `removeRow`.
+    - `chart-manager.js:738`: `toggleHelp(serie.id, fitType)` en el display de ecuación.
+    - `share-manager.js:183,187`: `copyShareURLAgain`, `closeShareModal` (modal share).
+    - `keyboard-shortcuts.js:151`: botón cerrar del modal de atajos (JS inline).
+    - `tour-guide.js:374`: `handleTourButton('${btn.action}')`.
+    - 8 `onmouseover/onmouseout="this.style…"` en `index.html` → mover a CSS `:hover`.
+    - El compuesto de `index.html:389` (`...open=true; toggleGenericHelp(...); preventDefault()`)
+      → función dedicada.
+    - `alert('Plantillas próximamente...')` → función real (toast).
+
+  Diseño sugerido: `js/events.js` con `registerActions({name: (event, el) => …})` +
+  `initEventDelegation()` que pone un listener delegado en `document` por tipo
+  (`click/change/input/keydown/paste/submit`) y despacha por `data-on-<tipo>="nombre"`
+  (soporta varias acciones separadas por espacio). Params por `data-*` (`data-axis`,
+  `data-serie`, `data-row`, `data-tab`, …). Los `window.*` pueden quedar (no son el
+  problema de CSP) o migrarse en el mismo PR. Tests: pasada manual de toda la UI
+  (toolbar, panel de config, unidades, tangente/área, propagación, dimensional,
+  datos de prueba, ayuda, share, presentación, tour, menú móvil, tabla por serie).
 - [x] ⚪ **E3 — Revisar `parseExpression`** (análisis dimensional) por robustez.
   ✅ Ya era seguro (try/catch, sin `eval`, no toca datos de red). Se cambió el
   fallo silencioso: tokens desconocidos, `+`/`-`, paréntesis, dos magnitudes sin
