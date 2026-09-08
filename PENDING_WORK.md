@@ -1,13 +1,14 @@
 # 📋 Trabajo pendiente — Graficador Científico
 
 > Documento de traspaso para retomar el trabajo en otra máquina / nueva sesión.
-> Última actualización: 2026-09-08. Publicado como **v1.6.0** (`main` == `develop` == `6d85c2d`).
+> Última actualización: 2026-09-08. `main` == `develop`, CI en verde.
 >
-> **Pasada de auditoría completa: cerrados** F1, C1–C4, A1–A5, B1, B2, E1, E2, E3,
-> F2, F3, D1, D2, G1–G6, H1, H2 (todo en `main` y `develop`, con CI en verde).
+> **Primera auditoría — COMPLETA.** F1, C1–C6, A1–A5, B1, B2, D1, D2, E1–E3, F2, F3,
+> G1–G6, H1, H2. Publicado como **v1.6.0** (C5/C6 bajo `[Sin publicar]`).
 >
-> **Backlog COMPLETO.** (C5 y C6 cerrados: `alert()`/`confirm()` → modales propios
-> `js/modal.js`; focus trap + Escape + retorno de foco en todos los modales.)
+> **Segunda auditoría (2026-09-08)** — 13 hallazgos nuevos **R1–R13**, ninguno
+> empezado (ver sección "SEGUNDA AUDITORÍA"). El de mayor impacto: **R1** — datos
+> no numéricos en una celda / CSV malo → `NaN` en los ajustes y exportaciones.
 >
 > Flujo de ramas: trabajar en `develop`, mergear a `main` (fast-forward) cuando quede bien.
 
@@ -208,18 +209,88 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 
 ---
 
+## SEGUNDA AUDITORÍA (2026-09-08, post v1.6.0)
+
+Repaso de código sobre el estado ya con toda la primera auditoría cerrada. Ningún
+ítem empezado. Convención: 🔴 alta · 🟡 media · ⚪ baja. "(repro)" = confirmado en navegador.
+
+### 🔴 Alta
+
+- [ ] 🔴 **R1 — Datos no numéricos envenenan los ajustes y las exportaciones con `NaN`.** (repro)
+  El filtro `serie.data.filter(p => p.x !== '' && p.y !== '')` aparece en **8 lugares**
+  y ninguno chequea que el valor sea numérico (sólo `handleTablePaste` lo hace).
+  Tipear letras en una celda (`type="text"`) o importar un CSV con basura →
+  `parseDecimal("abc")` = `NaN` → regresión con NaN → **ecuación "y = NaNx + NaN",
+  `R² = NaN`**, e igual en `chart_config.js` (intersección) y `export_manager.js` (×3).
+  Fix: un helper `getNumericData(serie)` con `!isNaN(parseDecimal(...))`, usado en:
+  `chart-manager.js:391`, `chart_config.js:238-239`, `data-manager.js:233`,
+  `export_manager.js:102,245,368`. + validar en `updatePoint` / `importCSVFile`.
+
+### 🟡 Media
+
+- [ ] 🟡 **R2 — `importCSVFile` (`data-manager.js`) es más laxo que el pegado.**
+  Guarda `normalizeDecimalInput()` sin validar; detecta cabecera con `/[a-zA-Z]/`
+  (una fila `1e5,2e5` en notación científica se descarta como cabecera); la
+  ambigüedad `,` decimal vs `,` separador la resuelve distinto que `handleTablePaste`.
+  Unificar el parseo CSV entre los dos caminos de import.
+- [ ] 🟡 **R3 — `getDataRange()` (`chart-manager.js:326`) filtra los datasets
+  generados por *string matching* del `label`** (`includes('Ajuste'|'Tangente'|'Área'|'Pendiente')`).
+  El dataset del ajuste real tiene `label: serie.name` → **NO se filtra**, sus puntos
+  (extrapolados si el toggle está activo) cuentan en el rango. Las "Cajas de Error"
+  tampoco están en la lista. Y una serie llamada p.ej. "Tangente 1" queda excluida.
+  Fix: marcar los datasets generados con un flag (`_generated: true`) y filtrar por eso.
+- [ ] 🟡 **R4 — La función de ajuste se evalúa a mano en 3 lugares.**
+  `calculateFit` la calcula internamente (`fitFunc`, no la devuelve); `chart-manager`
+  recalcula `y0` para la tangente y los puntos del área con su propio `switch` por
+  tipo. A5 unificó los *coeficientes* pero no la *función*. Además las guardas
+  difieren: `calculateDerivative` devuelve `NaN` para log/power con `x ≤ 0`, pero el
+  `y0` de la tangente devuelve `0` → el "Punto Tangente" se dibuja en `y=0` (engañoso)
+  mientras el panel muestra "Pendiente = NaN". Fix: `calculateFit` devuelve `fitFunc`
+  y `chart-manager` lo reusa.
+- [ ] 🟡 **R5 — `propagateProductQuotient` con un operando en 0** → `δA / |0|` = `Infinity`
+  → resultado *"P = 0 ± Infinity"*. La UI sólo bloquea `quotient && valueB === 0`.
+  Falta guarda para `valueA === 0` (y `product` con cualquier operando 0), o avisar
+  que el método de error relativo no aplica ahí.
+- [ ] 🟡 **R6 — `loadFromURL` no restaura `serie.units`.** Setea el `<select>` de unidad
+  pero no la metadata que usan el título del eje y los headers de la tabla; tampoco
+  guarda/restaura los prefijos SI. Un link compartido con unidades muestra el dropdown
+  pero no la unidad en el eje ni en `Etiqueta (unidad ± error)`. `generateShareURL` +
+  `loadFromURL` deben pasar por `updateAxisUnit` (o replicar su efecto sobre `serie.units`).
+
+### ⚪ Baja
+
+- [ ] ⚪ **R7 — `removeRow` con índice inválido borra la fila 0.** (repro)
+  `serie.data.splice(NaN, 1)` → `NaN` coacciona a `0`. Falta
+  `Number.isInteger(index) && index >= 0 && index < serie.data.length`.
+- [ ] ⚪ **R8 — Overflow no controlado en exponencial.** `Math.exp(b·x)` con `b·x`
+  grande → `Infinity` → área/tangente/puntos del ajuste con `Infinity`/`NaN`. Clamp o aviso.
+- [ ] ⚪ **R9 — Código muerto:** `data-manager.getValidData` (no lo usa nadie, ni los
+  tests), `ui-handlers.focusCell` exportado sin consumidor externo, el `return changed`
+  de `reconcileManualLimits` que el llamador ignora.
+- [ ] ⚪ **R10 — ~36 `console.log/warn` en producción**, varios de debug ("Unidad del
+  eje X cambiada…", "⌨️ Atajos inicializados", "📊 Datos cargados…"). Gate detrás de
+  `IS_DEVELOPMENT` o quitar.
+- [ ] ⚪ **R11 — Modales apilables** (Ctrl+H de atajos sobre otro modal abierto) →
+  focus traps + handlers de Escape anidados. Poco probable, pero define el comportamiento.
+- [ ] ⚪ **R12 — `updateChart` en cada `onZoomComplete` (rueda)** recomputa todos los
+  ajustes; la rueda dispara seguido. Considerar debounce como el del tipeo.
+- [ ] ⚪ **R13 — `main.js:190` re-consulta `window.IS_DEVELOPMENT`** cuando ya hay una
+  const `IS_DEVELOPMENT` calculada arriba en el módulo.
+
+---
+
 ## Orden sugerido de ataque
 
-1. ~~**F1** (test runner) — base para todo lo demás.~~ ✅
-2. ~~**C1 + C3 + C4 + C2** — bugs de UI ya identificados, alto impacto y acotados.~~ ✅
-3. ~~**A1** (exponencial) + **F2**.~~ ✅
-4. ~~**A2, A3**.~~ ✅  (+ A4, H1, H2 docs)
-5. ~~**G1, G3, G5, G6, D1, D2, F3**~~ ✅
-6. ~~**B1 + B2** — encuadre / escala~~ ✅
-7. ~~**E2 → E1** — delegación de eventos + CSP estricta~~ ✅ (rama
-   `refactor/event-delegation-csp`, pendiente de merge/revisión).
+### Primera auditoría — COMPLETA ✅
+F1 · C1–C6 · A1–A5 · B1 · B2 · D1 · D2 · E1–E3 · F2 · F3 · G1–G6 · H1 · H2
+(publicado como v1.6.0; C5/C6 bajo `[Sin publicar]`).
 
-**Backlog completo.** Sólo queda mergear el PR de E1/E2 y commitear `tests.yml` (F3).
+### Segunda auditoría — pendiente
+1. **R1** (NaN en ajustes) — la de mayor impacto y acotada (un helper, 8 sitios).
+2. **R4 + R3** — unificar `fitFunc` y el marcado de datasets generados; se tocan juntos en `chart-manager`.
+3. **R2** — unificar el parseo CSV (relacionado con R1).
+4. **R5, R6, R7, R8**.
+5. **R9–R13** — limpieza.
 
 ## Mapa rápido de archivos
 
