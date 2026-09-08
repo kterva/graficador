@@ -10,7 +10,7 @@
  */
 
 import { AppState, getNextColor, findSerieById } from './state.js';
-import { parseDecimal, normalizeDecimalInput } from './utils.js';
+import { parseDecimal, normalizeDecimalInput, formatNumber, sanitizeCSVField } from './utils.js';
 
 /**
  * Agrega una nueva serie de datos
@@ -141,22 +141,31 @@ export function exportCSV(serieId) {
     const serie = findSerieById(serieId);
     if (!serie) return false;
 
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "X,Y\n";
+    // Mismo formato que la exportación combinada (export_manager.downloadAllCSV):
+    // delimitador ';', campos saneados contra inyección de fórmulas, coma decimal,
+    // y descarga por Blob (no `data:` URI).
+    const labelX = document.getElementById('labelX')?.value || 'X';
+    const labelY = document.getElementById('labelY')?.value || 'Y';
+
+    let csv = `${sanitizeCSVField(labelX)};${sanitizeCSVField(labelY)}\n`;
 
     serie.data.forEach(p => {
         if (p.x !== '' && p.y !== '') {
-            csvContent += `${p.x},${p.y}\n`;
+            const x = sanitizeCSVField(formatNumber(parseDecimal(p.x)));
+            const y = sanitizeCSVField(formatNumber(parseDecimal(p.y)));
+            csv += `${x};${y}\n`;
         }
     });
 
-    const encodedUri = encodeURI(csvContent);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${serie.name.replace(/\s+/g, '_')}_data.csv`);
+    link.href = url;
+    link.download = `${serie.name.replace(/\s+/g, '_')}_data.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 
     return true;
 }

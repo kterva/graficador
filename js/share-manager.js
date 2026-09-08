@@ -13,6 +13,7 @@ import { renderSeries } from './ui-handlers.js';
 import { updateChart } from './chart-manager.js';
 import { updateChartConfig } from './chart_config.js';
 import { PROJECT_FILE_FORMAT_VERSION } from './utils.js';
+import { showNotification } from './notifications.js';
 
 /**
  * Genera una URL compartible con el estado actual
@@ -114,6 +115,10 @@ export function loadFromURL() {
 /**
  * Copia la URL compartible al clipboard
  */
+// Límite práctico de longitud de URL: muchos navegadores/servidores truncan
+// alrededor de los 8000 caracteres y varias apps de mensajería rompen el link antes.
+const SHARE_URL_WARN_LENGTH = 8000;
+
 export async function copyShareURL() {
     try {
         const url = generateShareURL();
@@ -121,7 +126,15 @@ export async function copyShareURL() {
         // Copiar al clipboard
         await navigator.clipboard.writeText(url);
 
-        showNotification('✓ URL copiada al portapapeles', 'success');
+        if (url.length > SHARE_URL_WARN_LENGTH) {
+            showNotification(
+                `⚠️ El link es muy largo (${(url.length / 1024).toFixed(1)} KB) y puede truncarse al abrirlo. ` +
+                `Para proyectos grandes usá "Guardar" y compartí el archivo .json.`,
+                'error'
+            );
+        } else {
+            showNotification('✓ URL copiada al portapapeles', 'success');
+        }
 
         // Mostrar modal con la URL
         showShareModal(url);
@@ -212,43 +225,6 @@ export function copyShareURLAgain() {
     navigator.clipboard.writeText(urlText).then(() => {
         showNotification('✓ URL copiada', 'success');
     });
-}
-
-/**
- * Muestra una notificación temporal
- */
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = 'share-notification';
-    notification.textContent = message;
-
-    const colors = {
-        success: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
-        error: 'linear-gradient(135deg, #eb3349 0%, #f45c43 100%)',
-        info: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-    };
-
-    notification.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: ${colors[type]};
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        z-index: 10000;
-        animation: slideInUp 0.3s ease-out;
-        font-size: 14px;
-        font-weight: 500;
-    `;
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.style.animation = 'slideOutDown 0.3s ease-in';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
 }
 
 // Inicializar: cargar desde URL si existe

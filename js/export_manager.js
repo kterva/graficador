@@ -3,11 +3,16 @@
 // ============================================
 
 import { AppState } from './state.js';
-import { parseDecimal, formatNumber } from './utils.js';
-// updateChart() se importa dinámicamente donde se usa (no de forma estática arriba):
-// chart-manager.js registra plugins de Chart.js al cargarse, lo cual requiere que
-// exista el global `Chart` del navegador y rompe si este módulo se importa fuera de
-// ese contexto (ej. en los tests de Node, que solo necesitan sanitizeCSVField).
+import { parseDecimal, formatNumber, sanitizeCSVField } from './utils.js';
+
+// Re-exportado por compatibilidad: la implementación vive ahora en utils.js y la
+// comparten este módulo y data-manager.js (export CSV por serie).
+export { sanitizeCSVField };
+// updateChart() se importa dinámicamente donde se usa (no de forma estática arriba)
+// para que este módulo se pueda importar en Node —los tests solo necesitan
+// sanitizeCSVField— sin arrastrar todo chart-manager.js y sus dependencias de DOM.
+// (chart-manager ya no toca el `Chart` global en la evaluación del módulo: registra
+// sus plugins dentro de initChart()).
 
 // Helper: Redondeo a cifras significativas
 function getDecimalPlaces(uncertainty) {
@@ -46,26 +51,6 @@ function getPlainEquation(equation) {
     return equation.split('<br>')[0].replace(/<[^>]*>/g, '').trim();
 }
 
-// Sanea un campo antes de escribirlo en el CSV: evita que valores provenientes de un
-// proyecto importado o link compartido (título, etiquetas, nombres de serie) disparen
-// inyección de fórmulas al abrir el archivo en Excel/Sheets (OWASP CSV Injection), y
-// escapa punto y coma/comas/comillas/saltos de línea según RFC4180 para no romper la
-// alineación de columnas. El delimitador real del CSV exportado es ';' (no ',') porque
-// los números se escriben con coma decimal (formato uruguayo) — si el delimitador
-// también fuera ',', un valor como "3,14" partiría la fila en dos columnas.
-export function sanitizeCSVField(value) {
-    let str = String(value ?? '');
-
-    if (/^[=+\-@\t\r]/.test(str)) {
-        str = `'${str}`;
-    }
-
-    if (/[",;\n\r]/.test(str)) {
-        str = `"${str.replace(/"/g, '""')}"`;
-    }
-
-    return str;
-}
 
 
 export async function downloadChartJPG() {
@@ -252,10 +237,7 @@ export async function downloadChartPDF() {
     const imgData = canvas.toDataURL('image/png', 1.0);
 
     if (includeTable) {
-        // 1. Preparar datos
-        const bodies = []; // Array de { head: [], body: [] } por serie si queremos separarlas
-        // O una sola tabla. "autoTable" soporta multiple bodies? No, multiples llamadas.
-
+        // Una llamada a autoTable por serie (autoTable no soporta múltiples cuerpos).
         let currentY = 25;
         const tableWidth = pageWidth * 0.35;
 

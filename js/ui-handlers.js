@@ -13,6 +13,7 @@ import { addSerie as addSerieData, removeSerie as removeSerieData, addRow as add
 import { updateChart, getDataRange, resetZoom } from './chart-manager.js';
 import { propagateUncertainty, formatPropagationResult, validateAllInputs, formatWarnings } from './uncertainty-propagation.js';
 import { showDecimalWarning, normalizeDecimalInput, escapeHTML, parseDecimal, formatNumber } from './utils.js';
+import { showNotification } from './notifications.js';
 
 // Debounce para updateChart: evita recalcular en cada tecla mientras se escribe un número
 let _chartUpdateTimer = null;
@@ -670,7 +671,7 @@ export function calculateErrorPropagation() {
 export function updateAxisUnit(axis, newUnit) {
     // Importar funciones de unidades dinámicamente
     import('./units.js').then(unitsModule => {
-        const { convert, detectCategory, getCategoryName } = unitsModule;
+        const { detectCategory } = unitsModule;
 
         const unitSelect = document.getElementById(`unit${axis.toUpperCase()}`);
         const customInput = document.getElementById(`unit${axis.toUpperCase()}Custom`);
@@ -775,38 +776,6 @@ export function updateAxisPrefix(axis, prefixValue) {
     updateAxisUnit(axis, baseUnit);
 }
 
-/**
- * Muestra una notificación temporal de conversión exitosa
- */
-function showUnitConversionNotification(from, to, count) {
-    if (count === 0) return; // No mostrar nada si no hubo conversión matemática real
-
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 15px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        z-index: 3000;
-        animation: slideIn 0.3s ease-out;
-    `;
-    notification.innerHTML = `
-        <strong>✓ Conversión exitosa</strong><br>
-        ${count} valores convertidos de <strong>${from}</strong> a <strong>${to}</strong>
-    `;
-
-    document.body.appendChild(notification);
-
-    // Remover después de 3 segundos
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease-in';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
 
 /**
  * Muestra el modal de ayuda específico para las unidades
@@ -1124,7 +1093,6 @@ export function handleTablePaste(event, serieId) {
     // formato uruguayo) o coma (CSV con punto decimal)
     const sep = rows[0].includes('\t') ? '\t' : (rows[0].split(';').length >= 2 ? ';' : ',');
     const parsed = rows.map(r => r.split(sep).map(v => v.trim()));
-    const numCols = parsed[0].length;
 
     // Saltar cabecera si la primera celda no es numérica (acepta coma o punto decimal)
     const startIdx = isNaN(parseDecimal(parsed[0][0])) ? 1 : 0;
@@ -1148,21 +1116,7 @@ export function handleTablePaste(event, serieId) {
 
     renderTable(serieId);
     updateChart();
-    _showPasteNotification(serie.data.length, numCols);
-}
 
-/**
- * Muestra una notificación temporal con el resultado del pegado.
- * @param {number} count - Número de filas pegadas
- * @param {number} cols  - Número de columnas detectadas
- */
-function _showPasteNotification(count, cols) {
-    const label = 'X, Y';
-    const n = document.createElement('div');
-    n.style.cssText = 'position:fixed;top:80px;right:20px;background:linear-gradient(135deg,#11998e,#38ef7d);' +
-        'color:white;padding:14px 20px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);' +
-        'z-index:3000;font-size:14px;font-weight:500;transition:opacity .3s';
-    n.textContent = `✓ ${count} fila${count !== 1 ? 's' : ''} pegada${count !== 1 ? 's' : ''} (${label})`;
-    document.body.appendChild(n);
-    setTimeout(() => { n.style.opacity = '0'; setTimeout(() => n.remove(), 300); }, 3000);
+    const plural = serie.data.length !== 1 ? 's' : '';
+    showNotification(`✓ ${serie.data.length} fila${plural} pegada${plural} (X, Y)`, 'success');
 }

@@ -11,6 +11,10 @@
 // Nota: addSerie, exportProject y otras funciones están disponibles globalmente
 // desde main.js que las expone en window
 
+import { showNotification } from './notifications.js';
+
+const showShortcutNotification = (message) => showNotification(`⌨️ ${message}`, 'info', 2000);
+
 /**
  * Inicializa los atajos de teclado
  */
@@ -82,36 +86,6 @@ function handleKeyboardShortcut(event) {
     if (event.key === 'Escape') {
         closeAllModals();
     }
-}
-
-/**
- * Muestra notificación de atajo usado
- */
-function showShortcutNotification(message) {
-    const notification = document.createElement('div');
-    notification.className = 'shortcut-notification';
-    notification.textContent = `⌨️ ${message}`;
-    notification.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        z-index: 10000;
-        animation: slideInUp 0.3s ease-out;
-        font-size: 14px;
-        font-weight: 500;
-    `;
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.style.animation = 'slideOutDown 0.3s ease-in';
-        setTimeout(() => notification.remove(), 300);
-    }, 2000);
 }
 
 /**
@@ -245,39 +219,4 @@ function closeAllModals() {
         }
     }
 }
-
-// Agregar animaciones CSS
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInUp {
-        from {
-            transform: translateY(100px);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideOutDown {
-        from {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateY(100px);
-            opacity: 0;
-        }
-    }
-    
-    @keyframes pulse {
-        0%, 100% {
-            box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
-        }
-        50% {
-            box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
-        }
-    }
-`;
-document.head.appendChild(style);
+// Las animaciones del toast viven en notifications.js; el tour inyecta las suyas.

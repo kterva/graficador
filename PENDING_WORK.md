@@ -2,8 +2,11 @@
 
 > Documento de traspaso para retomar el trabajo en otra máquina / nueva sesión.
 > Última actualización: 2026-09-08. Base: commit `cec00ce`, versión 1.5.0.
-> Hechos: **F1**, **C1–C4**, **A1**, **A2**, **A3**, **A4**, **F2**, **H1**, **H2**.
-> Siguiente: **B1 + B2** (encuadre/escala, requiere repro en navegador).
+> Hechos: **F1**, **C1–C4**, **A1–A4**, **F2**, **F3**, **D1**, **D2**,
+> **G1**, **G3**, **G5**, **G6**, **H1**, **H2**.
+> Siguiente: **B1 + B2** (encuadre/escala, requiere sesión de repro hands-on:
+> el pan no se dispara con drag sintético) y **E2 → E1** (refactor grande de
+> eventos + CSP — conviene sesión dedicada). Menores: **G2** (rótulo UI), **G4**, **A5**, **E3**.
 
 ## Cómo retomar
 
@@ -95,13 +98,16 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 
 ## D. Exportación
 
-- [ ] ⚪ **D1 — Dos exportadores CSV divergentes.**
+- [x] ⚪ **D1 — Dos exportadores CSV divergentes.**
   `data-manager.js exportCSV()` (por serie): delimitador `,`, sin saneo
   anti-inyección, `data:` URI. `export_manager.js downloadAllCSV()`: `;` +
   `sanitizeCSVField()` + Blob. Unificar el primero al formato del segundo.
-- [ ] ⚪ **D2 — Sin límite de tamaño en link compartido.**
-  `generateShareURL()` (`share-manager.js`) puede generar URLs de decenas de KB
-  (base64 infla ~2-3×) que se truncan al abrirlas. Avisar cuando el link supere ~8 KB.
+  ✅ `data-manager.exportCSV()` ahora usa `;`, `sanitizeCSVField` (movido a
+  `utils.js`, compartido) y descarga por Blob. Verificado en navegador (fórmula
+  `=BAD` queda `'=BAD`).
+- [x] ⚪ **D2 — Sin límite de tamaño en link compartido.**
+  ✅ `copyShareURL()` avisa (toast de error) cuando la URL supera 8000 chars y
+  sugiere usar "Guardar" + archivo `.json`.
 
 ## E. Seguridad
 
@@ -123,30 +129,38 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
   no solapadas, y `sanitizeImportedSeries` con entradas hostiles (ids no finitos,
   strings tipo XSS, coords objeto, `__proto__`, drop de errores por punto).
   95 → 105 tests.
-- [ ] ⚪ **F3 — Sin CI.** Workflow de GitHub Actions que corra los tests en cada push/PR.
+- [x] ⚪ **F3 — Sin CI.** ✅ `.github/workflows/tests.yml` corre `npm test` en push a
+  `main` y en cada PR (Node 22).
 
 ## G. Calidad / deuda técnica
 
-- [ ] 🟡 **G1 — `units.js`: ~250 líneas muertas.** `convert()`, `convertTemperature()`,
-  `resolveUnit()` sin consumidor real (comentario propio: "ya no se realizan
-  conversiones matemáticas por decisión de diseño"; solo los usan los tests).
-  Borrar o marcar explícitamente como reservado.
+- [x] 🟡 **G1 — `units.js`: ~250 líneas muertas.** ✅ Marcado explícitamente como
+  RESERVADO en el header del módulo (`convert`/`convertTemperature`/`resolveUnit`
+  se mantienen y testean como base para reintroducir la conversión opcional).
+  `updateAxisUnit` ya no destructura `convert`/`getCategoryName` (no se usaban).
 - [ ] 🟡 **G2 — Análisis dimensional es "beta" presentado como completo.**
   `parseExpression` (`dimensional-analysis.js`): sin precedencia, sin `+/-`, ignora
   los paréntesis que tokeniza, `^` solo funciona tras una magnitud. Mejorar el
   parser o rotular la feature como experimental en la UI.
   ⏳ Parcial: documentado como "experimental" en README; falta rotularlo en la UI
   del modal o mejorar el parser.
-- [ ] ⚪ **G3 — `chart-manager.js` registra plugins de `Chart` en la evaluación del
-  módulo** → explota fuera del navegador (ya hay workaround con import dinámico en
-  `export_manager.js`). Mover a `initChart()` con guarda idempotente.
+- [x] ⚪ **G3 — `chart-manager.js` registra plugins de `Chart` en la evaluación del
+  módulo.** ✅ Movido a `initChart()` con flag `_pluginsRegistered` idempotente.
+  Verificado: los módulos que dependen de chart-manager ya se importan en Node
+  sin el global `Chart` (los tests y `export_manager`).
 - [ ] ⚪ **G4 — Cache-buster manual.** `index.html` (`js/main.js?v=1.5.0`) hay que
   actualizarlo a mano cada release (ya se desincronizó una vez). Automatizar o quitar.
-- [ ] ⚪ **G5 — Limpiar código comentado / notas de proceso** en producción:
-  `project_manager.js:76`, `export_manager.js:256`, bloque de razonamiento en el
-  `filter` de leyenda de `chart_config.js:63-89`.
-- [ ] ⚪ **G6 — Centralizar `showNotification`.** Duplicada en `share-manager`,
-  `keyboard-shortcuts`, `presentation-mode`, `ui-handlers` con estilos inline repetidos.
+  ⚠️ Ojo: los módulos hermanos que importa `main.js` **no** llevan `?v=`, así que
+  hoy el cache-busting es parcial. Decisión pendiente (build-step mínimo vs. quitar).
+- [x] ⚪ **G5 — Limpiar código comentado / notas de proceso** ✅
+  `project_manager.js` (nota sobre mutabilidad del array), `export_manager.js`
+  (`bodies`/comentarios de autoTable), `chart_config.js` (bloque de razonamiento del
+  `filter` de leyenda, reducido a 4 líneas), y helper de notificación de conversión
+  muerto en `ui-handlers.js`.
+- [x] ⚪ **G6 — Centralizar `showNotification`.** ✅ Nuevo `js/notifications.js` con un
+  único `showNotification(message, type, durationMs)`. Migrados `share-manager`,
+  `keyboard-shortcuts` (`⌨️` prefix), `presentation-mode` y el toast de pegado de
+  `ui-handlers`. Eliminado el bloque de `@keyframes` duplicado de `keyboard-shortcuts`.
 
 ## H. Documentación
 
@@ -163,9 +177,10 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 2. ~~**C1 + C3 + C4 + C2** — bugs de UI ya identificados, alto impacto y acotados.~~ ✅
 3. ~~**A1** (exponencial) + **F2**.~~ ✅
 4. ~~**A2, A3**.~~ ✅  (+ A4, H1, H2 docs)
-5. **B1 + B2** — encuadre / escala; necesita sesión de reproducción en navegador. ← siguiente
-6. **E2 → E1** — refactor de eventos + CSP.
-7. **G1–G6, D1–D2**, resto de docs.
+5. ~~**G1, G3, G5, G6, D1, D2, F3**~~ ✅
+6. **B1 + B2** — encuadre / escala; necesita sesión de reproducción hands-on. ← siguiente
+7. **E2 → E1** — refactor de eventos + CSP (sesión dedicada).
+8. Menores: **G2** (rótulo UI del análisis dimensional), **G4**, **A5**, **E3**.
 
 ## Mapa rápido de archivos
 

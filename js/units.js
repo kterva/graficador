@@ -1,10 +1,17 @@
 /**
  * ============================================
- * SISTEMA DE CONVERSIÓN DE UNIDADES
+ * SISTEMA DE UNIDADES
  * ============================================
- * 
- * Módulo para convertir entre diferentes unidades físicas
- * 
+ *
+ * Catálogo de unidades y prefijos + helpers de categoría/etiqueta.
+ *
+ * ⚠️ RESERVADO: por decisión de diseño la app **ya no convierte** los datos
+ * numéricos al cambiar de unidad (sólo actualiza etiquetas). Las funciones de
+ * conversión matemática —`convert()`, `convertTemperature()` y su dependencia
+ * `resolveUnit()`— no tienen consumidor en runtime; se mantienen (y se testean)
+ * como base para una eventual reintroducción de la conversión opcional. En
+ * runtime sólo se usan `detectCategory()` y el catálogo.
+ *
  * @module units
  */
 

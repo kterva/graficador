@@ -51,41 +51,15 @@ export function updateChartConfig() {
     chart.options.plugins.legend = {
         position: 'top',
         labels: {
-            filter: function (item, chart) {
-                // Lógica personalizada de leyenda:
-                // Si hay solo 1 serie (AppState.series.length === 1):
+            filter: function (item) {
+                // Con una sola serie, el dataset de puntos y el de ajuste comparten el
+                // nombre de la serie. Ocultamos el de puntos (pointStyle por defecto);
+                // el de ajuste se distingue por `pointStyle: 'line'` y se mantiene.
                 const isSingleSeries = AppState.series.length === 1;
-
-                // "item.text" es el label del dataset. 
-                // Buscamos ocultar el dataset de Puntos (que tiene el nombre de la serie)
-                // y mostrar SIEMPRE el de Ajuste (que empieza con "Ajuste:")
-
-                if (isSingleSeries) {
-                    // Si el label es igual al nombre de la serie y NO es un estilo de línea, es el de puntos.
-                    // El de ajuste ahora se llama igual, pero tiene pointStyle = 'line'.
-                    // Sin embargo, `item` en filter puede no tener todas las props del dataset.
-                    // Verificamos si item.text es igual al nombre de la serie única.
-
-                    if (item.text === AppState.series[0].name) {
-                        // Si es el dataset de Puntos, lo ocultamos. ¿Cómo distinguirlo del de Ajuste?
-                        // Chart.js genera items de leyenda. El dataset de puntos tiene index X y el de linea Y.
-                        // Generalmente Puntos van primero.
-                        // Ojo: Si ambos tienen el mismo label, Chart.js a veces los agrupa?
-                        // No, genera dos items si son diferentes datasets.
-
-                        // Si el item usa pointStyle 'rect' (default para puntos/barras) o 'circle' vs 'line'
-                        // item.pointStyle puede decirnos.
-
-                        // PERO: Hemos configurado pointStyle: 'line' para el ajuste.
-                        // Los puntos usan default (circle).
-
-                        if (item.pointStyle !== 'line') {
-                            return false; // Ocultar puntos
-                        }
-                    }
-
-                    // Ocultar items que no sean lineas de ajuste o pendiente
-                    // (Pendiente empieza con 'Pendiente' asi que pasa)
+                if (isSingleSeries
+                    && item.text === AppState.series[0].name
+                    && item.pointStyle !== 'line') {
+                    return false;
                 }
                 return true;
             }

@@ -13,15 +13,22 @@ import { errorBarsPlugin, bullseyePointsPlugin } from './chart-plugins.js';
 import { calculateFit, calculateDerivative, calculateIntegral, getRegressionCoeffs } from './calculations.js';
 import { extractUnit, formatWithUncertainty, parseDecimal, formatNumber } from './utils.js';
 
-// Registrar plugins una sola vez al cargar el módulo.
-// Si se registran dentro de initChart() se duplican cada vez que se reinicializa el gráfico.
-Chart.register(errorBarsPlugin);
-Chart.register(bullseyePointsPlugin);
+// Los plugins se registran en initChart() (no en la evaluación del módulo): así este
+// módulo se puede importar en Node —p.ej. desde los tests o export_manager— sin que
+// el `Chart` global (cargado por CDN) tenga que existir. El flag hace la operación
+// idempotente aunque se reinicialice el gráfico.
+let _pluginsRegistered = false;
 
 /**
  * Inicializa el gráfico de Chart.js
  */
 export function initChart() {
+    if (!_pluginsRegistered) {
+        Chart.register(errorBarsPlugin);
+        Chart.register(bullseyePointsPlugin);
+        _pluginsRegistered = true;
+    }
+
     const existingChart = Chart.getChart("myChart");
     if (existingChart) {
         existingChart.destroy();
@@ -196,8 +203,6 @@ export function initChart() {
     canvas.addEventListener('mouseleave', function() {
         hideCoordinatesTooltip();
     });
-
-    // Los plugins se registran a nivel de módulo (ver arriba), no aquí.
 }
 
 /**

@@ -72,9 +72,8 @@ export function importProject(input) {
                 }
             }
 
-            // Restaurar series
-            AppState.series.length = 0; // Limpiar array existente manteniendo la referencia si fuera const (aunque AppState.series debería ser modificado en state, aquí asumimos mutabilidad directa del array del proxy o state)
-            // Mejor: reemplazamos el contenido
+            // Restaurar series (reemplazar el contenido, mantener la referencia del array)
+            AppState.series.length = 0;
             AppState.series.push(...sanitizeImportedSeries(projectData.series));
 
             // Actualizar contador de IDs para evitar colisiones futuras
