@@ -59,6 +59,33 @@ test('linearRegression: negative slope still resolves mMax/mMin consistently', (
     assert.ok(result.uncertainty.mMax > result.uncertainty.mMin);
 });
 
+test('linearRegression: overlapping X error boxes on the endpoints report no uncertainty (A2)', () => {
+    // Separación en X de 2, pero cada caja de error mide ±1.5 → los extremos
+    // internos se cruzan (10 - 1.5 = 8.5 < 8 + 1.5 = 9.5). El método de extremos
+    // daría un Δm basura; debe abstenerse y avisar.
+    const data = [
+        { x: 8, y: 8, xError: 1.5, yError: 0.5 },
+        { x: 9, y: 9, xError: 0.2, yError: 0.5 },
+        { x: 10, y: 10, xError: 1.5, yError: 0.5 }
+    ];
+    const result = linearRegression(data);
+    closeTo(result.a, 1);
+    assert.equal(result.uncertainty, null);
+    assert.equal(result.uncertaintyWarning, 'overlap');
+});
+
+test('linearRegression: barely non-overlapping X error boxes still report finite uncertainty', () => {
+    const data = [
+        { x: 0, y: 0, xError: 0.4, yError: 0.5 },
+        { x: 1, y: 1, xError: 0.4, yError: 0.5 }
+    ];
+    const result = linearRegression(data);
+    assert.ok(result.uncertainty !== null);
+    assert.ok(Number.isFinite(result.uncertainty.mMax));
+    assert.ok(Number.isFinite(result.uncertainty.mMin));
+    assert.equal(result.uncertaintyWarning, null);
+});
+
 test('gaussianElimination: solves a known 2x2 system', () => {
     const solution = gaussianElimination([[2, 1], [1, 3]], [5, 10]);
     closeTo(solution[0], 1);

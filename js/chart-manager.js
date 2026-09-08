@@ -666,6 +666,14 @@ export function updateChart(animationMode) {
                             <strong>Δm = (m<sub>max</sub> - m<sub>min</sub>) / 2 = ${formattedDelta.value}${slopeUnit}</strong>
                         </div>
                     `;
+                } else if (showUncertaintyLines && fit.uncertaintyWarning === 'overlap') {
+                    uncertaintyHtml = `
+                        <div style="margin-top: 5px; font-size: 0.9em; color: #e67e22; border-top: 1px solid #eee; padding-top: 5px;">
+                            ⚠️ Las cajas de error en X de los puntos extremos se solapan: no se puede
+                            estimar la incertidumbre de la pendiente (Δm) por el método de máx/mín.
+                            Reducí la incertidumbre en X o separá más los puntos extremos.
+                        </div>
+                    `;
                 } else if (showUncertaintyLines && serie.fitType === 'linear') {
                     uncertaintyHtml = `
                         <div style="margin-top: 5px; font-size: 0.9em; color: #e67e22; border-top: 1px solid #eee; padding-top: 5px;">

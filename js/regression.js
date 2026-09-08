@@ -48,6 +48,9 @@ export function linearRegression(data) {
 
     // Calculate Uncertainty using Max/Min Slope Method
     let uncertainty = null;
+    // 'overlap' = las cajas de error en X de los puntos extremos se solapan y el
+    // método de extremos no aplica; null = no había errores que propagar.
+    let uncertaintyWarning = null;
     const hasErrors = data.some(p => p.xError > 0 || p.yError > 0);
 
     if (hasErrors && n >= 2) {
@@ -55,6 +58,19 @@ export function linearRegression(data) {
         const sortedData = [...data].sort((a, b) => a.x - b.x);
         const p1 = sortedData[0];
         const pn = sortedData[n - 1];
+
+        // A2: si las cajas de error en X de los puntos extremos se solapan
+        // (pn.x - Δxn ≤ p1.x + Δx1), la línea "más empinada" del método de
+        // extremos tiene denominador ≤ 0 → mMax/mMin salen negativos o infinitos.
+        // Hay una guarda isFinite() para NO dibujar esas líneas, pero el ± Δm que
+        // se muestra en la ecuación y en "Análisis de Pendiente" igual quedaba
+        // basura. En ese caso no reportamos incertidumbre y avisamos.
+        const x1_innerX = p1.x + p1.xError;
+        const xn_innerX = pn.x - pn.xError;
+        if (xn_innerX <= x1_innerX) {
+            console.warn('linearRegression: las cajas de error en X de los puntos extremos se solapan; no se puede estimar Δm por el método de extremos.');
+            return { a: slope, b: intercept, r2, uncertainty: null, uncertaintyWarning: 'overlap' };
+        }
 
         // Centroid
         const xBar = sumX / n;
@@ -148,7 +164,7 @@ export function linearRegression(data) {
         };
     }
 
-    return { a: slope, b: intercept, r2, uncertainty };
+    return { a: slope, b: intercept, r2, uncertainty, uncertaintyWarning };
 }
 
 /**

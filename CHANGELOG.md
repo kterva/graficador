@@ -17,6 +17,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **"Limpiar Todo"**: también reinicia el panel de Configuración de Gráfica (título, etiquetas, unidades, prefijos, ± error, límites y checkboxes) a sus valores por defecto.
 - Los encabezados del cuadro de datos reflejan la etiqueta, unidad e incertidumbre de cada eje (`Etiqueta (unidad ± error)`) y se actualizan al cambiar la configuración.
 - **"+ Agregar Fila"**: enfoca y selecciona la celda X de la fila recién creada, igual que ya hacía la tecla Enter.
+- **Tangente y Área** en ajuste **exponencial**: antes mostraban `NaN` y no dibujaban la recta tangente (faltaban las ramas `exponential` en la derivada e integral).
+- **Incertidumbre de la pendiente**: cuando las cajas de error en X de los puntos extremos se solapan, ya no se muestra un `± Δm` sin sentido; se avisa que el método de máx/mín no aplica.
+- La incertidumbre por punto de proyectos/links viejos se descarta explícitamente al importar (la incertidumbre es por columna); antes quedaba como dato muerto en el estado.
+
+### Documentación
+- README: la incertidumbre se ingresa por columna (no por fila); el sistema de unidades sólo etiqueta, no convierte datos.
+- Nueva sección "Notas metodológicas y limitaciones" (método de máx/mín, regresiones no lineales sin ponderar, análisis dimensional experimental).
+- Ayuda in-app del ajuste lineal, exponencial, logarítmico y potencial ampliada con esas notas.
 
 ## [1.5.0] - 2026-08-06
 

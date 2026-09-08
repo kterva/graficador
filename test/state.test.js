@@ -36,12 +36,13 @@ test('sanitizeImportedSeries: defaults missing name/color/fitType to safe values
     assert.equal(result[0].fitType, 'none');
 });
 
-test('sanitizeImportedSeries: coerces non-numeric xError/yError to 0 instead of passing through', () => {
+test('sanitizeImportedSeries: per-point xError/yError are dropped — uncertainty is column-level (A3)', () => {
     const result = sanitizeImportedSeries([
-        { id: 1, data: [{ x: 1, y: 1, xError: 'boom', yError: null }] }
+        { id: 1, xError: 5, yError: 5, data: [{ x: 1, y: 1, xError: 'boom', yError: 0.3 }] }
     ]);
-    assert.equal(result[0].data[0].xError, 0);
-    assert.equal(result[0].data[0].yError, 0);
+    assert.deepEqual(result[0].data[0], { x: 1, y: 1 });
+    assert.ok(!('xError' in result[0].data[0]));
+    assert.ok(!('yError' in result[0]));
 });
 
 test('sanitizeImportedSeries: still deduplicates/coerces ids as before', () => {
@@ -53,4 +54,46 @@ test('sanitizeImportedSeries: still deduplicates/coerces ids as before', () => {
     const ids = result.map(s => s.id);
     assert.equal(new Set(ids).size, 3);
     ids.forEach(id => assert.ok(Number.isInteger(id) && id >= 0));
+});
+
+test('sanitizeImportedSeries: hostile ids (negative, float, NaN, Infinity) are replaced with safe integers', () => {
+    const result = sanitizeImportedSeries([
+        { id: -5, data: [{ x: 1, y: 1 }] },
+        { id: 3.7, data: [{ x: 2, y: 2 }] },
+        { id: Number.NaN, data: [{ x: 3, y: 3 }] },
+        { id: Infinity, data: [{ x: 4, y: 4 }] }
+    ]);
+    assert.equal(result.length, 4);
+    result.forEach(s => assert.ok(Number.isInteger(s.id) && s.id >= 0));
+    assert.equal(new Set(result.map(s => s.id)).size, 4);
+});
+
+test('sanitizeImportedSeries: script-like name/color strings pass through as data (escaping is a render concern)', () => {
+    const xss = '<img src=x onerror=alert(1)>';
+    const result = sanitizeImportedSeries([{ id: 1, name: xss, color: 'javascript:void(0)', data: [{ x: 1, y: 1 }] }]);
+    // El sanitizer no reescribe el texto; garantiza que sea string y no rompa el render.
+    assert.equal(typeof result[0].name, 'string');
+    assert.equal(result[0].name, xss);
+    assert.equal(typeof result[0].color, 'string');
+});
+
+test('sanitizeImportedSeries: hostile point coords are neutralised to empty strings', () => {
+    const result = sanitizeImportedSeries([
+        { id: 1, data: [
+            { x: 1, y: 2 },
+            { x: {}, y: [] },
+            { x: '3', y: '4' }
+        ] }
+    ]);
+    // fila 0: x/y numéricos se conservan
+    assert.deepEqual(result[0].data[0], { x: 1, y: 2 });
+    // fila 1: x/y no string ni number → ''
+    assert.deepEqual(result[0].data[1], { x: '', y: '' });
+    // fila 2: strings se conservan tal cual
+    assert.deepEqual(result[0].data[2], { x: '3', y: '4' });
+});
+
+test('sanitizeImportedSeries: a "__proto__" key in a raw series does not pollute Object.prototype', () => {
+    sanitizeImportedSeries([JSON.parse('{"id":1,"__proto__":{"polluted":true},"data":[{"x":1,"y":1}]}')]);
+    assert.equal({}.polluted, undefined);
 });

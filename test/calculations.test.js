@@ -40,6 +40,32 @@ test('calculateDerivative: power returns a*b*x^(b-1), is undefined (NaN) for x <
     assert.ok(Number.isNaN(calculateDerivative(0, { a: 2, b: 3 }, 'power')));
 });
 
+test('calculateDerivative: exponential returns a*b*e^(bx)', () => {
+    // y = 3·e^(0.5x) -> y' = 1.5·e^(0.5x); en x = 2 -> 1.5·e ≈ 4.077422742
+    closeTo(calculateDerivative(2, { a: 3, b: 0.5 }, 'exponential'), 1.5 * Math.E);
+    // en x = 0 -> a·b = 1.5
+    closeTo(calculateDerivative(0, { a: 3, b: 0.5 }, 'exponential'), 1.5);
+});
+
+test('calculateDerivative: exponential with b ≈ 0 returns 0, not NaN', () => {
+    const d = calculateDerivative(5, { a: 4, b: 0 }, 'exponential');
+    assert.ok(!Number.isNaN(d));
+    assert.equal(d, 0);
+});
+
+test('calculateIntegral: exponential matches analytic antiderivative', () => {
+    // y = 3·e^(0.5x) -> ∫ = (3/0.5)·e^(0.5x) = 6·e^(0.5x)
+    // de 0 a 2: 6·(e - 1) ≈ 10.30969097
+    closeTo(calculateIntegral(0, 2, { a: 3, b: 0.5 }, 'exponential'), 6 * (Math.E - 1));
+});
+
+test('calculateIntegral: exponential with b ≈ 0 degrades to a·(x2 - x1), not NaN', () => {
+    // y ≈ a (constante) -> ∫ de 1 a 4 ≈ 4·3 = 12
+    const area = calculateIntegral(1, 4, { a: 4, b: 0 }, 'exponential');
+    assert.ok(!Number.isNaN(area));
+    closeTo(area, 12);
+});
+
 test('calculateIntegral: linear matches analytic antiderivative', () => {
     // y = 2x + 1 -> ∫ from 0 to 3 = x² + x = 9 + 3 = 12
     closeTo(calculateIntegral(0, 3, { a: 2, b: 1 }, 'linear'), 12);

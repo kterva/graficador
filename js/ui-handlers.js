@@ -335,7 +335,11 @@ export function toggleHelp(serieId, fitType) {
                 <strong>Incertidumbre (Método de Pendiente Máxima/Mínima):</strong><br>
                 • <strong>m ± Δm</strong>: Pendiente con su error estimado<br>
                 • <strong>b ± Δb</strong>: Ordenada con su error estimado<br>
-                <em>Calculado usando las cajas de error de los puntos extremos.</em>
+                <em>Se traza la recta más empinada y la más plana entre las cajas de error
+                (± de la incertidumbre de columna) de los <strong>dos puntos extremos</strong>
+                y se reporta Δm = (m<sub>max</sub> − m<sub>min</sub>) / 2. Sólo usa los extremos,
+                no todo el conjunto. Si sus cajas de error en X se solapan, el método no
+                aplica y no se reporta Δm.</em>
             `;
             break;
         case 'poly2':
@@ -365,7 +369,10 @@ export function toggleHelp(serieId, fitType) {
                 &nbsp;&nbsp;- Si b > 0: crecimiento exponencial<br>
                 &nbsp;&nbsp;- Si b < 0: decrecimiento exponencial<br>
                 • <strong>e</strong>: Número de Euler (≈ 2.71828)<br>
-                • <strong>R²</strong>: Coeficiente de determinación (0 a 1, más cerca de 1 = mejor ajuste)
+                • <strong>R²</strong>: Coeficiente de determinación (0 a 1, más cerca de 1 = mejor ajuste)<br>
+                <em>Nota: el ajuste se hace por mínimos cuadrados sobre ln(y) (datos
+                linealizados), sin ponderar, lo que sesga hacia los valores chicos. El R²
+                se calcula en el espacio original.</em>
             `;
             break;
         case 'logarithmic':
@@ -375,7 +382,8 @@ export function toggleHelp(serieId, fitType) {
                 • <strong>b</strong>: Desplazamiento vertical<br>
                 • <strong>ln</strong>: Logaritmo natural (base e)<br>
                 • <strong>R²</strong>: Coeficiente de determinación (0 a 1, más cerca de 1 = mejor ajuste)<br>
-                <em>Nota: Solo funciona con valores X positivos</em>
+                <em>Nota: Solo funciona con valores X positivos. Ajuste por mínimos cuadrados
+                sobre ln(x), sin ponderar; el R² se calcula en el espacio original.</em>
             `;
             break;
         case 'power':
@@ -387,7 +395,8 @@ export function toggleHelp(serieId, fitType) {
                 &nbsp;&nbsp;- Si 0 < b < 1: crecimiento desacelerado<br>
                 &nbsp;&nbsp;- Si b < 0: decrecimiento<br>
                 • <strong>R²</strong>: Coeficiente de determinación (0 a 1, más cerca de 1 = mejor ajuste)<br>
-                <em>Nota: Solo funciona con valores X e Y positivos</em>
+                <em>Nota: Solo funciona con valores X e Y positivos. Ajuste por mínimos
+                cuadrados sobre ln(x)–ln(y), sin ponderar; el R² se calcula en el espacio original.</em>
             `;
             break;
     }

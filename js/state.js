@@ -82,6 +82,13 @@ export function findSerieById(id) {
  * `serie.data.forEach is not a function` recién DESPUÉS de que el estado previo
  * del usuario ya fue reemplazado, perdiendo su trabajo.
  *
+ * A3: la incertidumbre se maneja **por columna** (`AppState.config.defaultXError/Y`),
+ * no por punto. Proyectos/links viejos podían traer `xError`/`yError` por fila que
+ * hoy no consume nadie (siempre se pisan con la incertidumbre de columna en
+ * `updateChart`). Se descartan acá explícitamente para que el estado en memoria y
+ * el formato de archivo reflejen la decisión de diseño, en vez de arrastrar datos
+ * muertos que confunden.
+ *
  * @param {Array} rawSeries - Series crudas, potencialmente no confiables
  * @returns {Array} Series saneadas, seguras de renderizar
  */
@@ -112,12 +119,15 @@ export function sanitizeImportedSeries(rawSeries) {
             const cleanData = rawData
                 .filter(p => p !== null && typeof p === 'object')
                 .map(p => ({
+                    // Sólo x/y: la incertidumbre por punto se descarta (A3, ver arriba).
                     x: (typeof p.x === 'number' || typeof p.x === 'string') ? p.x : '',
-                    y: (typeof p.y === 'number' || typeof p.y === 'string') ? p.y : '',
-                    xError: typeof p.xError === 'number' ? p.xError : 0,
-                    yError: typeof p.yError === 'number' ? p.yError : 0
+                    y: (typeof p.y === 'number' || typeof p.y === 'string') ? p.y : ''
                 }));
             serie.data = cleanData.length > 0 ? cleanData : [{ x: '', y: '' }];
+
+            // También descartar cualquier metadato de incertidumbre por punto a nivel serie.
+            delete serie.xError;
+            delete serie.yError;
 
             return serie;
         });
