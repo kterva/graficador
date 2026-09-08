@@ -10,7 +10,7 @@
 
 import { AppState } from './state.js';
 import { addSerie as addSerieData, removeSerie as removeSerieData, addRow as addRowData, removeRow as removeRowData, updatePoint as updatePointData, updateSerieColor as updateSerieColorData, updateFitType as updateFitTypeData, clearTable as clearTableData, exportCSV as exportCSVData, importCSVFile } from './data-manager.js';
-import { updateChart, getDataRange } from './chart-manager.js';
+import { updateChart, getDataRange, resetZoom } from './chart-manager.js';
 import { propagateUncertainty, formatPropagationResult, validateAllInputs, formatWarnings } from './uncertainty-propagation.js';
 import { showDecimalWarning, normalizeDecimalInput, escapeHTML, parseDecimal, formatNumber } from './utils.js';
 
@@ -19,6 +19,47 @@ let _chartUpdateTimer = null;
 function debouncedUpdateChart() {
     clearTimeout(_chartUpdateTimer);
     _chartUpdateTimer = setTimeout(() => updateChart(), 400);
+}
+
+/**
+ * Construye el texto del encabezado de una columna de la tabla de datos,
+ * reflejando la etiqueta del eje, su unidad y la incertidumbre de columna:
+ *   "Etiqueta (unidad ± error)"  ·  "Etiqueta (unidad)"  ·  "Etiqueta (± error)"  ·  "Etiqueta"
+ * @param {Object} serie - Serie de datos
+ * @param {'x'|'y'} axis - Eje
+ * @returns {string}
+ */
+function axisHeaderLabel(serie, axis) {
+    const labelInput = document.getElementById(`label${axis.toUpperCase()}`);
+    const label = (labelInput && labelInput.value.trim()) || axis.toUpperCase();
+
+    const unit = serie.units?.[axis]?.unit || '';
+    const err = axis === 'x' ? AppState.config.defaultXError : AppState.config.defaultYError;
+
+    const parts = [];
+    if (unit) parts.push(unit);
+    if (typeof err === 'number' && !isNaN(err) && err !== 0) parts.push(`± ${formatNumber(err)}`);
+
+    return parts.length ? `${label} (${parts.join(' ')})` : label;
+}
+
+/**
+ * Enfoca y selecciona una celda concreta de la tabla de datos.
+ * El pequeño retardo da tiempo al DOM a renderizar la fila recién creada.
+ * @param {number} serieId - ID de la serie
+ * @param {number} rowIndex - Índice de la fila
+ * @param {number} [colIndex=0] - Índice de la columna (0 = X, 1 = Y)
+ */
+export function focusCell(serieId, rowIndex, colIndex = 0) {
+    setTimeout(() => {
+        const input = document.querySelector(
+            `input[data-serie="${serieId}"][data-row="${rowIndex}"][data-col="${colIndex}"]`
+        );
+        if (input) {
+            input.focus();
+            input.select();
+        }
+    }, 10);
 }
 
 /**
@@ -61,8 +102,8 @@ export function renderSeries() {
             <table>
                 <thead>
                     <tr>
-                        <th>X</th>
-                        <th>Y</th>
+                        <th>${escapeHTML(axisHeaderLabel(serie, 'x'))}</th>
+                        <th>${escapeHTML(axisHeaderLabel(serie, 'y'))}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -91,6 +132,15 @@ export function renderTable(serieId) {
     if (!serie) return;
 
     const tbody = document.getElementById(`table-${serieId}`);
+    if (!tbody) return;
+
+    // Mantener los encabezados X/Y sincronizados con etiqueta, unidad y ± error
+    const headRow = tbody.closest('table')?.querySelector('thead tr');
+    if (headRow && headRow.children.length >= 2) {
+        headRow.children[0].textContent = axisHeaderLabel(serie, 'x');
+        headRow.children[1].textContent = axisHeaderLabel(serie, 'y');
+    }
+
     tbody.innerHTML = '';
 
     serie.data.forEach((point, index) => {
@@ -137,13 +187,7 @@ export function handleKeyDown(event, serieId, rowIndex, colIndex) {
         }
 
         // Focus the cell below
-        setTimeout(() => {
-            const nextInput = document.querySelector(`input[data-serie="${serieId}"][data-row="${rowIndex + 1}"][data-col="${colIndex}"]`);
-            if (nextInput) {
-                nextInput.focus();
-                nextInput.select();
-            }
-        }, 10);
+        focusCell(serieId, rowIndex + 1, colIndex);
     } else if (event.key === 'ArrowUp') {
         if (rowIndex > 0) {
             event.preventDefault();
@@ -437,6 +481,12 @@ export function removeSerie(id) {
 export function addRow(serieId) {
     addRowData(serieId);
     renderTable(serieId);
+
+    // Enfocar la celda X de la fila recién agregada (mismo comportamiento que Enter)
+    const serie = AppState.series.find(s => s.id === serieId);
+    if (serie && serie.data.length > 0) {
+        focusCell(serieId, serie.data.length - 1, 0);
+    }
 }
 
 /**
@@ -525,7 +575,13 @@ export function clearAllData() {
 
         renderSeries();
         updateChart();
-        import('./chart_config.js').then(mod => mod.updateChartConfig());
+        import('./chart_config.js').then(mod => {
+            // C2: devolver el panel de Configuración de Gráfica a sus valores por defecto
+            mod.resetChartConfigPanel();
+            // C1: soltar el zoom/límites previos; con datos vacíos la vista quedaba
+            // pegada a los límites anteriores
+            resetZoom();
+        });
     }
 }
 
