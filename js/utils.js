@@ -16,8 +16,9 @@ export const COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#
 
 /**
  * Versión de la aplicación. Única fuente de verdad: usar esta constante en
- * vez de repetir el número de versión en otros archivos, para evitar que
- * queden desincronizados (como pasó con el footer y el cache-buster).
+ * vez de repetir el número de versión en otros archivos (ya se desincronizó
+ * con el footer). Sólo se muestra en el footer; el `<script src>` de index.html
+ * ya no lleva `?v=` (ver comentario ahí).
  * @type {string}
  */
 export const APP_VERSION = '1.5.0';

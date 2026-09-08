@@ -1031,9 +1031,12 @@
         </div>
     </div>
 
-    <!-- Módulo principal (ES6). El "?v=" es un cache-buster manual: al cambiar
-         APP_VERSION en js/utils.js, actualizar también este número. -->
-    <script type="module" src="js/main.js?v=1.5.0"></script>
+    <!-- Módulo principal (ES6). Sin cache-buster manual (G4): sólo versionaba a
+         main.js, no a los módulos hermanos que importa, así que daba una falsa
+         sensación de frescura y había que acordarse de bumpearlo cada release
+         (ya se desincronizó una vez). GitHub Pages sirve todo con
+         Cache-Control: max-age=600, así que un release propaga en ~10 min. -->
+    <script type="module" src="js/main.js"></script>
 </body>
 
 </html>
