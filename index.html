@@ -6,17 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--
       CSP: defensa en profundidad frente a XSS vía innerHTML + datos de ?data=.
-      - script-src fija los orígenes permitidos (los 4 CDN + el propio sitio); un
-        <script src> inyectado hacia otro host queda bloqueado. Todavía incluye
-        'unsafe-inline' porque quedan manejadores on*= en el HTML — quitarlo es el
-        objetivo del ítem E2 del backlog.
-      - connect-src 'self': aunque se ejecute JS inyectado, no puede exfiltrar datos
-        a un servidor externo (fetch/XHR/WebSocket/beacon).
+      - script-src SIN 'unsafe-inline': ya no hay `<script>` ni manejadores `on*=`
+        inline (todo pasa por la delegación de eventos, js/events.js). Un script
+        inyectado —inline o desde otro host— queda bloqueado. Sólo se permiten
+        scripts propios y los 4 CDN de cdnjs (con SRI).
+      - style-src mantiene 'unsafe-inline': el HTML usa cientos de `style=` y hay
+        varios `<style>` inyectados por JS; la inyección de estilos es de mucho
+        menor impacto que la de scripts.
+      - connect-src 'self': aunque se ejecutara JS inyectado, no puede exfiltrar
+        datos a un servidor externo (fetch/XHR/WebSocket/beacon).
       - object-src/base-uri/form-action/frame-ancestors cerrados.
     -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
-        script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+        script-src 'self' https://cdnjs.cloudflare.com;
         style-src 'self' 'unsafe-inline';
         img-src 'self' data: blob: https://graficador.culturalibre.edu.uy;
         font-src 'self' data:;
@@ -81,7 +84,7 @@
             <h1>📊 Graficador de Funciones</h1>
 
             <!-- Botón hamburguesa (solo visible en móvil) -->
-            <button id="mobileMenuBtn" onclick="toggleMobileMenu()"
+            <button id="mobileMenuBtn" data-on-click="toggleMobileMenu"
                 style="display: none; background: #667eea; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-size: 20px; cursor: pointer;">
                 ☰
             </button>
@@ -90,7 +93,7 @@
             <div id="headerMenu" style="display: flex; gap: 10px; align-items: center;">
                 <!-- Menú de Herramientas -->
                 <nav aria-label="Menú de herramientas" style="position: relative;">
-                    <button class="btn btn-secondary" onclick="toggleToolsMenu()"
+                    <button class="btn btn-secondary" data-on-click="toggleToolsMenu"
                         style="background-color: #6c5ce7; border: none;" aria-label="Abrir menú de herramientas"
                         aria-expanded="false" aria-controls="toolsMenu">
                         🧰 Herramientas ▼
@@ -101,44 +104,40 @@
                         <div style="padding: 10px; border-bottom: 2px solid #eee;">
                             <strong style="color: #6c5ce7;">🧰 Herramientas Disponibles</strong>
                         </div>
-                        <button onclick="openErrorPropagationModal(); toggleToolsMenu();" role="menuitem"
+                        <button data-on-click="openErrorPropagationModal toggleToolsMenu" role="menuitem"
                             aria-label="Abrir calculadora de propagación de errores" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
-                            cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee;"
-                            onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+                            cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee;">
                             📐 Propagación de Errores
                         </button>
-                        <button onclick="openDimensionalAnalysisModal(); toggleToolsMenu();" role="menuitem"
+                        <button data-on-click="openDimensionalAnalysisModal toggleToolsMenu" role="menuitem"
                             aria-label="Abrir análisis dimensional" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
-                            cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee;"
-                            onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+                            cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee;">
                             🔬 Análisis Dimensional <span style="font-size: 0.8em; color: #999;">(experimental)</span>
                         </button>
-                        <button onclick="openTestDataModal(); toggleToolsMenu();" role="menuitem"
+                        <button data-on-click="openTestDataModal toggleToolsMenu" role="menuitem"
                             aria-label="Cargar datos de prueba" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
-                            cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee;"
-                            onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+                            cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #eee;">
                             🧪 Cargar Datos de Prueba
                         </button>
-                        <button onclick="alert('Plantillas próximamente...')" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
-                            cursor: pointer; transition: background 0.2s; color: #999;"
-                            onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+                        <button data-on-click="templatesComingSoon" style="width: 100%; padding: 12px; border: none; background: white; text-align: left; 
+                            cursor: pointer; transition: background 0.2s; color: #999;">
                             🧪 Plantillas <span style="font-size: 0.8em;">(próximamente)</span>
                         </button>
                     </div>
                 </nav>
 
                 <input type="file" id="project-file-input" style="display:none" accept=".json"
-                    onchange="importProject()">
-                <button class="btn btn-primary" onclick="exportProject()">💾 Guardar</button>
-                <button class="btn btn-secondary" onclick="triggerImportProject()">📂 Cargar</button>
-                <button class="btn btn-danger" onclick="clearAllData()"
+                    data-on-change="importProject">
+                <button class="btn btn-primary" data-on-click="exportProject">💾 Guardar</button>
+                <button class="btn btn-secondary" data-on-click="triggerImportProject">📂 Cargar</button>
+                <button class="btn btn-danger" data-on-click="clearAllData"
                     style="background-color: #e74c3c; color: white;">🗑️ Limpiar Todo</button>
-                <button class="btn btn-secondary" onclick="togglePresentationMode()" title="Modo presentación (Alt+P)"
+                <button class="btn btn-secondary" data-on-click="togglePresentationMode" title="Modo presentación (Alt+P)"
                     style="background-color: #9b59b6; border: none;">
                     📺 Presentar
                 </button>
                 <div style="display: none;"></div>
-                <button class="btn btn-secondary" onclick="copyShareURL()" title="Generar URL compartible"
+                <button class="btn btn-secondary" data-on-click="copyShareURL" title="Generar URL compartible"
                     style="background-color: #3498db; border: none;">
                     🔗 Compartir
                 </button>
@@ -152,7 +151,7 @@
             <div class="panel">
                 <h2>Series de Datos</h2>
                 <div id="series-container"></div>
-                <button class="btn btn-success" onclick="addSerie()">+ Nueva Serie</button>
+                <button class="btn btn-success" data-on-click="addSerie">+ Nueva Serie</button>
             </div>
 
             <!-- Panel derecho: Gráfica -->
@@ -164,11 +163,11 @@
 
                 <div id="extrapolation-controls" style="margin-top: 15px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: #fafafa; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
                     <label style="display: flex; align-items: center; gap: 8px; font-size: 0.95rem;">
-                        <input type="checkbox" id="extrapolateNegInfinity" onchange="updateChart()">
+                        <input type="checkbox" id="extrapolateNegInfinity" data-on-change="updateChart">
                         Extrapolar a -infinito
                     </label>
                     <label style="display: flex; align-items: center; gap: 8px; font-size: 0.95rem;">
-                        <input type="checkbox" id="extrapolatePosInfinity" onchange="updateChart()">
+                        <input type="checkbox" id="extrapolatePosInfinity" data-on-change="updateChart">
                         Extrapolar a +infinito
                     </label>
                 </div>
@@ -180,9 +179,9 @@
                 <div id="zoom-controls" class="panel" style="margin-top: 15px; border: 1px solid #ddd;">
                     <h4 style="margin: 0 0 10px 0; color: #555; font-size: 14px;">🔍 Controles de Vista</h4>
                     <div class="zoom-buttons" style="display: inline-flex; gap: 5px; margin-bottom: 10px;">
-                        <button class="btn btn-primary" onclick="zoomIn()">🔍+ Acercar</button>
-                        <button class="btn btn-primary" onclick="zoomOut()">🔍- Alejar</button>
-                        <button class="btn btn-primary" onclick="resetZoom()">🔄 Restablecer</button>
+                        <button class="btn btn-primary" data-on-click="zoomIn">🔍+ Acercar</button>
+                        <button class="btn btn-primary" data-on-click="zoomOut">🔍- Alejar</button>
+                        <button class="btn btn-primary" data-on-click="resetZoom">🔄 Restablecer</button>
                     </div>
                 </div>
                 <div id="intersection-display"
@@ -192,26 +191,26 @@
                 </div>
 
                 <div class="panel" style="margin-top: 20px; border: 1px solid #ddd;">
-                    <h3 style="cursor: pointer; user-select: none;" onclick="toggleConfigPanel()">⚙️ Configuración de
+                    <h3 style="cursor: pointer; user-select: none;" data-on-click="toggleConfigPanel">⚙️ Configuración de
                         Gráfica (<span id="config-toggle-icon">▲</span>)</h3>
                     <div id="config-panel-content" style="display: block; margin-top: 15px;">
                         <div class="controls">
                             <label>Título Gráfica:</label>
-                            <input type="text" id="chartTitle" value="Gráfica de Datos" onchange="updateChartConfig()">
+                            <input type="text" id="chartTitle" value="Gráfica de Datos" data-on-change="updateChartConfig">
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
                             <div>
                                 <strong>Eje X</strong><br>
                                 <label>Etiqueta:</label>
-                                <input type="text" id="labelX" value="X" onchange="updateChartConfig()"><br>
+                                <input type="text" id="labelX" value="X" data-on-change="updateChartConfig"><br>
 
                                 <!-- Selector de unidades para eje X -->
                                 <label style="margin-top: 8px; display: block;">Unidad: 
-                                    <span onclick="showUnitHelp()" title="Ayuda sobre unidades" style="cursor:pointer; font-size:0.9em; background:#eee; border-radius:50%; padding:0 4px; border:1px solid #ccc; display: inline-block; width: 14px; text-align: center;">?</span>
+                                    <span data-on-click="showUnitHelp" title="Ayuda sobre unidades" style="cursor:pointer; font-size:0.9em; background:#eee; border-radius:50%; padding:0 4px; border:1px solid #ccc; display: inline-block; width: 14px; text-align: center;">?</span>
                                 </label>
                                 <div style="display: flex; gap: 5px; margin-bottom: 5px;">
-                                    <select id="prefixX" onchange="updateAxisPrefix('x', this.value)" style="flex: 1; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                                    <select id="prefixX" data-on-change="updateAxisPrefix" data-axis="x" style="flex: 1; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
                                         <option value="">Prefijo...</option>
                                         <option value="p">pico (p)</option>
                                         <option value="n">nano (n)</option>
@@ -224,7 +223,7 @@
                                         <option value="G">giga (G)</option>
                                         <option value="T">tera (T)</option>
                                     </select>
-                                    <select id="unitX" onchange="updateAxisUnit('x', this.value)"
+                                    <select id="unitX" data-on-change="updateAxisUnit" data-axis="x"
                                         style="flex: 2; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
                                     <option value="">Sin unidad</option>
                                     <optgroup label="Longitud">
@@ -282,24 +281,24 @@
                                     <option value="custom_manual">Otra (Personalizada)...</option>
                                 </select>
                                 </div>
-                                <input type="text" id="unitXCustom" placeholder="Ej. A, RPM, Hz" oninput="updateCustomUnit('x', this.value)"
+                                <input type="text" id="unitXCustom" placeholder="Ej. A, RPM, Hz" data-on-input="updateCustomUnit" data-axis="x"
                                     style="width: 100%; padding: 5px; border-radius: 4px; border: 1px solid #ccc; display: none; margin-top: 4px;">
                                 <label style="display:block; margin-top: 8px; font-weight: 500; color: #444;">Incertidumbre de columna ±X:</label>
                                 <input type="text" inputmode="decimal" id="defaultXError" placeholder="0" value="0"
-                                    onchange="updateChartConfig()" oninput="handleDecimalInput(event)"
+                                    data-on-change="updateChartConfig" data-on-input="handleDecimalInput"
                                     style="width: 100%; padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
                             </div>
                             <div>
                                 <strong>Eje Y</strong><br>
                                 <label>Etiqueta:</label>
-                                <input type="text" id="labelY" value="Y" onchange="updateChartConfig()"><br>
+                                <input type="text" id="labelY" value="Y" data-on-change="updateChartConfig"><br>
 
                                 <!-- Selector de unidades para eje Y -->
                                 <label style="margin-top: 8px; display: block;">Unidad: 
-                                    <span onclick="showUnitHelp()" title="Ayuda sobre unidades" style="cursor:pointer; font-size:0.9em; background:#eee; border-radius:50%; padding:0 4px; border:1px solid #ccc; display: inline-block; width: 14px; text-align: center;">?</span>
+                                    <span data-on-click="showUnitHelp" title="Ayuda sobre unidades" style="cursor:pointer; font-size:0.9em; background:#eee; border-radius:50%; padding:0 4px; border:1px solid #ccc; display: inline-block; width: 14px; text-align: center;">?</span>
                                 </label>
                                 <div style="display: flex; gap: 5px; margin-bottom: 5px;">
-                                    <select id="prefixY" onchange="updateAxisPrefix('y', this.value)" style="flex: 1; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                                    <select id="prefixY" data-on-change="updateAxisPrefix" data-axis="y" style="flex: 1; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
                                         <option value="">Prefijo...</option>
                                         <option value="p">pico (p)</option>
                                         <option value="n">nano (n)</option>
@@ -312,7 +311,7 @@
                                         <option value="G">giga (G)</option>
                                         <option value="T">tera (T)</option>
                                     </select>
-                                    <select id="unitY" onchange="updateAxisUnit('y', this.value)"
+                                    <select id="unitY" data-on-change="updateAxisUnit" data-axis="y"
                                         style="flex: 2; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
                                     <option value="">Sin unidad</option>
                                     <optgroup label="Longitud">
@@ -370,11 +369,11 @@
                                     <option value="custom_manual">Otra (Personalizada)...</option>
                                 </select>
                                 </div>
-                                <input type="text" id="unitYCustom" placeholder="Ej. A, RPM, Hz" oninput="updateCustomUnit('y', this.value)"
+                                <input type="text" id="unitYCustom" placeholder="Ej. A, RPM, Hz" data-on-input="updateCustomUnit" data-axis="y"
                                     style="width: 100%; padding: 5px; border-radius: 4px; border: 1px solid #ccc; display: none;">
                                 <label style="display:block; margin-top: 8px; font-weight: 500; color: #444;">Incertidumbre de columna ±Y:</label>
                                 <input type="text" inputmode="decimal" id="defaultYError" placeholder="0" value="0"
-                                    onchange="updateChartConfig()" oninput="handleDecimalInput(event)"
+                                    data-on-change="updateChartConfig" data-on-input="handleDecimalInput"
                                     style="width: 100%; padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
                             </div>
                         </div>
@@ -386,7 +385,7 @@
                                 style="cursor: pointer; padding: 10px; font-weight: 500; user-select: none; color: #666;">
                                 ⚙️ Límites Manuales (Escala)
                                 <button class="help-btn-small"
-                                    onclick="document.getElementById('axis-limits-details').open = true; toggleGenericHelp('help-axis-limits'); event.preventDefault(); event.stopPropagation();"
+                                    data-on-click="openAxisLimitsHelp"
                                     title="Ayuda sobre límites">?</button>
                             </summary>
 
@@ -408,11 +407,11 @@
                                             X</strong></label>
                                     <label style="font-size: 0.9em;">Mín:</label>
                                     <input type="text" inputmode="decimal" id="minX" placeholder="auto"
-                                        onchange="updateChartConfig()" oninput="handleDecimalInput(event)"
+                                        data-on-change="updateChartConfig" data-on-input="handleDecimalInput"
                                         style="width: 100%; margin-bottom: 5px;">
                                     <label style="font-size: 0.9em;">Máx:</label>
                                     <input type="text" inputmode="decimal" id="maxX" placeholder="auto"
-                                        onchange="updateChartConfig()" oninput="handleDecimalInput(event)"
+                                        data-on-change="updateChartConfig" data-on-input="handleDecimalInput"
                                         style="width: 100%;">
                                 </div>
                                 <div>
@@ -420,11 +419,11 @@
                                             Y</strong></label>
                                     <label style="font-size: 0.9em;">Mín:</label>
                                     <input type="text" inputmode="decimal" id="minY" placeholder="auto"
-                                        onchange="updateChartConfig()" oninput="handleDecimalInput(event)"
+                                        data-on-change="updateChartConfig" data-on-input="handleDecimalInput"
                                         style="width: 100%; margin-bottom: 5px;">
                                     <label style="font-size: 0.9em;">Máx:</label>
                                     <input type="text" inputmode="decimal" id="maxY" placeholder="auto"
-                                        onchange="updateChartConfig()" oninput="handleDecimalInput(event)"
+                                        data-on-change="updateChartConfig" data-on-input="handleDecimalInput"
                                         style="width: 100%;">
                                 </div>
                             </div>
@@ -432,25 +431,25 @@
 
                             <div class="config-group">
                                 <label>
-                                    <input type="checkbox" id="showGrid" checked onchange="updateChartConfig()"> Mostrar
+                                    <input type="checkbox" id="showGrid" checked data-on-change="updateChartConfig"> Mostrar
                                     Cuadrícula
                                 </label>
                             </div>
                             <div class="config-group">
                                 <label>
-                                    <input type="checkbox" id="beginAtZero" onchange="updateChartConfig()"> Incluir
+                                    <input type="checkbox" id="beginAtZero" data-on-change="updateChartConfig"> Incluir
                                     origen (0,0)
                                 </label>
                             </div>
                             <div class="config-group">
                                 <label>
-                                    <input type="checkbox" id="showUncertaintyLines" onchange="updateChart()"> Mostrar
+                                    <input type="checkbox" id="showUncertaintyLines" data-on-change="updateChart"> Mostrar
                                     pendiente máx. y mín.
                                 </label>
                             </div>
                             <div class="config-group">
                                 <label>
-                                    <input type="checkbox" id="showIntersectionCheck" onchange="toggleIntersection()">
+                                    <input type="checkbox" id="showIntersectionCheck" data-on-change="toggleIntersection">
                                     Mostrar
                                     intersección
                                 </label>
@@ -467,16 +466,16 @@
                         style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
                         <label
                             style="display: flex; align-items: center; font-weight: bold; margin-bottom: 10px; cursor: pointer;">
-                            <input type="checkbox" id="showTangent" onchange="toggleTangent()">
+                            <input type="checkbox" id="showTangent" data-on-change="toggleTangent">
                             <span style="margin-left: 8px;">📉 Mostrar Tangente (Derivada)</span>
                         </label>
                         <div id="tangentControls" style="display: none; padding-left: 20px;">
                             <div style="display: flex; align-items: center; margin-bottom: 10px;">
                                 <label for="tangentSlider" style="margin-right: 10px;">Posición X:</label>
                                 <input type="range" id="tangentSlider" style="flex-grow: 1; margin-right: 10px;"
-                                    oninput="updateTangentFromSlider()">
+                                    data-on-input="updateTangentFromSlider">
                                 <input type="text" inputmode="decimal" id="tangentXInput" style="width: 80px; padding: 5px;"
-                                    onchange="updateTangentFromInput()" oninput="handleDecimalInput(event)">
+                                    data-on-change="updateTangentFromInput" data-on-input="handleDecimalInput">
                             </div>
                             <div id="tangentDisplay"
                                 style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; border: 1px solid #ddd;">
@@ -489,17 +488,17 @@
                     <div class="config-group">
                         <label
                             style="display: flex; align-items: center; font-weight: bold; margin-bottom: 10px; cursor: pointer;">
-                            <input type="checkbox" id="showArea" onchange="toggleArea()">
+                            <input type="checkbox" id="showArea" data-on-change="toggleArea">
                             <span style="margin-left: 8px;">∫ Mostrar Área (Integral)</span>
                         </label>
                         <div id="areaControls" style="display: none; padding-left: 20px;">
                             <div
                                 style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
                                 <label>Desde x₁: <input type="text" inputmode="decimal" id="areaX1" style="width: 80px; padding: 5px;"
-                                        oninput="handleDecimalInput(event)"></label>
+                                        data-on-input="handleDecimalInput"></label>
                                 <label>Hasta x₂: <input type="text" inputmode="decimal" id="areaX2" style="width: 80px; padding: 5px;"
-                                        oninput="handleDecimalInput(event)"></label>
-                                <button class="btn btn-secondary" onclick="calculateArea()"
+                                        data-on-input="handleDecimalInput"></label>
+                                <button class="btn btn-secondary" data-on-click="calculateArea"
                                     style="background-color: #6c5ce7; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer;">Calcular
                                     Área</button>
                             </div>
@@ -521,9 +520,9 @@
                             style="font-size: 13px; margin-right: 18px; cursor: pointer; user-select: none;">Incluir
                             Tabla</label>
 
-                        <button class="btn btn-primary" onclick="downloadChartJPG()">JPG</button>
-                        <button class="btn btn-primary" onclick="downloadChartPDF()">PDF</button>
-                        <button class="btn btn-success" onclick="downloadAllCSV()">CSV</button>
+                        <button class="btn btn-primary" data-on-click="downloadChartJPG">JPG</button>
+                        <button class="btn btn-primary" data-on-click="downloadChartPDF">PDF</button>
+                        <button class="btn btn-success" data-on-click="downloadAllCSV">CSV</button>
                     </div>
                 </div>
             </div>
@@ -531,12 +530,12 @@
 
         <!-- Botón de Ayuda Flotante -->
         <!-- Botón de Ayuda Flotante -->
-        <button id="helpButton" class="floating-help-btn" onclick="toggleHelpModal()">
+        <button id="helpButton" class="floating-help-btn" data-on-click="toggleHelpModal">
             ?
         </button>
 
         <!-- Botón de Tour Guiado Flotante (DESACTIVADO para producción)
-        <button id="tourButton" onclick="startTour()" title="Iniciar tour guiado" style="position: fixed; top: 80px; right: 20px; width: 50px; height: 50px; border-radius: 50%; 
+        <button id="tourButton" data-on-click="startTour" title="Iniciar tour guiado" style="position: fixed; top: 80px; right: 20px; width: 50px; height: 50px; border-radius: 50%;
                     background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; border: none; 
                     font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; 
                     transition: all 0.3s ease;">
@@ -555,7 +554,7 @@
                             padding: 25px; border-radius: 15px 15px 0 0; position: relative;">
                     <h2 style="margin: 0; font-size: 28px;">📚 Centro de Ayuda</h2>
                     <p style="margin: 5px 0 0 0; opacity: 0.9;">Guía completa del Graficador</p>
-                    <button onclick="toggleHelpModal()" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); 
+                    <button data-on-click="toggleHelpModal" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); 
                                 border: none; color: white; font-size: 24px; width: 35px; height: 35px; 
                                 border-radius: 50%; cursor: pointer; transition: all 0.3s;">
                         ×
@@ -564,19 +563,19 @@
 
                 <!-- Pestañas -->
                 <div style="display: flex; border-bottom: 2px solid #eee; background: #f8f9fa;">
-                    <button class="help-tab active" data-tab="intro" onclick="switchHelpTab('intro')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer;
+                    <button class="help-tab active" data-tab="intro" data-on-click="switchHelpTab" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer;
                                 font-weight: bold; transition: all 0.3s; border-bottom: 3px solid transparent;">
                         👋 Introducción
                     </button>
-                    <button class="help-tab" data-tab="quick" onclick="switchHelpTab('quick')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer;
+                    <button class="help-tab" data-tab="quick" data-on-click="switchHelpTab" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer;
                                 font-weight: bold; transition: all 0.3s; border-bottom: 3px solid transparent;">
                         🚀 Inicio Rápido
                     </button>
-                    <button class="help-tab" data-tab="tools" onclick="switchHelpTab('tools')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer;
+                    <button class="help-tab" data-tab="tools" data-on-click="switchHelpTab" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer;
                                 font-weight: bold; transition: all 0.3s; border-bottom: 3px solid transparent;">
                         🛠️ Herramientas
                     </button>
-                    <button class="help-tab" data-tab="tips" onclick="switchHelpTab('tips')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer;
+                    <button class="help-tab" data-tab="tips" data-on-click="switchHelpTab" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer;
                                 font-weight: bold; transition: all 0.3s; border-bottom: 3px solid transparent;">
                         💡 Consejos
                     </button>
@@ -838,23 +837,23 @@
             
             <div style="padding: 25px;">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px;">
-                    <button class="btn btn-secondary" onclick="loadTestData('linear'); closeTestDataModal();"
+                    <button class="btn btn-secondary" data-on-click="loadTestData closeTestDataModal" data-test-type="linear"
                         style="background: #4ecdc4;">📈 Lineal</button>
-                    <button class="btn btn-secondary" onclick="loadTestData('quadratic'); closeTestDataModal();"
+                    <button class="btn btn-secondary" data-on-click="loadTestData closeTestDataModal" data-test-type="quadratic"
                         style="background: #95e1d3;">📊 Cuadrática</button>
-                    <button class="btn btn-secondary" onclick="loadTestData('exponential'); closeTestDataModal();"
+                    <button class="btn btn-secondary" data-on-click="loadTestData closeTestDataModal" data-test-type="exponential"
                         style="background: #f38181;">📉 Exponencial</button>
-                    <button class="btn btn-secondary" onclick="loadTestData('logarithmic'); closeTestDataModal();"
+                    <button class="btn btn-secondary" data-on-click="loadTestData closeTestDataModal" data-test-type="logarithmic"
                         style="background: #aa96da;">📐 Logarítmica</button>
-                    <button class="btn btn-secondary" onclick="loadTestData('power'); closeTestDataModal();" 
+                    <button class="btn btn-secondary" data-on-click="loadTestData closeTestDataModal" data-test-type="power" 
                         style="background: #fcbad3;">⚡ Potencial</button>
-                    <button class="btn btn-secondary" onclick="loadTestData('uncertainty'); closeTestDataModal();"
+                    <button class="btn btn-secondary" data-on-click="loadTestData closeTestDataModal" data-test-type="uncertainty"
                         style="background: #a8e6cf;">🎯 Con Incertidumbre</button>
                 </div>
 
                 <!-- Botón cerrar -->
                 <div style="text-align: right; margin-top: 20px;">
-                    <button class="btn btn-secondary" onclick="closeTestDataModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; 
+                    <button class="btn btn-secondary" data-on-click="closeTestDataModal" style="background: #6c757d; color: white; border: none; padding: 10px 20px; 
                         border-radius: 6px; cursor: pointer;">
                         Cerrar
                     </button>
@@ -873,10 +872,8 @@
                 style="background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); color: white; 
                 padding: 20px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin: 0; font-size: 1.5em;">📐 Calculadora de Propagación de Errores</h2>
-                <button onclick="closeErrorPropagationModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; 
-                    width: 35px; height: 35px; border-radius: 50%; cursor: pointer; transition: background 0.2s;"
-                    onmouseover="this.style.background='rgba(255,255,255,0.3)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                <button class="modal-close-x" data-on-click="closeErrorPropagationModal" style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; 
+                    width: 35px; height: 35px; border-radius: 50%; cursor: pointer; transition: background 0.2s;">
                     ×
                 </button>
             </div>
@@ -900,13 +897,13 @@
                         <div>
                             <label style="font-weight: bold; display: block; margin-bottom: 5px;">A:</label>
                             <input type="text" inputmode="decimal" id="errorValueA" placeholder="Valor A"
-                                oninput="handleDecimalInput(event)"
+                                data-on-input="handleDecimalInput"
                                 style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em;">
                         </div>
                         <div>
                             <label style="font-weight: bold; display: block; margin-bottom: 5px;">δA:</label>
                             <input type="text" inputmode="decimal" id="errorDeltaA" placeholder="Error A"
-                                oninput="handleDecimalInput(event)"
+                                data-on-input="handleDecimalInput"
                                 style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em;">
                         </div>
                     </div>
@@ -915,21 +912,20 @@
                         <div>
                             <label style="font-weight: bold; display: block; margin-bottom: 5px;">B:</label>
                             <input type="text" inputmode="decimal" id="errorValueB" placeholder="Valor B"
-                                oninput="handleDecimalInput(event)"
+                                data-on-input="handleDecimalInput"
                                 style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em;">
                         </div>
                         <div>
                             <label style="font-weight: bold; display: block; margin-bottom: 5px;">δB:</label>
                             <input type="text" inputmode="decimal" id="errorDeltaB" placeholder="Error B"
-                                oninput="handleDecimalInput(event)"
+                                data-on-input="handleDecimalInput"
                                 style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em;">
                         </div>
                     </div>
 
-                    <button class="btn btn-secondary" onclick="calculateErrorPropagation()" style="width: 100%; background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); 
+                    <button class="btn btn-secondary btn-hover-scale" data-on-click="calculateErrorPropagation" style="width: 100%; background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); 
                         color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; 
-                        font-weight: bold; font-size: 1.1em; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        font-weight: bold; font-size: 1.1em; transition: transform 0.2s;">
                         Calcular Propagación
                     </button>
 
@@ -961,10 +957,8 @@
                     🔬 Análisis Dimensional
                     <span style="font-size: 0.5em; font-weight: normal; background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 10px; letter-spacing: 0.5px;">EXPERIMENTAL</span>
                 </h2>
-                <button onclick="closeDimensionalAnalysisModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px;
-                    width: 35px; height: 35px; border-radius: 50%; cursor: pointer; transition: background 0.2s;"
-                    onmouseover="this.style.background='rgba(255,255,255,0.3)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                <button class="modal-close-x" data-on-click="closeDimensionalAnalysisModal" style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px;
+                    width: 35px; height: 35px; border-radius: 50%; cursor: pointer; transition: background 0.2s;">
                     ×
                 </button>
             </div>
@@ -977,7 +971,7 @@
                     <div style="margin-bottom: 15px;">
                         <label style="font-weight: bold; display: block; margin-bottom: 5px;">Expresión:</label>
                         <input type="text" id="dimExpression" placeholder="ej: velocidad * tiempo"
-                            onkeydown="if(event.key==='Enter'){analyzeDimension();}"
+                            data-on-keydown="analyzeDimensionOnEnter"
                             style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em;">
                         <small style="color: #666; display: block; margin-top: 5px;">
                             Operadores: * (multiplicar), / (dividir), ^ (potencia).
@@ -985,10 +979,9 @@
                         </small>
                     </div>
 
-                    <button class="btn btn-secondary" onclick="analyzeDimension()" style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    <button class="btn btn-secondary btn-hover-scale" data-on-click="analyzeDimension" style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                         color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; 
-                        font-weight: bold; font-size: 1.1em; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        font-weight: bold; font-size: 1.1em; transition: transform 0.2s;">
                         Analizar
                     </button>
 
@@ -1023,7 +1016,7 @@
                 </div>
 
                 <!-- Botón cerrar -->
-                <button class="btn btn-secondary" onclick="closeDimensionalAnalysisModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; 
+                <button class="btn btn-secondary" data-on-click="closeDimensionalAnalysisModal" style="background: #6c757d; color: white; border: none; padding: 10px 20px; 
                     border-radius: 6px; cursor: pointer;">
                     Cerrar
                 </button>
