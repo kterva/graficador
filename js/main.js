@@ -157,8 +157,20 @@ window.AppState = AppState;
 /**
  * Inicializa la aplicación cuando el DOM está listo
  */
+// Flag de desarrollo: la rama `develop` sirve el HTML con
+// <body data-development="true"> para habilitar dev-tools.js. Se expone en
+// window.IS_DEVELOPMENT por compatibilidad con el código que lo consulta.
+const IS_DEVELOPMENT = document.body?.dataset.development === 'true';
+window.IS_DEVELOPMENT = IS_DEVELOPMENT;
+
 document.addEventListener('DOMContentLoaded', () => {
     initChart();
+
+    // Cargar herramientas de desarrollo sólo si el flag está activo (rama develop)
+    if (IS_DEVELOPMENT) {
+        console.log('🔧 Cargando herramientas de desarrollo...');
+        import('./dev-tools.js').catch(e => console.error('No se pudo cargar dev-tools.js:', e));
+    }
 
     // Mostrar la versión de la app en el footer desde la única fuente de verdad (APP_VERSION)
     const footerVersion = document.getElementById('footer-version');

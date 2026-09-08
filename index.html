@@ -4,6 +4,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+      CSP: defensa en profundidad frente a XSS vía innerHTML + datos de ?data=.
+      - script-src fija los orígenes permitidos (los 4 CDN + el propio sitio); un
+        <script src> inyectado hacia otro host queda bloqueado. Todavía incluye
+        'unsafe-inline' porque quedan manejadores on*= en el HTML — quitarlo es el
+        objetivo del ítem E2 del backlog.
+      - connect-src 'self': aunque se ejecute JS inyectado, no puede exfiltrar datos
+        a un servidor externo (fetch/XHR/WebSocket/beacon).
+      - object-src/base-uri/form-action/frame-ancestors cerrados.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: blob: https://graficador.culturalibre.edu.uy;
+        font-src 'self' data:;
+        connect-src 'self' blob:;
+        worker-src 'self' blob:;
+        object-src 'none';
+        base-uri 'self';
+        form-action 'none';
+        frame-ancestors 'none'">
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <title>Graficador Científico | Cultura Libre</title>
     <meta name="description"
@@ -50,15 +72,9 @@
 
     <!-- Estilos externos -->
     <link rel="stylesheet" href="css/styles.css">
-
-    <!-- Flag de desarrollo -->
-    <script>
-        // Activar herramientas de desarrollo (botones de datos de prueba)
-        window.IS_DEVELOPMENT = false;
-    </script>
 </head>
 
-<body>
+<body data-development="false"><!-- la rama `develop` lo pone en "true" para cargar js/dev-tools.js -->
     <div class="container" role="main">
         <header role="banner"
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
@@ -805,19 +821,8 @@
     <!-- Archivos que aún no son módulos (compatibilidad) -->
     <script src="js/axis_arrows_plugin.js"></script>
 
-
-
-    <!-- Carga condicional de herramientas de desarrollo -->
-    <script>
-        // Cargar dev-tools.js solo si IS_DEVELOPMENT está definido y es true
-        if (typeof window.IS_DEVELOPMENT !== 'undefined' && window.IS_DEVELOPMENT) {
-            const script = document.createElement('script');
-            script.type = 'module';
-            script.src = 'js/dev-tools.js';
-            document.head.appendChild(script);
-            console.log('🔧 Cargando herramientas de desarrollo...');
-        }
-    </script>
+    <!-- El flag de desarrollo (`body[data-development]`) y la carga condicional de
+         js/dev-tools.js se manejan ahora en js/main.js (sin <script> inline, para CSP). -->
 
     <!-- Modal de Datos de Prueba -->
     <div id="testDataModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 

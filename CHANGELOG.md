@@ -28,6 +28,10 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Nueva sección "Notas metodológicas y limitaciones" (método de máx/mín, regresiones no lineales sin ponderar, análisis dimensional experimental).
 - Ayuda in-app del ajuste lineal, exponencial, logarítmico y potencial ampliada con esas notas.
 
+### Seguridad
+- **Content-Security-Policy** (`<meta>`): fija los orígenes de script permitidos (cdnjs + el propio sitio), `connect-src 'self'` (evita exfiltración si se ejecutara JS inyectado), y cierra `object-src`, `base-uri`, `form-action` y `frame-ancestors`. Defensa en profundidad frente a XSS vía `innerHTML` + datos de `?data=`.
+- Eliminados los `<script>` inline de `index.html`: el flag de desarrollo pasa a `body[data-development]` y la carga de `dev-tools.js` a `main.js`.
+
 ### Interno
 - **CI**: workflow de GitHub Actions que corre los 105 tests en cada push a `main` y en los PR.
 - Exportación CSV por serie unificada con la exportación combinada: delimitador `;`, saneo anti-inyección de fórmulas y descarga por Blob.
