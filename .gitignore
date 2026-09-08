@@ -2,3 +2,6 @@
 .agent/PROJECT_CONTEXT.md
 .agent/QUICK_START.md
 .agent/
+
+# Configuración local de Claude Code (uso personal)
+.claude/
