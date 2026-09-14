@@ -10,7 +10,7 @@
 
 import { AppState } from './state.js';
 import { errorBarsPlugin, bullseyePointsPlugin } from './chart-plugins.js';
-import { calculateFit, calculateDerivative, calculateIntegral } from './calculations.js';
+import { calculateFit, calculateDerivative, calculateIntegral, getRegressionCoeffs } from './calculations.js';
 import { extractUnit, formatWithUncertainty, parseDecimal, formatNumber, numericPoints, calculateR2, escapeHTML } from './utils.js';
 
 // Los plugins se registran en initChart() (no en la evaluación del módulo): así este
@@ -369,32 +369,37 @@ export function getDataRange() {
 
 /**
  * Rango razonable de pendientes para el slider de "Comparar con pendiente
- * esperada": el m que haría pasar la recta y=mx exactamente por alguno de los
- * puntos de las series con ajuste forzado por el origen, con un margen del
- * 30% a cada lado para poder pasarse de largo en ambas direcciones.
+ * esperada": se centra en la pendiente que ya calculó el ajuste automático de
+ * cada serie elegible (`linear` o `linearOrigin`), con un margen del 30% a
+ * cada lado para poder pasarse de largo en ambas direcciones.
+ *
+ * Usa la pendiente AJUSTADA (coeffs.a), no la razón y/x punto a punto: para
+ * `linear` (con ordenada libre) esa razón no tiene nada que ver con la
+ * pendiente real si b≠0, y para `linearOrigin` coincide con lo que antes se
+ * calculaba a mano.
  * @returns {{min: number, max: number}}
  */
 export function getSlopeRange() {
-    const ratios = [];
+    const slopes = [];
     AppState.series.forEach(serie => {
-        if (serie.fitType !== 'linearOrigin') return;
-        numericPoints(serie).forEach(p => {
-            if (p.x !== 0) ratios.push(p.y / p.x);
-        });
+        if (serie.fitType !== 'linearOrigin' && serie.fitType !== 'linear') return;
+        const data = numericPoints(serie);
+        if (data.length < 2) return;
+        const coeffs = getRegressionCoeffs(data, serie.fitType);
+        if (coeffs && Number.isFinite(coeffs.a)) slopes.push(coeffs.a);
     });
 
-    if (ratios.length === 0) return { min: -10, max: 10 };
+    if (slopes.length === 0) return { min: -10, max: 10 };
 
-    // Ojo: NO incluir 0 como candidato acá. Si todos los puntos piden la misma
-    // pendiente (caso típico: datos ~exactos), forzar 0 como extremo corría el
-    // centro del rango lejos de esa pendiente (ej. centro en m/2 en vez de m),
-    // dejando el slider arrancar en un valor que no ajusta nada.
-    let min = Math.min(...ratios);
-    let max = Math.max(...ratios);
+    // Ojo: NO incluir 0 como candidato acá. Si todas las series piden la misma
+    // pendiente, forzar 0 como extremo corría el centro del rango lejos de esa
+    // pendiente (ej. centro en m/2 en vez de m), dejando el slider arrancar en
+    // un valor que no ajusta nada.
+    let min = Math.min(...slopes);
+    let max = Math.max(...slopes);
 
-    // Si el rango es (casi) degenerado -todos los puntos piden ~la misma
-    // pendiente, incluso con el ruido de punto flotante de y/x (19.6/2 ≠
-    // 29.4/3 exactamente aunque ambos "son" 9.8)- una comparación de
+    // Si el rango es (casi) degenerado -todas las series piden ~la misma
+    // pendiente, incluso con ruido de punto flotante- una comparación de
     // igualdad estricta no lo detecta y el rango queda casi nulo. Se separa
     // min/max en función de su magnitud para dejar un slider usable.
     if (max - min < Math.abs(max) * 1e-6 + 1e-9) {
@@ -706,9 +711,13 @@ export function updateChart(animationMode) {
                     }
                 }
 
-                // 3. COMPARAR CON PENDIENTE ESPERADA (sólo aplica a y = mx)
+                // 3. COMPARAR CON PENDIENTE ESPERADA: siempre y = mx (recta "teórica" por
+                // el origen), sin importar si la serie usa ajuste "Lineal" (con ordenada
+                // libre) o "Lineal por el origen" — la idea es ver si un valor de m
+                // conocido de antemano (una constante física) explica los datos reales,
+                // tengan éstos o no un corrimiento por error sistemático.
                 const slopeCompareDisplay = document.getElementById('slopeCompareDisplay');
-                if (AppState.tools.showSlopeCompare && serie.fitType === 'linearOrigin') {
+                if (AppState.tools.showSlopeCompare && (serie.fitType === 'linearOrigin' || serie.fitType === 'linear')) {
                     const m = AppState.tools.compareSlope;
                     const xsSerie = validData.map(p => p.x);
                     const minXs = Math.min(0, ...xsSerie);
@@ -749,7 +758,7 @@ export function updateChart(animationMode) {
 
                         slopeCompareDisplay.innerHTML = `
                             <strong>m esperada = ${formatNumber(m, 4)}${slopeUnit}</strong><br>
-                            R² de esa recta contra "${escapeHTML(serie.name)}" = ${formatNumber(r2Compare, 4)}<br>
+                            R² de esa recta (y = mx) contra "${escapeHTML(serie.name)}" = ${formatNumber(r2Compare, 4)}<br>
                             ${comparisonLine}
                         `;
                     }

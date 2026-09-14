@@ -9,7 +9,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ### Añadido
 - **Ajuste "Lineal por el origen" (y = mx)**: nuevo tipo de ajuste que fuerza la ordenada al origen a 0, para cuando la física del problema garantiza que y = 0 en x = 0 (ej. F = k·Δx). La incertidumbre de la pendiente se estima acotando, para cada punto con error, el rango de m compatible con su caja de error (no sólo los dos extremos, como en el ajuste lineal libre), y avisa si esos rangos son incompatibles entre sí.
-- **Comparar con pendiente esperada**: nueva herramienta de cálculo (junto a Tangente y Área) que, con una serie en modo "Lineal por el origen", permite mover a mano un valor de m (por ejemplo una constante teórica conocida) y ver superpuesta esa recta junto con su R² contra los datos, para evaluar si se acomoda mejor o peor que el ajuste automático.
+- **Comparar con pendiente esperada**: nueva herramienta de cálculo (junto a Tangente y Área) que, con una serie en ajuste "Lineal" o "Lineal por el origen", permite mover a mano un valor de m (por ejemplo una constante teórica conocida) y ver superpuesta la recta y = mx (siempre por el origen) junto con su R² contra los datos reales, para evaluar si esa pendiente "pura" los explica igual — tengan o no un corrimiento por error sistemático.
 
 ### Corregido
 - **La ecuación del ajuste ahora refleja las unidades de los ejes**: si los ejes tienen unidad (p. ej. "Tiempo (s)" / "Distancia (m)"), el ajuste lineal muestra siempre la pendiente y la ordenada con sus unidades físicas (`m = 2,0100 m/s`, `b = 0,0900 m`), no sólo cuando están activadas las líneas de incertidumbre. Los ajustes no lineales (cuadrático, cúbico, exponencial, logarítmico, potencial) llevan una nota `[y en m, x en s]`.

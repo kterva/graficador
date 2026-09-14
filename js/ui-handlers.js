@@ -391,7 +391,11 @@ export function toggleHelp(serieId, fitType) {
                 (± de la incertidumbre de columna) de los <strong>dos puntos extremos</strong>
                 y se reporta Δm = (m<sub>max</sub> − m<sub>min</sub>) / 2. Sólo usa los extremos,
                 no todo el conjunto. Si sus cajas de error en X se solapan, el método no
-                aplica y no se reporta Δm.</em>
+                aplica y no se reporta Δm.<br><br>
+                Activá "🔬 Comparar con pendiente esperada" en Herramientas de Cálculo
+                para probar a mano un valor teórico de m: superpone una recta y = mx
+                (por el origen, ignorando la ordenada de este ajuste) y, mirando el R²,
+                ves si esa pendiente "pura" explica igual tus datos reales.</em>
             `;
             break;
         case 'linearOrigin':

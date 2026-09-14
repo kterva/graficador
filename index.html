@@ -519,9 +519,11 @@
                         </label>
                         <div id="slopeCompareControls" style="display: none; padding-left: 20px;">
                             <p style="margin: 0 0 10px 0; font-size: 12px; color: #888;">
-                                Sólo afecta a series con ajuste "Lineal por el origen". Movés la
-                                pendiente a mano (p. ej. un valor teórico conocido) y ves, por el R²,
-                                si se acomoda mejor o peor a tus datos que el ajuste automático.
+                                Sólo afecta a series con ajuste "Lineal" o "Lineal por el origen". Superpone
+                                una recta y = mx (siempre por el origen) con la pendiente que elijas a mano
+                                (p. ej. un valor teórico conocido) y muestra, por el R², si esa pendiente
+                                "pura" explica tus datos reales — tengan o no un corrimiento (ordenada)
+                                por error sistemático.
                             </p>
                             <div style="display: flex; align-items: center; margin-bottom: 10px;">
                                 <label for="slopeCompareSlider" style="margin-right: 10px;">m:</label>
@@ -686,7 +688,7 @@
 
                             <div style="margin-bottom: 15px;">
                                 <strong style="color: #764ba2;">🔬 Comparar con pendiente esperada</strong>
-                                <p style="margin: 5px 0;">Con el ajuste "Lineal por el origen (y = mx)" en una serie,
+                                <p style="margin: 5px 0;">Con una serie en "Lineal" o "Lineal por el origen (y = mx)",
                                     activa esta herramienta y probá a mano distintos valores de m (ej. una constante
                                     teórica) para ver si el R² mejora o empeora contra tus datos.</p>
                             </div>

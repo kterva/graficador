@@ -14,49 +14,61 @@ function setSeries(series) {
     AppState.series = series;
 }
 
-test('getSlopeRange: no series with fitType linearOrigin falls back to a fixed range', () => {
-    setSeries([{ fitType: 'linear', data: [{ x: 1, y: 5 }] }]);
+test('getSlopeRange: no eligible series (linear/linearOrigin) falls back to a fixed range', () => {
+    setSeries([{ fitType: 'poly2', data: [{ x: 1, y: 1 }, { x: 2, y: 4 }, { x: 3, y: 9 }] }]);
     assert.deepEqual(getSlopeRange(), { min: -10, max: 10 });
 });
 
-test('getSlopeRange: ignores series that are not fitType linearOrigin', () => {
-    setSeries([
-        { fitType: 'linear', data: [{ x: 1, y: 1000 }] },
-        { fitType: 'linearOrigin', data: [{ x: 2, y: 10 }] }
-    ]);
-    const { min, max } = getSlopeRange();
-    // Sólo el punto (2,10) -> ratio 5 -> debe centrar cerca de 5, no de 1000.
-    closeTo((min + max) / 2, 5, 1);
+test('getSlopeRange: a series with fewer than 2 points is ignored (can\'t fit a slope)', () => {
+    setSeries([{ fitType: 'linearOrigin', data: [{ x: 2, y: 10 }] }]);
+    assert.deepEqual(getSlopeRange(), { min: -10, max: 10 });
 });
 
-test('getSlopeRange: centers on the shared ratio even with floating-point noise (19.6/2 !== 29.4/3 exactly)', () => {
+test('getSlopeRange: uses the fitted slope for "linear", ignoring the intercept', () => {
+    // y = 3x + 100 -> la pendiente es 3, sin importar lo grande que sea b.
+    setSeries([{
+        fitType: 'linear',
+        data: [{ x: 1, y: 103 }, { x: 2, y: 106 }, { x: 3, y: 109 }, { x: 4, y: 112 }]
+    }]);
+    const { min, max } = getSlopeRange();
+    closeTo((min + max) / 2, 3);
+});
+
+test('getSlopeRange: uses the fitted slope for "linearOrigin"', () => {
     setSeries([{
         fitType: 'linearOrigin',
         data: [{ x: 1, y: 9.8 }, { x: 2, y: 19.6 }, { x: 3, y: 29.4 }]
     }]);
     const { min, max } = getSlopeRange();
-    // Antes de la corrección, el ruido de punto flotante producía un rango casi
-    // nulo (min ≈ max ≈ 9.8) en vez de un slider usable centrado ahí.
     assert.ok(max - min > 1, `range should not be degenerate, got [${min}, ${max}]`);
     closeTo((min + max) / 2, 9.8, 1e-6);
-    assert.ok(min < 9.8 && max > 9.8);
 });
 
-test('getSlopeRange: pads a non-degenerate range by 30% on each side', () => {
-    setSeries([{
-        fitType: 'linearOrigin',
-        data: [{ x: 1, y: 4 }, { x: 2, y: 10 }] // ratios: 4 y 5
-    }]);
+test('getSlopeRange: combines slopes from multiple eligible series ("linear" and "linearOrigin")', () => {
+    setSeries([
+        { fitType: 'linear', data: [{ x: 0, y: 10 }, { x: 1, y: 14 }, { x: 2, y: 18 }] }, // slope 4
+        { fitType: 'linearOrigin', data: [{ x: 1, y: 5 }, { x: 2, y: 10 }] } // slope 5
+    ]);
     const { min, max } = getSlopeRange();
     closeTo(min, 3.7);
     closeTo(max, 5.3);
 });
 
-test('getSlopeRange: ignores points with x = 0 (undefined ratio)', () => {
-    setSeries([{
-        fitType: 'linearOrigin',
-        data: [{ x: 0, y: 999 }, { x: 2, y: 10 }]
-    }]);
+test('getSlopeRange: ignores series with a fitType other than "linear"/"linearOrigin"', () => {
+    setSeries([
+        { fitType: 'poly2', data: [{ x: 1, y: 1000 }, { x: 2, y: 4000 }, { x: 3, y: 9000 }] },
+        { fitType: 'linearOrigin', data: [{ x: 1, y: 5 }, { x: 2, y: 10 }] }
+    ]);
     const { min, max } = getSlopeRange();
+    closeTo((min + max) / 2, 5, 1);
+});
+
+test('getSlopeRange: a "linearOrigin" series with all X ~0 (undefined slope) is skipped, not NaN', () => {
+    setSeries([
+        { fitType: 'linearOrigin', data: [{ x: 0, y: 1 }, { x: 0, y: 2 }] },
+        { fitType: 'linearOrigin', data: [{ x: 1, y: 5 }, { x: 2, y: 10 }] }
+    ]);
+    const { min, max } = getSlopeRange();
+    assert.ok(Number.isFinite(min) && Number.isFinite(max));
     closeTo((min + max) / 2, 5, 1);
 });
