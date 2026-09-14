@@ -43,6 +43,9 @@ import {
     updateTangentFromInput,
     toggleArea,
     calculateArea,
+    toggleSlopeCompare,
+    updateSlopeCompareFromSlider,
+    updateSlopeCompareFromInput,
     toggleHelp,
     toggleGenericHelp,
     toggleHelpModal,
@@ -115,6 +118,9 @@ window.updateTangentFromSlider = updateTangentFromSlider;
 window.updateTangentFromInput = updateTangentFromInput;
 window.toggleArea = toggleArea;
 window.calculateArea = calculateArea;
+window.toggleSlopeCompare = toggleSlopeCompare;
+window.updateSlopeCompareFromSlider = updateSlopeCompareFromSlider;
+window.updateSlopeCompareFromInput = updateSlopeCompareFromInput;
 window.toggleHelp = toggleHelp;
 window.toggleGenericHelp = toggleGenericHelp;
 window.toggleHelpModal = toggleHelpModal;

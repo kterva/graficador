@@ -11,7 +11,7 @@
 import { AppState } from './state.js';
 import { errorBarsPlugin, bullseyePointsPlugin } from './chart-plugins.js';
 import { calculateFit, calculateDerivative, calculateIntegral } from './calculations.js';
-import { extractUnit, formatWithUncertainty, parseDecimal, formatNumber, numericPoints } from './utils.js';
+import { extractUnit, formatWithUncertainty, parseDecimal, formatNumber, numericPoints, calculateR2, escapeHTML } from './utils.js';
 
 // Los plugins se registran en initChart() (no en la evaluación del módulo): así este
 // módulo se puede importar en Node —p.ej. desde los tests o export_manager— sin que
@@ -367,6 +367,46 @@ export function getDataRange() {
     return { min: minX, max: maxX };
 }
 
+/**
+ * Rango razonable de pendientes para el slider de "Comparar con pendiente
+ * esperada": el m que haría pasar la recta y=mx exactamente por alguno de los
+ * puntos de las series con ajuste forzado por el origen, con un margen del
+ * 30% a cada lado para poder pasarse de largo en ambas direcciones.
+ * @returns {{min: number, max: number}}
+ */
+export function getSlopeRange() {
+    const ratios = [];
+    AppState.series.forEach(serie => {
+        if (serie.fitType !== 'linearOrigin') return;
+        numericPoints(serie).forEach(p => {
+            if (p.x !== 0) ratios.push(p.y / p.x);
+        });
+    });
+
+    if (ratios.length === 0) return { min: -10, max: 10 };
+
+    // Ojo: NO incluir 0 como candidato acá. Si todos los puntos piden la misma
+    // pendiente (caso típico: datos ~exactos), forzar 0 como extremo corría el
+    // centro del rango lejos de esa pendiente (ej. centro en m/2 en vez de m),
+    // dejando el slider arrancar en un valor que no ajusta nada.
+    let min = Math.min(...ratios);
+    let max = Math.max(...ratios);
+
+    // Si el rango es (casi) degenerado -todos los puntos piden ~la misma
+    // pendiente, incluso con el ruido de punto flotante de y/x (19.6/2 ≠
+    // 29.4/3 exactamente aunque ambos "son" 9.8)- una comparación de
+    // igualdad estricta no lo detecta y el rango queda casi nulo. Se separa
+    // min/max en función de su magnitud para dejar un slider usable.
+    if (max - min < Math.abs(max) * 1e-6 + 1e-9) {
+        const spread = Math.max(Math.abs(max), 1) * 0.3;
+        min -= spread;
+        max += spread;
+    }
+
+    const pad = (max - min) * 0.3;
+    return { min: min - pad, max: max + pad };
+}
+
 function getVisibleXRange() {
     if (!AppState.chart || !AppState.chart.scales || !AppState.chart.scales.x) {
         return null;
@@ -666,6 +706,55 @@ export function updateChart(animationMode) {
                     }
                 }
 
+                // 3. COMPARAR CON PENDIENTE ESPERADA (sólo aplica a y = mx)
+                const slopeCompareDisplay = document.getElementById('slopeCompareDisplay');
+                if (AppState.tools.showSlopeCompare && serie.fitType === 'linearOrigin') {
+                    const m = AppState.tools.compareSlope;
+                    const xsSerie = validData.map(p => p.x);
+                    const minXs = Math.min(0, ...xsSerie);
+                    const maxXs = Math.max(0, ...xsSerie);
+
+                    datasets.push({
+                        type: 'line',
+                        label: `Pendiente esperada (m=${formatNumber(m, 4)})`,
+                        data: [{ x: minXs, y: m * minXs }, { x: maxXs, y: m * maxXs }],
+                        borderColor: '#16a34a',
+                        backgroundColor: 'transparent',
+                        showLine: true,
+                        pointRadius: 0,
+                        borderWidth: 2,
+                        borderDash: [8, 4],
+                        fill: false,
+                        tension: 0
+                    });
+
+                    if (slopeCompareDisplay) {
+                        const yPredCompare = validData.map(p => m * p.x);
+                        const r2Compare = calculateR2(validData.map(p => p.y), yPredCompare);
+                        const autoSlope = coeffs ? coeffs.a : null;
+
+                        const xUnit = extractUnit(xLabel);
+                        const yUnit = extractUnit(yLabel);
+                        const slopeUnit = (yUnit && xUnit) ? ` ${yUnit}/${xUnit}` : (yUnit ? ` ${yUnit}` : '');
+
+                        let comparisonLine = '';
+                        if (autoSlope !== null && autoSlope !== undefined) {
+                            if (Math.abs(autoSlope) > 1e-12) {
+                                const diffPct = Math.abs((m - autoSlope) / autoSlope) * 100;
+                                comparisonLine = `Ajuste automático: m = ${formatNumber(autoSlope, 4)}${slopeUnit} (diferencia ${formatNumber(diffPct, 1)}%)`;
+                            } else {
+                                comparisonLine = `Ajuste automático: m = ${formatNumber(autoSlope, 4)}${slopeUnit}`;
+                            }
+                        }
+
+                        slopeCompareDisplay.innerHTML = `
+                            <strong>m esperada = ${formatNumber(m, 4)}${slopeUnit}</strong><br>
+                            R² de esa recta contra "${escapeHTML(serie.name)}" = ${formatNumber(r2Compare, 4)}<br>
+                            ${comparisonLine}
+                        `;
+                    }
+                }
+
                 let uncertaintyHtml = '';
                 if (showUncertaintyLines && fit.uncertainty && fit.uncertainty.mMax !== undefined) {
                     const u = fit.uncertainty;
@@ -703,7 +792,14 @@ export function updateChart(animationMode) {
                             Reducí la incertidumbre en X o separá más los puntos extremos.
                         </div>
                     `;
-                } else if (showUncertaintyLines && serie.fitType === 'linear') {
+                } else if (showUncertaintyLines && fit.uncertaintyWarning === 'incompatible') {
+                    uncertaintyHtml = `
+                        <div style="margin-top: 5px; font-size: 0.9em; color: #e67e22; border-top: 1px solid #eee; padding-top: 5px;">
+                            ⚠️ Las cajas de error de los puntos no son compatibles con ninguna recta
+                            y = mx: no se puede estimar Δm. Reducí las incertidumbres o revisá los datos.
+                        </div>
+                    `;
+                } else if (showUncertaintyLines && (serie.fitType === 'linear' || serie.fitType === 'linearOrigin')) {
                     uncertaintyHtml = `
                         <div style="margin-top: 5px; font-size: 0.9em; color: #e67e22; border-top: 1px solid #eee; padding-top: 5px;">
                             ⚠️ Para ver el análisis de incertidumbre, debes ingresar valores de error (Δx o Δy) en la tabla de datos.

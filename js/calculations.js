@@ -10,6 +10,7 @@
 
 import {
     linearRegression,
+    linearRegressionThroughOrigin,
     polynomialRegression,
     exponentialRegression,
     logarithmicRegression,
@@ -25,8 +26,8 @@ import { extractUnit, formatWithUncertainty, calculateR2, formatNumber } from '.
  * @returns {number} Valor de la derivada en x
  */
 export function calculateDerivative(x, coeffs, type) {
-    if (type === 'linear') {
-        // y = ax + b -> y' = a
+    if (type === 'linear' || type === 'linearOrigin') {
+        // y = ax + b (o y = ax si está forzado por el origen) -> y' = a
         return coeffs.a;
     } else if (type === 'poly2') {
         // y = ax^2 + bx + c -> y' = 2ax + b
@@ -64,6 +65,10 @@ export function calculateIntegral(x1, x2, coeffs, type) {
     if (type === 'linear') {
         // y = ax + b -> ∫y = (a/2)x^2 + bx
         const F = (x) => (coeffs.a / 2) * x * x + coeffs.b * x;
+        return F(x2) - F(x1);
+    } else if (type === 'linearOrigin') {
+        // y = ax (b = 0 forzado) -> ∫y = (a/2)x²
+        const F = (x) => (coeffs.a / 2) * x * x;
         return F(x2) - F(x1);
     } else if (type === 'poly2') {
         // y = ax^2 + bx + c -> ∫y = (a/3)x^3 + (b/2)x^2 + cx
@@ -109,6 +114,8 @@ export function getRegressionCoeffs(data, type) {
 
     if (type === 'linear') {
         return linearRegression(data);
+    } else if (type === 'linearOrigin') {
+        return linearRegressionThroughOrigin(data);
     } else if (type === 'poly2') {
         return polynomialRegression(xs, ys, 2);
     } else if (type === 'poly3') {
@@ -197,6 +204,47 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
             uncertaintyWarning = result.uncertaintyWarning || null;
         }
     }
+    else if (type === 'linearOrigin') {
+        const result = linearRegressionThroughOrigin(data);
+        coeffs = result;
+
+        if (!result) {
+            equation = '⚠️ No se puede calcular un ajuste y = mx: los valores de X son ~0.';
+        } else {
+            const a = result.a;
+
+            const xUnit = extractUnit(xLabel);
+            const yUnit = extractUnit(yLabel);
+            let slopeUnit = '';
+            if (yUnit && xUnit) {
+                slopeUnit = ` ${yUnit}/${xUnit}`;
+            } else if (yUnit) {
+                slopeUnit = ` ${yUnit}`;
+            }
+
+            let eqStr = '';
+            if (result.uncertainty) {
+                const formattedA = formatWithUncertainty(a, result.uncertainty.slope);
+                eqStr = `y = ${formattedA.value}x`;
+                eqStr += `<br><span style="font-size:0.9em; color:#666">
+                        m = ${formattedA.value} ± ${formattedA.uncertainty}${slopeUnit}
+                    </span>`;
+            } else {
+                eqStr = `y = ${formatNumber(a, 4)}x`;
+                if (slopeUnit) {
+                    eqStr += `<br><span style="font-size:0.9em; color:#666">
+                        m = ${formatNumber(a, 4)}${slopeUnit}
+                    </span>`;
+                }
+            }
+
+            equation = eqStr;
+            r2 = result.r2;
+            fitFunc = x => a * x;
+            uncertainty = result.uncertainty;
+            uncertaintyWarning = result.uncertaintyWarning || null;
+        }
+    }
     else if (type === 'poly2') {
         coeffs = polynomialRegression(xs, ys, 2);
         if (!coeffs) {
@@ -259,7 +307,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
     // Nota de unidades para los ajustes no lineales. Unidar coeficiente por
     // coeficiente sería engañoso (p. ej. el coeficiente de x² tiene unidades
     // [Y]/[X]²), así que solo aclaramos en qué unidades están x e y.
-    if (type !== 'linear' && fitFunc) {
+    if (type !== 'linear' && type !== 'linearOrigin' && fitFunc) {
         const xU = extractUnit(xLabel);
         const yU = extractUnit(yLabel);
         if (xU || yU) {

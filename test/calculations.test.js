@@ -18,6 +18,10 @@ test('calculateDerivative: linear returns the slope', () => {
     assert.equal(calculateDerivative(5, { a: 3, b: -2 }, 'linear'), 3);
 });
 
+test('calculateDerivative: linearOrigin returns the slope (same as linear, b is ignored)', () => {
+    assert.equal(calculateDerivative(5, { a: 4 }, 'linearOrigin'), 4);
+});
+
 test('calculateDerivative: poly2 returns 2ax + b', () => {
     // y = 2x² - 3x + 1 -> y' = 4x - 3
     closeTo(calculateDerivative(2, [2, -3, 1], 'poly2'), 5);
@@ -71,6 +75,11 @@ test('calculateIntegral: linear matches analytic antiderivative', () => {
     closeTo(calculateIntegral(0, 3, { a: 2, b: 1 }, 'linear'), 12);
 });
 
+test('calculateIntegral: linearOrigin matches (a/2)x², no intercept term', () => {
+    // y = 3x -> ∫ from 0 to 4 = (3/2)*16 = 24
+    closeTo(calculateIntegral(0, 4, { a: 3 }, 'linearOrigin'), 24);
+});
+
 test('calculateIntegral: poly2 matches analytic antiderivative', () => {
     // y = x² -> ∫ from 0 to 3 = 9
     closeTo(calculateIntegral(0, 3, [1, 0, 0], 'poly2'), 9);
@@ -88,6 +97,30 @@ test('getRegressionCoeffs: dispatches to the right regression by type', () => {
     closeTo(linear.b, 1);
 
     assert.equal(getRegressionCoeffs(data, 'unknown-type'), null);
+});
+
+test('getRegressionCoeffs: linearOrigin dispatches to linearRegressionThroughOrigin (b forced to 0)', () => {
+    const data = [{ x: 1, y: 2, xError: 0, yError: 0 }, { x: 2, y: 4, xError: 0, yError: 0 }];
+    const result = getRegressionCoeffs(data, 'linearOrigin');
+    closeTo(result.a, 2);
+    assert.equal(result.b, 0);
+});
+
+test('calculateFit: linearOrigin fits y=mx exactly and reports the units-aware equation', () => {
+    const data = [1, 2, 3, 4].map(x => ({ x, y: 9.8 * x, xError: 0, yError: 0 }));
+    const fit = calculateFit(data, 'linearOrigin', 'Tiempo (s)', 'Velocidad (m/s)');
+    closeTo(fit.r2, 1, 1e-9);
+    closeTo(fit.coeffs.a, 9.8);
+    assert.equal(fit.coeffs.b, 0);
+    assert.doesNotMatch(fit.equation, /x \+/); // sin término independiente
+    assert.match(fit.equation, /m = 9,8000 m\/s\/s/);
+});
+
+test('calculateFit: linearOrigin with X ~0 reports a clear warning instead of NaN', () => {
+    const data = [{ x: 0, y: 1, xError: 0, yError: 0 }, { x: 0, y: 2, xError: 0, yError: 0 }];
+    const fit = calculateFit(data, 'linearOrigin', 'X', 'Y');
+    assert.equal(fit.r2, null);
+    assert.match(fit.equation, /⚠️/);
 });
 
 test('calculateFit: poly2 equation has no dangling "+ -" for negative coefficients', () => {

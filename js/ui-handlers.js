@@ -10,7 +10,7 @@
 
 import { AppState } from './state.js';
 import { addSerie as addSerieData, removeSerie as removeSerieData, addRow as addRowData, removeRow as removeRowData, updatePoint as updatePointData, updateSerieColor as updateSerieColorData, updateFitType as updateFitTypeData, clearTable as clearTableData, exportCSV as exportCSVData, importCSVFile } from './data-manager.js';
-import { updateChart, getDataRange, resetZoom } from './chart-manager.js';
+import { updateChart, getDataRange, resetZoom, getSlopeRange } from './chart-manager.js';
 import { propagateUncertainty, formatPropagationResult, validateAllInputs, formatWarnings } from './uncertainty-propagation.js';
 import { showDecimalWarning, normalizeDecimalInput, escapeHTML, parseDecimal, formatNumber, parseTabular } from './utils.js';
 import { showNotification } from './notifications.js';
@@ -94,6 +94,7 @@ export function renderSeries() {
             <select id="fit-type-${serie.id}" data-on-change="updateFitType" data-serie="${serie.id}">
                 <option value="none" ${serie.fitType === 'none' ? 'selected' : ''}>Sin ajuste</option>
                 <option value="linear" ${serie.fitType === 'linear' ? 'selected' : ''}>Lineal</option>
+                <option value="linearOrigin" ${serie.fitType === 'linearOrigin' ? 'selected' : ''}>Lineal por el origen (y = mx)</option>
                 <option value="poly2" ${serie.fitType === 'poly2' || serie.fitType === 'polynomial2' ? 'selected' : ''}>Polinomial (grado 2)</option>
                 <option value="poly3" ${serie.fitType === 'poly3' || serie.fitType === 'polynomial3' ? 'selected' : ''}>Polinomial (grado 3)</option>
                 <option value="exponential" ${serie.fitType === 'exponential' ? 'selected' : ''}>Exponencial</option>
@@ -311,6 +312,55 @@ export function calculateArea() {
 }
 
 /**
+ * Activa/desactiva la comparación con una pendiente esperada (y = mx).
+ * Sólo afecta series con ajuste "Lineal por el origen" (fitType 'linearOrigin'):
+ * superpone una recta y = mx con la m elegida a mano y muestra su R² contra los
+ * datos, para poder probar un valor teórico y ver si el ajuste mejora o empeora.
+ */
+export function toggleSlopeCompare() {
+    AppState.tools.showSlopeCompare = document.getElementById('showSlopeCompare').checked;
+    const controls = document.getElementById('slopeCompareControls');
+    controls.style.display = AppState.tools.showSlopeCompare ? 'block' : 'none';
+
+    if (AppState.tools.showSlopeCompare) {
+        const { min, max } = getSlopeRange();
+        const slider = document.getElementById('slopeCompareSlider');
+        const input = document.getElementById('slopeCompareInput');
+
+        slider.min = min;
+        slider.max = max;
+        slider.step = (max - min) / 200;
+
+        // Solo reinicializar si está fuera de rango o es 0 (primera vez)
+        if (AppState.tools.compareSlope < min || AppState.tools.compareSlope > max || AppState.tools.compareSlope === 0) {
+            AppState.tools.compareSlope = (min + max) / 2;
+        }
+
+        slider.value = AppState.tools.compareSlope;
+        input.value = formatNumber(AppState.tools.compareSlope, 4);
+    }
+    updateChart();
+}
+
+/**
+ * Actualiza la pendiente esperada desde el slider
+ */
+export function updateSlopeCompareFromSlider() {
+    AppState.tools.compareSlope = parseFloat(document.getElementById('slopeCompareSlider').value);
+    document.getElementById('slopeCompareInput').value = formatNumber(AppState.tools.compareSlope, 4);
+    updateChart('none');
+}
+
+/**
+ * Actualiza la pendiente esperada desde el input numérico
+ */
+export function updateSlopeCompareFromInput() {
+    AppState.tools.compareSlope = parseDecimal(document.getElementById('slopeCompareInput').value);
+    document.getElementById('slopeCompareSlider').value = AppState.tools.compareSlope;
+    updateChart();
+}
+
+/**
  * Muestra/oculta la ayuda contextual de un tipo de ajuste
  * @param {number} serieId - ID de la serie
  * @param {string} fitType - Tipo de ajuste
@@ -342,6 +392,20 @@ export function toggleHelp(serieId, fitType) {
                 y se reporta Δm = (m<sub>max</sub> − m<sub>min</sub>) / 2. Sólo usa los extremos,
                 no todo el conjunto. Si sus cajas de error en X se solapan, el método no
                 aplica y no se reporta Δm.</em>
+            `;
+            break;
+        case 'linearOrigin':
+            helpText = `
+                <strong>Ecuación Lineal por el Origen: y = mx</strong><br>
+                • <strong>m</strong>: Pendiente de la recta, forzada a pasar por (0, 0)<br>
+                • <strong>R²</strong>: Coeficiente de determinación (0 a 1, más cerca de 1 = mejor ajuste)<br>
+                <em>Útil cuando la física del problema garantiza que y = 0 cuando x = 0
+                (ej. F = k·Δx, v = a·t partiendo del reposo) y no querés que una
+                ordenada espuria del ajuste libre distorsione la pendiente.<br><br>
+                Activá "🔬 Comparar con pendiente esperada" en Herramientas de Cálculo
+                para probar a mano un valor teórico de m (ej. una constante conocida)
+                y ver, mirando el R², si esa pendiente se acomoda mejor o peor a tus
+                datos que el ajuste automático.</em>
             `;
             break;
         case 'poly2':

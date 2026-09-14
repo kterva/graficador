@@ -45,7 +45,12 @@ export const AppState = {
         tangentX: 0,
         showArea: false,
         areaX1: 0,
-        areaX2: 0
+        areaX2: 0,
+        // Comparación manual de pendiente: sólo tiene efecto en series con
+        // fitType === 'linearOrigin' (y = mx). Permite mover m a mano (ej. un
+        // valor teórico esperado) y ver si mejora o empeora el ajuste.
+        showSlopeCompare: false,
+        compareSlope: 0
     },
 
     // Paleta de colores

@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
     linearRegression,
+    linearRegressionThroughOrigin,
     gaussianElimination,
     polynomialRegression,
     exponentialRegression,
@@ -84,6 +85,66 @@ test('linearRegression: barely non-overlapping X error boxes still report finite
     assert.ok(Number.isFinite(result.uncertainty.mMax));
     assert.ok(Number.isFinite(result.uncertainty.mMin));
     assert.equal(result.uncertaintyWarning, null);
+});
+
+test('linearRegressionThroughOrigin: recovers the slope of a perfect y=mx line, b forced to 0', () => {
+    const data = pointsFrom([1, 2, 3, 4], x => 2.5 * x);
+    const result = linearRegressionThroughOrigin(data);
+    closeTo(result.a, 2.5);
+    assert.equal(result.b, 0);
+    closeTo(result.r2, 1);
+    assert.equal(result.uncertainty, null);
+});
+
+test('linearRegressionThroughOrigin: all X ~0 returns null instead of a division by zero', () => {
+    const data = pointsFrom([0, 0, 0], () => 1);
+    assert.equal(linearRegressionThroughOrigin(data), null);
+});
+
+test('linearRegressionThroughOrigin: a single point with error already bounds the slope (corner method)', () => {
+    // Caja: x en [1.5, 2.5], y en [3, 5]. m = y/x en las 4 esquinas:
+    // 3/1.5=2, 3/2.5=1.2, 5/1.5=10/3, 5/2.5=2 -> mMax=10/3, mMin=1.2
+    const data = [{ x: 2, y: 4, xError: 0.5, yError: 1 }];
+    const result = linearRegressionThroughOrigin(data);
+    closeTo(result.a, 2);
+    closeTo(result.uncertainty.mMax, 10 / 3);
+    closeTo(result.uncertainty.mMin, 1.2);
+    closeTo(result.uncertainty.slope, (10 / 3 - 1.2) / 2);
+    assert.equal(result.uncertainty.bMax, 0);
+    assert.equal(result.uncertainty.bMin, 0);
+});
+
+test('linearRegressionThroughOrigin: a second, tighter point narrows the slope bound (all points count, not just extremes)', () => {
+    const data = [
+        { x: 2, y: 4, xError: 0.5, yError: 1 },       // por sí solo: m en [1.2, 10/3]
+        { x: 4, y: 8, xError: 0.1, yError: 0.1 }       // más ajustado: acota más
+    ];
+    const result = linearRegressionThroughOrigin(data);
+    closeTo(result.a, 2);
+    // El segundo punto es más restrictivo en ambos extremos que el primero.
+    assert.ok(result.uncertainty.mMax < 10 / 3);
+    assert.ok(result.uncertainty.mMin > 1.2);
+});
+
+test('linearRegressionThroughOrigin: a point whose error box straddles x=0 does not bound the slope', () => {
+    const boundingPoint = { x: 2, y: 4, xError: 0.5, yError: 1 };
+    const straddling = { x: 0.05, y: 1, xError: 0.1, yError: 0.1 }; // xLo=-0.05, xHi=0.15
+    const withStraddle = linearRegressionThroughOrigin([boundingPoint, straddling]);
+    const withoutStraddle = linearRegressionThroughOrigin([boundingPoint]);
+    closeTo(withStraddle.uncertainty.mMax, withoutStraddle.uncertainty.mMax);
+    closeTo(withStraddle.uncertainty.mMin, withoutStraddle.uncertainty.mMin);
+});
+
+test('linearRegressionThroughOrigin: incompatible error boxes report no uncertainty instead of a negative range', () => {
+    // Punto A (x=1, xError=0): m en [4.5, 5.5]. Punto B (x=1, xError=0): m en [0.8, 1.2].
+    // No hay ninguna pendiente compatible con ambos.
+    const data = [
+        { x: 1, y: 5, xError: 0, yError: 0.5 },
+        { x: 1, y: 1, xError: 0, yError: 0.2 }
+    ];
+    const result = linearRegressionThroughOrigin(data);
+    assert.equal(result.uncertainty, null);
+    assert.equal(result.uncertaintyWarning, 'incompatible');
 });
 
 test('gaussianElimination: solves a known 2x2 system', () => {

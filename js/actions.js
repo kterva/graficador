@@ -26,7 +26,8 @@ import {
     addSerie, removeSerie, addRow, removeRow, updatePoint, updateSerieColor,
     updateFitType, exportCSV, importCSV, clearTable, handleKeyDown, handleFileSelect,
     toggleTangent, updateTangentFromSlider, updateTangentFromInput, toggleArea,
-    calculateArea, toggleHelp, toggleGenericHelp, toggleHelpModal, switchHelpTab,
+    calculateArea, toggleSlopeCompare, updateSlopeCompareFromSlider, updateSlopeCompareFromInput,
+    toggleHelp, toggleGenericHelp, toggleHelpModal, switchHelpTab,
     toggleErrorPropagation, calculateErrorPropagation, updateAxisUnit, updateAxisPrefix,
     updateCustomUnit, showUnitHelp, toggleToolsMenu, openErrorPropagationModal,
     closeErrorPropagationModal, openDimensionalAnalysisModal, closeDimensionalAnalysisModal,
@@ -123,6 +124,9 @@ export const ACTIONS = {
     updateTangentFromInput: () => updateTangentFromInput(),
     toggleArea: () => toggleArea(),
     calculateArea: () => calculateArea(),
+    toggleSlopeCompare: () => toggleSlopeCompare(),
+    updateSlopeCompareFromSlider: () => updateSlopeCompareFromSlider(),
+    updateSlopeCompareFromInput: () => updateSlopeCompareFromInput(),
 
     // --- Propagación de errores ---
     openErrorPropagationModal: () => openErrorPropagationModal(),

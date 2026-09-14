@@ -168,6 +168,90 @@ export function linearRegression(data) {
 }
 
 /**
+ * Regresión lineal forzada por el origen: y = mx (b = 0 fijo).
+ * Minimiza la suma de errores cuadráticos con la restricción de que la recta
+ * pase por (0,0). Pensada para comparar contra una constante física esperada
+ * (una pendiente teórica) cuando se sabe, por el modelo, que y debe anularse
+ * en x = 0 (ej. F = k·Δx, v = a·t partiendo del reposo).
+ *
+ * Incertidumbre: a diferencia de linearRegression() —que necesita 2 puntos
+ * (los extremos) para fijar una recta con b libre—, acá un solo punto ya
+ * alcanza para acotar m (m = y/x). Por eso la cota de m sale de TODOS los
+ * puntos, no sólo los extremos: para cada punto, m puede ser cualquier valor
+ * que haga pasar la recta por su caja de error, y la pendiente compatible con
+ * el conjunto completo es la intersección de esas cotas. m = y/x es monótona
+ * en cada eje del rectángulo de error mientras éste no cruce x = 0, así que
+ * sus extremos están en las 4 esquinas de la caja.
+ * Un punto cuya caja de error incluye x = 0 no acota nada (cualquier pendiente
+ * la atraviesa) y se ignora para el cálculo de incertidumbre.
+ *
+ * @param {Array<{x: number, y: number, xError: number, yError: number}>} data - Puntos de datos
+ * @returns {Object|null} Resultado de la regresión
+ * @returns {number} return.a - Pendiente (slope)
+ * @returns {number} return.b - Siempre 0 (ordenada forzada al origen)
+ * @returns {number} return.r2 - Coeficiente de determinación
+ * @returns {Object|null} return.uncertainty - Análisis de incertidumbre (si hay errores utilizables)
+ * @returns {string|null} return.uncertaintyWarning - 'incompatible' si las cajas de error no admiten ninguna recta y=mx
+ */
+export function linearRegressionThroughOrigin(data) {
+    const n = data.length;
+    if (n === 0) return null;
+
+    const sumXY = data.reduce((sum, p) => sum + p.x * p.y, 0);
+    const sumX2 = data.reduce((sum, p) => sum + p.x * p.x, 0);
+
+    if (sumX2 < 1e-10) {
+        console.warn('linearRegressionThroughOrigin: los valores de X son ~0, la pendiente no está definida.');
+        return null;
+    }
+
+    const slope = sumXY / sumX2;
+    const yPred = data.map(p => slope * p.x);
+    const r2 = calculateR2(data.map(p => p.y), yPred);
+
+    let uncertainty = null;
+    let uncertaintyWarning = null;
+    const hasErrors = data.some(p => p.xError > 0 || p.yError > 0);
+
+    if (hasErrors) {
+        let mMax = Infinity;
+        let mMin = -Infinity;
+        let anyBound = false;
+
+        for (const p of data) {
+            const xLo = p.x - p.xError;
+            const xHi = p.x + p.xError;
+
+            // Caja de error a caballo de x = 0: cualquier pendiente la atraviesa.
+            if (xLo <= 0 && xHi >= 0) continue;
+
+            const yLo = p.y - p.yError;
+            const yHi = p.y + p.yError;
+
+            const corners = [yLo / xLo, yLo / xHi, yHi / xLo, yHi / xHi];
+            mMax = Math.min(mMax, Math.max(...corners));
+            mMin = Math.max(mMin, Math.min(...corners));
+            anyBound = true;
+        }
+
+        if (anyBound && isFinite(mMax) && isFinite(mMin) && mMax >= mMin) {
+            uncertainty = {
+                slope: (mMax - mMin) / 2,
+                intercept: 0,
+                mMax, mMin,
+                bMax: 0, bMin: 0,
+                mBest: slope
+            };
+        } else if (anyBound) {
+            console.warn('linearRegressionThroughOrigin: las cajas de error de los puntos no son compatibles con ninguna recta y=mx.');
+            uncertaintyWarning = 'incompatible';
+        }
+    }
+
+    return { a: slope, b: 0, r2, uncertainty, uncertaintyWarning };
+}
+
+/**
  * Helper para regresiones no lineales que necesitan regresión lineal con arrays
  * @param {number[]} xs - Valores X
  * @param {number[]} ys - Valores Y

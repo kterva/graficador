@@ -510,6 +510,33 @@
                         </div>
                     </div>
 
+                    <!-- Control de Comparación con Pendiente Esperada (y = mx) -->
+                    <div class="config-group" style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px;">
+                        <label
+                            style="display: flex; align-items: center; font-weight: bold; margin-bottom: 10px; cursor: pointer;">
+                            <input type="checkbox" id="showSlopeCompare" data-on-change="toggleSlopeCompare">
+                            <span style="margin-left: 8px;">🔬 Comparar con pendiente esperada (y = mx)</span>
+                        </label>
+                        <div id="slopeCompareControls" style="display: none; padding-left: 20px;">
+                            <p style="margin: 0 0 10px 0; font-size: 12px; color: #888;">
+                                Sólo afecta a series con ajuste "Lineal por el origen". Movés la
+                                pendiente a mano (p. ej. un valor teórico conocido) y ves, por el R²,
+                                si se acomoda mejor o peor a tus datos que el ajuste automático.
+                            </p>
+                            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                                <label for="slopeCompareSlider" style="margin-right: 10px;">m:</label>
+                                <input type="range" id="slopeCompareSlider" style="flex-grow: 1; margin-right: 10px;"
+                                    data-on-input="updateSlopeCompareFromSlider">
+                                <input type="text" inputmode="decimal" id="slopeCompareInput" style="width: 80px; padding: 5px;"
+                                    data-on-change="updateSlopeCompareFromInput" data-on-input="handleDecimalInput">
+                            </div>
+                            <div id="slopeCompareDisplay"
+                                style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; border: 1px solid #ddd;">
+                                Elegí una serie con ajuste "Lineal por el origen" para comparar...
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div id="export-section" class="panel"
@@ -655,6 +682,13 @@
                                 <strong style="color: #764ba2;">∫ Área (Integral)</strong>
                                 <p style="margin: 5px 0;">Activa "Mostrar Área" y define un intervalo [x₁, x₂] para
                                     calcular el área bajo la curva.</p>
+                            </div>
+
+                            <div style="margin-bottom: 15px;">
+                                <strong style="color: #764ba2;">🔬 Comparar con pendiente esperada</strong>
+                                <p style="margin: 5px 0;">Con el ajuste "Lineal por el origen (y = mx)" en una serie,
+                                    activa esta herramienta y probá a mano distintos valores de m (ej. una constante
+                                    teórica) para ver si el R² mejora o empeora contra tus datos.</p>
                             </div>
 
                             <div style="margin-bottom: 15px;">
