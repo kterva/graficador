@@ -86,6 +86,30 @@ export function formatNumber(value, decimals) {
 }
 
 /**
+ * Formatea un coeficiente de un ajuste (pendiente, ordenada, etc.) con una
+ * cantidad fija de decimales, pero si ese redondeo lo dejaría en "0" —caso
+ * típico de pendientes muy chicas, p. ej. 0,0000062— usa en cambio los
+ * decimales necesarios para mostrar cifras significativas. Sin esto,
+ * `formatNumber(0.0000062, 4)` da "0,0000" y la ecuación queda "y = 0,0000x",
+ * ocultando el coeficiente real tanto en pantalla como en lo exportado.
+ *
+ * @param {number} value - Coeficiente a formatear
+ * @param {number} [decimals=4] - Decimales por defecto (igual que formatNumber)
+ * @returns {string} Número formateado con coma decimal
+ *
+ * @example
+ * formatCoefficient(3.14159) // "3,1416"
+ * formatCoefficient(0.0000062) // "0,000006200" (cifras significativas en vez de 4 decimales fijos)
+ */
+export function formatCoefficient(value, decimals = 4) {
+    if (value !== 0 && isFinite(value) && Math.abs(value) < Math.pow(10, -decimals) / 2) {
+        const magnitude = Math.floor(Math.log10(Math.abs(value)));
+        decimals = decimals - 1 - magnitude;
+    }
+    return formatNumber(value, decimals);
+}
+
+/**
  * Calcula el número de cifras significativas basado en la incertidumbre
  * Regla: La incertidumbre se redondea a 1-2 cifras significativas,
  * y el valor se redondea al mismo decimal.
@@ -102,7 +126,7 @@ export function formatNumber(value, decimals) {
  */
 export function formatWithUncertainty(value, uncertainty) {
     if (!uncertainty || uncertainty === 0) {
-        return { value: formatNumber(value, 4), uncertainty: '0' };
+        return { value: formatCoefficient(value, 4), uncertainty: '0' };
     }
 
     // Encontrar el orden de magnitud de la incertidumbre

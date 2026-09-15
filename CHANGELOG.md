@@ -13,6 +13,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ### Corregido
 - **La ecuación del ajuste ahora refleja las unidades de los ejes**: si los ejes tienen unidad (p. ej. "Tiempo (s)" / "Distancia (m)"), el ajuste lineal muestra siempre la pendiente y la ordenada con sus unidades físicas (`m = 2,0100 m/s`, `b = 0,0900 m`), no sólo cuando están activadas las líneas de incertidumbre. Los ajustes no lineales (cuadrático, cúbico, exponencial, logarítmico, potencial) llevan una nota `[y en m, x en s]`.
+- **Pendientes/coeficientes muy chicos ya no desaparecen de la ecuación**: un coeficiente como 0,0000062 se mostraba como `0,0000` (y así se exportaba) porque el redondeo a 4 decimales fijos lo dejaba en cero. Ahora, cuando eso pasaría, se muestran en su lugar las cifras significativas del valor (`y = 0,000006200x`). Afecta a todos los tipos de ajuste, no sólo al lineal.
 
 ## [1.6.1] - 2026-09-08
 

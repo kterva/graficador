@@ -16,7 +16,7 @@ import {
     logarithmicRegression,
     powerRegression
 } from './regression.js';
-import { extractUnit, formatWithUncertainty, calculateR2, formatNumber } from './utils.js';
+import { extractUnit, formatWithUncertainty, calculateR2, formatCoefficient } from './utils.js';
 
 /**
  * Calcula la derivada (pendiente) en un punto x
@@ -185,14 +185,14 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
                         b = ${formattedB.value} ± ${formattedB.uncertainty}${interceptUnit}
                     </span>`;
             } else {
-                eqStr = `y = ${formatNumber(a, 4)}x + ${formatNumber(b, 4)}`;
+                eqStr = `y = ${formatCoefficient(a, 4)}x + ${formatCoefficient(b, 4)}`;
                 // Aunque no haya incertidumbre, mostramos pendiente y ordenada con sus
                 // unidades físicas ([Y]/[X] y [Y]) para que la ecuación refleje las
                 // unidades de los ejes. Solo si alguna etiqueta trae unidad.
                 if (slopeUnit || interceptUnit) {
                     eqStr += `<br><span style="font-size:0.9em; color:#666">
-                        m = ${formatNumber(a, 4)}${slopeUnit}<br>
-                        b = ${formatNumber(b, 4)}${interceptUnit}
+                        m = ${formatCoefficient(a, 4)}${slopeUnit}<br>
+                        b = ${formatCoefficient(b, 4)}${interceptUnit}
                     </span>`;
                 }
             }
@@ -230,10 +230,10 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
                         m = ${formattedA.value} ± ${formattedA.uncertainty}${slopeUnit}
                     </span>`;
             } else {
-                eqStr = `y = ${formatNumber(a, 4)}x`;
+                eqStr = `y = ${formatCoefficient(a, 4)}x`;
                 if (slopeUnit) {
                     eqStr += `<br><span style="font-size:0.9em; color:#666">
-                        m = ${formatNumber(a, 4)}${slopeUnit}
+                        m = ${formatCoefficient(a, 4)}${slopeUnit}
                     </span>`;
                 }
             }
@@ -250,7 +250,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
         if (!coeffs) {
             equation = '⚠️ Se necesitan al menos 3 valores de X distintos para un ajuste cuadrático.';
         } else {
-            equation = `y = ${formatNumber(coeffs[0], 4)}x² + ${formatNumber(coeffs[1], 4)}x + ${formatNumber(coeffs[2], 4)}`;
+            equation = `y = ${formatCoefficient(coeffs[0], 4)}x² + ${formatCoefficient(coeffs[1], 4)}x + ${formatCoefficient(coeffs[2], 4)}`;
             r2 = calculateR2(ys, xs.map(x => coeffs[0] * x * x + coeffs[1] * x + coeffs[2]));
             fitFunc = x => coeffs[0] * x * x + coeffs[1] * x + coeffs[2];
         }
@@ -260,7 +260,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
         if (!coeffs) {
             equation = '⚠️ Se necesitan al menos 4 valores de X distintos para un ajuste cúbico.';
         } else {
-            equation = `y = ${formatNumber(coeffs[0], 4)}x³ + ${formatNumber(coeffs[1], 4)}x² + ${formatNumber(coeffs[2], 4)}x + ${formatNumber(coeffs[3], 4)}`;
+            equation = `y = ${formatCoefficient(coeffs[0], 4)}x³ + ${formatCoefficient(coeffs[1], 4)}x² + ${formatCoefficient(coeffs[2], 4)}x + ${formatCoefficient(coeffs[3], 4)}`;
             r2 = calculateR2(ys, xs.map(x => coeffs[0] * x * x * x + coeffs[1] * x * x + coeffs[2] * x + coeffs[3]));
             fitFunc = x => coeffs[0] * x * x * x + coeffs[1] * x * x + coeffs[2] * x + coeffs[3];
         }
@@ -271,7 +271,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
         if (!result) {
             equation = '⚠️ El ajuste exponencial requiere que todos los valores de Y sean positivos.';
         } else {
-            equation = `y = ${formatNumber(result.a, 4)}e^(${formatNumber(result.b, 4)}x)`;
+            equation = `y = ${formatCoefficient(result.a, 4)}e^(${formatCoefficient(result.b, 4)}x)`;
             r2 = result.r2;
             fitFunc = x => result.a * Math.exp(result.b * x);
         }
@@ -282,7 +282,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
         if (!result) {
             equation = '⚠️ El ajuste logarítmico requiere que todos los valores de X sean positivos.';
         } else {
-            equation = `y = ${formatNumber(result.a, 4)}ln(x) + ${formatNumber(result.b, 4)}`;
+            equation = `y = ${formatCoefficient(result.a, 4)}ln(x) + ${formatCoefficient(result.b, 4)}`;
             r2 = result.r2;
             fitFunc = x => result.a * Math.log(x) + result.b;
         }
@@ -293,7 +293,7 @@ export function calculateFit(data, type, xLabel = 'X', yLabel = 'Y', xRange = nu
         if (!result) {
             equation = '⚠️ El ajuste potencial requiere que todos los valores de X e Y sean positivos.';
         } else {
-            equation = `y = ${formatNumber(result.a, 4)}x^(${formatNumber(result.b, 4)})`;
+            equation = `y = ${formatCoefficient(result.a, 4)}x^(${formatCoefficient(result.b, 4)})`;
             r2 = result.r2;
             fitFunc = x => result.a * Math.pow(x, result.b);
         }

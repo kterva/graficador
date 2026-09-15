@@ -123,6 +123,14 @@ test('calculateFit: linearOrigin with X ~0 reports a clear warning instead of Na
     assert.match(fit.equation, /⚠️/);
 });
 
+test('calculateFit: linear equation keeps a very small slope visible instead of showing "0,0000" (reported bug)', () => {
+    // Pendiente real ~0,0000062: con formatNumber(a, 4) fijo la ecuación quedaba "y = 0,0000x + ..."
+    const data = [1, 2, 3, 4].map(x => ({ x, y: 0.0000062 * x, xError: 0, yError: 0 }));
+    const fit = calculateFit(data, 'linear', 'X', 'Y');
+    assert.doesNotMatch(fit.equation, /y = 0,0000x/);
+    assert.match(fit.equation, /y = 0,000006200x/);
+});
+
 test('calculateFit: poly2 equation has no dangling "+ -" for negative coefficients', () => {
     // y = 2x² - 3x + 5
     const data = [0, 1, 2, 3, 4].map(x => ({ x, y: 2 * x * x - 3 * x + 5, xError: 0, yError: 0 }));

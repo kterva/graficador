@@ -7,6 +7,7 @@ import {
     parseDecimal,
     normalizeDecimalInput,
     formatNumber,
+    formatCoefficient,
     numericPoints,
     parseTabular
 } from '../js/utils.js';
@@ -89,6 +90,17 @@ test('formatNumber: renders with comma as decimal separator', () => {
 test('formatNumber: integers and negatives round-trip correctly', () => {
     assert.equal(formatNumber(-2.5, 1), '-2,5');
     assert.equal(formatNumber(10), '10');
+});
+
+test('formatCoefficient: falls back to significant figures when 4 fixed decimals would show "0,0000" (reported bug: slope 0,0000062 disappearing from the equation)', () => {
+    assert.equal(formatCoefficient(0.0000062, 4), '0,000006200');
+    assert.equal(formatCoefficient(-0.0000062, 4), '-0,000006200');
+});
+
+test('formatCoefficient: behaves like formatNumber(value, 4) for values that do not round to zero', () => {
+    assert.equal(formatCoefficient(3.14159), '3,1416');
+    assert.equal(formatCoefficient(0), '0,0000');
+    assert.equal(formatCoefficient(1234.5), '1234,5000');
 });
 
 test('numericPoints: drops empty and non-numeric cells, parses the rest (R1)', () => {
