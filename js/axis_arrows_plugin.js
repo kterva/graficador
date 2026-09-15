@@ -3,6 +3,25 @@
 // ============================================
 
 /**
+ * Cuando el eje está en notación científica, mete el factor común "×10ⁿ"
+ * —ya calculado por chart-manager.js en `scale.$sciFactor` (afterBuildTicks),
+ * para no recalcularlo ni desincronizarse con lo que muestran los ticks—
+ * dentro del paréntesis de unidad de la etiqueta del extremo del eje, al
+ * estilo de un libro de física: "V (m/s)" -> "V (×10⁻⁷ m/s)". Este archivo
+ * se carga como script clásico (no módulo, ver index.html), por eso no
+ * importa `js/utils.js` y sólo consume el factor ya armado.
+ */
+function withScientificFactor(label, factor) {
+    if (!factor) return label;
+    const match = label.match(/^(.*)\(([^)]*)\)\s*$/);
+    if (match) {
+        const [, base, unit] = match;
+        return `${base.trim()} (${factor}${unit ? ' ' + unit : ''})`;
+    }
+    return `${label} (${factor})`;
+}
+
+/**
  * Plugin personalizado para dibujar flechas en los extremos de los ejes
  * y etiquetas de magnitudes al estilo de gráficas de física
  */
@@ -25,8 +44,8 @@ const axisArrowsPlugin = {
         ctx.strokeStyle = '#333';
         ctx.lineWidth = 2;
 
-        const xLabel = xScale.options.title.text || 'X';
-        const yLabel = yScale.options.title.text || 'Y';
+        const xLabel = withScientificFactor(xScale.options.title.text || 'X', xScale.$sciFactor);
+        const yLabel = withScientificFactor(yScale.options.title.text || 'Y', yScale.$sciFactor);
         const arrowSize = 10;
 
         // ============================================

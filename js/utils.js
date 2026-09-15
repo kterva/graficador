@@ -110,6 +110,35 @@ export function formatCoefficient(value, decimals = 4) {
 }
 
 /**
+ * Decide si el rango visible de un eje amerita notación científica y, si es
+ * así, con qué exponente — mismo criterio que usa Chart.js internamente para
+ * decidirlo (mayor extremo del eje < 1e-4 o > 1e15). Se comparte entre el
+ * tick callback del eje y el label que dibuja `axis_arrows_plugin` en la
+ * punta de la flecha, para que ambos usen siempre el mismo exponente (estilo
+ * texto de física: "V (×10⁻⁷ m/s)" en la etiqueta, ticks como "6", "7", "8"…
+ * en vez de repetir "×10⁻⁷" al lado de cada número).
+ *
+ * @param {{value: number}[]} ticks - Ticks del eje (`chart.scales.<axis>.ticks`)
+ * @returns {number|null} Exponente compartido, o null si no aplica
+ */
+export function getAxisScientificExponent(ticks) {
+    if (!ticks || ticks.length < 2) return null;
+    const magnitude = Math.max(Math.abs(ticks[0].value), Math.abs(ticks[ticks.length - 1].value));
+    if (magnitude === 0 || (magnitude >= 1e-4 && magnitude <= 1e15)) return null;
+    return Math.floor(Math.log10(magnitude));
+}
+
+const SUPERSCRIPT_DIGITS = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+
+/**
+ * Convierte un exponente entero a su representación en superíndice.
+ * @example toSuperscript(-7) // "⁻⁷"
+ */
+export function toSuperscript(exponent) {
+    return String(exponent).split('').map(ch => SUPERSCRIPT_DIGITS[ch] ?? ch).join('');
+}
+
+/**
  * Calcula el número de cifras significativas basado en la incertidumbre
  * Regla: La incertidumbre se redondea a 1-2 cifras significativas,
  * y el valor se redondea al mismo decimal.

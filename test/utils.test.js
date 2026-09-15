@@ -8,6 +8,8 @@ import {
     normalizeDecimalInput,
     formatNumber,
     formatCoefficient,
+    getAxisScientificExponent,
+    toSuperscript,
     numericPoints,
     parseTabular
 } from '../js/utils.js';
@@ -101,6 +103,27 @@ test('formatCoefficient: behaves like formatNumber(value, 4) for values that do 
     assert.equal(formatCoefficient(3.14159), '3,1416');
     assert.equal(formatCoefficient(0), '0,0000');
     assert.equal(formatCoefficient(1234.5), '1234,5000');
+});
+
+test('getAxisScientificExponent: null for a normal-magnitude axis range', () => {
+    assert.equal(getAxisScientificExponent([{ value: 0 }, { value: 0.5 }, { value: 1 }]), null);
+});
+
+test('getAxisScientificExponent: exponent shared by all ticks of a very small axis range (reported issue: axis tick labels showing raw "9,0000000E-7")', () => {
+    // Extremos ~6e-7..9e-7 -> mismo umbral que usa Chart.js internamente (< 1e-4)
+    const ticks = [{ value: 6e-7 }, { value: 7e-7 }, { value: 8e-7 }, { value: 9e-7 }];
+    assert.equal(getAxisScientificExponent(ticks), -7);
+});
+
+test('getAxisScientificExponent: null with fewer than 2 ticks or when the range straddles zero without going tiny', () => {
+    assert.equal(getAxisScientificExponent([{ value: 1 }]), null);
+    assert.equal(getAxisScientificExponent([{ value: -1 }, { value: 1 }]), null);
+});
+
+test('toSuperscript: converts digits and the minus sign', () => {
+    assert.equal(toSuperscript(-7), '⁻⁷');
+    assert.equal(toSuperscript(12), '¹²');
+    assert.equal(toSuperscript(0), '⁰');
 });
 
 test('numericPoints: drops empty and non-numeric cells, parses the rest (R1)', () => {

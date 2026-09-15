@@ -11,13 +11,39 @@
 import { AppState } from './state.js';
 import { errorBarsPlugin, bullseyePointsPlugin } from './chart-plugins.js';
 import { calculateFit, calculateDerivative, calculateIntegral, getRegressionCoeffs } from './calculations.js';
-import { extractUnit, formatWithUncertainty, parseDecimal, formatNumber, numericPoints, calculateR2, escapeHTML } from './utils.js';
+import { extractUnit, formatWithUncertainty, parseDecimal, formatNumber, getAxisScientificExponent, toSuperscript, numericPoints, calculateR2, escapeHTML } from './utils.js';
 
 // Los plugins se registran en initChart() (no en la evaluación del módulo): así este
 // módulo se puede importar en Node —p.ej. desde los tests o export_manager— sin que
 // el `Chart` global (cargado por CDN) tenga que existir. El flag hace la operación
 // idempotente aunque se reinicialice el gráfico.
 let _pluginsRegistered = false;
+
+/**
+ * Se ejecuta una vez por reconstrucción de ticks del eje (hook nativo de
+ * Chart.js). Decide si el eje entra en rango de notación científica y deja
+ * el resultado en la propia escala (`$sciExponent`/`$sciFactor`) para que
+ * dos consumidores lo usen sin recalcular ni desincronizarse entre sí:
+ * `axisTickCallback` de acá abajo (mantisa sola, ej. "6", "7", "8"…) y
+ * axis_arrows_plugin.js (mete "×10⁻⁷" en la etiqueta del extremo del eje,
+ * al estilo de gráficas de física, en vez de repetirlo junto a cada tick
+ * como hacía el formateador por defecto de Chart.js, ej. "9,0000000E-7").
+ */
+function computeScaleScientificFactor(scale) {
+    const exponent = getAxisScientificExponent(scale.ticks);
+    scale.$sciExponent = exponent;
+    scale.$sciFactor = exponent === null ? null : `×10${toSuperscript(exponent)}`;
+}
+
+function axisTickCallback(value, index, ticks) {
+    const exponent = this.$sciExponent;
+    if (exponent !== null && exponent !== undefined) {
+        if (value === 0) return '0';
+        const scaled = value / Math.pow(10, exponent);
+        return formatNumber(parseFloat(scaled.toPrecision(4)));
+    }
+    return Chart.Ticks.formatters.numeric.call(this, value, index, ticks);
+}
 
 // R12: rueda de zoom / pan disparan sus "complete" en ráfaga. Se recompone la
 // gráfica (con sus ajustes) una sola vez, ~120ms después de que el usuario frena.
@@ -137,8 +163,10 @@ export function initChart() {
                         color: (context) => context.tick.value === 0 ? '#333' : '#e5e5e5',
                         lineWidth: (context) => context.tick.value === 0 ? 2 : 1
                     },
+                    afterBuildTicks: computeScaleScientificFactor,
                     ticks: {
-                        display: true
+                        display: true,
+                        callback: axisTickCallback
                     }
                 },
                 y: {
@@ -154,8 +182,10 @@ export function initChart() {
                         color: (context) => context.tick.value === 0 ? '#333' : '#e5e5e5',
                         lineWidth: (context) => context.tick.value === 0 ? 2 : 1
                     },
+                    afterBuildTicks: computeScaleScientificFactor,
                     ticks: {
-                        display: true
+                        display: true,
+                        callback: axisTickCallback
                     }
                 }
             },
