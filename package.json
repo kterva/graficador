@@ -2,6 +2,7 @@
   "name": "graficador",
   "version": "1.6.1",
   "private": true,
+  "license": "GPL-3.0-or-later",
   "type": "module",
   "description": "Graficador científico - análisis de datos experimentales con ajustes de regresión, incertidumbre y unidades",
   "scripts": {

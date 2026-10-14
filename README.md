@@ -3,7 +3,7 @@
 Aplicación web interactiva para análisis de datos experimentales con ajustes de regresión, propagación de incertidumbre y etiquetado de unidades. Ideal para estudiantes, científicos e ingenieros.
 
 ![Version](https://img.shields.io/badge/version-1.6.1-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+![License](https://img.shields.io/badge/license-GPL%20v3%2B-blue)
 
 ## ✨ Características
 
@@ -334,7 +334,11 @@ sumas/restas ni precedencia de paréntesis.
 
 ## 📄 Licencia
 
-MIT License - ver [LICENSE](LICENSE)
+Software libre bajo la **Licencia Pública General GNU, versión 3 o posterior** (GPL-3.0-or-later) — ver [LICENSE](LICENSE).
+
+Copyright (C) 2025 Leonardo Trujillo. Este programa es software libre: podés usarlo, estudiarlo, modificarlo y compartirlo; si distribuís versiones modificadas, deben seguir siendo libres bajo la misma licencia. Se distribuye sin ninguna garantía.
+
+Una explicación breve de la licencia, con enlaces a las fuentes en gnu.org: https://culturalibre.edu.uy/licencia/
 
 ## 🙏 Agradecimientos
 
