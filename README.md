@@ -168,7 +168,7 @@ graficador/
 ```
 
 La matemática (`calculations`, `regression`, `uncertainty-propagation`, `utils`, `units`,
-`dimensional-analysis`, `state`) es pura y se testea en Node (`npm test`, 113 tests).
+`dimensional-analysis`, `state`) es pura y se testea en Node (`npm test`, 150 tests).
 
 ### Tecnologías
 
@@ -177,8 +177,9 @@ La matemática (`calculations`, `regression`, `uncertainty-propagation`, `utils`
 - **[Chart.js 3.9](https://www.chartjs.org/)** + [plugin de zoom](https://www.chartjs.org/chartjs-plugin-zoom/) — gráfica y zoom/pan
 - **[jsPDF](https://github.com/parallax/jsPDF)** + jsPDF-AutoTable — exportación a PDF
 
-Todas las dependencias se cargan por CDN con integridad de subrecursos (SRI), y una
-CSP en `index.html` fija los orígenes permitidos.
+Las dependencias se sirven desde `vendor/` (mismo origen, sin CDN de terceros) con
+integridad de subrecursos (SRI); sus licencias están en `vendor/LICENSES.md`. Una CSP
+en `index.html` fija los orígenes permitidos.
 
 ## 🧮 Ejemplos de Uso
 
