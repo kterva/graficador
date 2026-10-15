@@ -212,6 +212,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (IS_DEVELOPMENT) {
         const devTip = document.getElementById('help-dev-tip');
         if (devTip) devTip.style.display = 'block';
+        const devTestData = document.getElementById('help-dev-testdata');
+        if (devTestData) devTestData.style.display = 'block';
         console.log('🔧 Modo Desarrollo Activado');
     }
 });

@@ -47,7 +47,7 @@ Aplicación web interactiva para análisis de datos experimentales con ajustes d
   - Grid configurable
 - **Exportación:**
   - PDF (incluye gráfica y ecuaciones)
-  - PNG (imagen de alta calidad)
+  - JPG (imagen)
   - CSV (datos tabulares)
   - Proyecto completo (.json)
 
@@ -128,7 +128,7 @@ Simplemente abre `index.html` en tu navegador moderno (Chrome, Firefox, Edge, Sa
 ### 5️⃣ Exportar Resultados
 
 - **PDF:** Gráfica + ecuaciones + parámetros
-- **PNG:** Solo imagen (alta resolución)
+- **JPG:** Solo imagen
 - **CSV:** Datos en formato tabular
 - **Proyecto:** Estado completo (.json) para recargar después
 

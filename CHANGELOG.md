@@ -13,6 +13,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Comparar con pendiente esperada**: nueva herramienta de cálculo (junto a Tangente y Área) que, con una serie en ajuste "Lineal" o "Lineal por el origen", permite mover a mano un valor de m (por ejemplo una constante teórica conocida) y ver superpuesta la recta y = mx (siempre por el origen) junto con su R² contra los datos reales, para evaluar si esa pendiente "pura" los explica igual — tengan o no un corrimiento por error sistemático.
 
 ### Cambiado
+- **Textos de ayuda corregidos para que coincidan con lo que hace la herramienta**: la exportación de imagen es JPG (no PNG) y también hay CSV; la propagación de errores admite suma, resta, producto y cociente (no potencia); se quitó un bloque duplicado y mal rotulado de «Propagación de Errores»; y «Cargar Datos de Prueba» solo aparece en la ayuda de la versión de desarrollo. Mismos ajustes en el `README` y en la descripción de la página.
+- **Enlace al manual** (`https://culturalibre.edu.uy/graficador/manual/`) en el pie de la página.
 - **Las bibliotecas de terceros se sirven desde el propio sitio (`vendor/`)** en lugar de descargarse de `cdnjs.cloudflare.com`: Chart.js 3.9.1, chartjs-plugin-zoom 1.2.1, Hammer.js 2.0.8, jsPDF 2.5.1 y jsPDF-AutoTable 3.5.31. Son los mismos archivos (su huella SRI coincide con la que se usaba) y sus licencias MIT están en `vendor/LICENSES.md`. El navegador ya no se conecta a Cloudflare al abrir el Graficador, y la CSP queda con `script-src 'self'`.
 
 ### Eliminado
