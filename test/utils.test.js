@@ -49,6 +49,14 @@ test('formatWithUncertainty: recomputes decimals when rounding crosses a power o
     assert.equal(result.value, '5,4');
 });
 
+test('formatWithUncertainty: an extremely tiny uncertainty falls back to mantissa × 10ⁿ instead of throwing (bug: toFixed() digits > 100)', () => {
+    // orden de magnitud -300: los decimales fijos necesarios superan el máximo de
+    // 100 que admite toFixed() — antes del fix esto tiraba RangeError, visible como
+    // "Error en el cálculo: ..." en vez de romper, pero igual ocultaba el resultado.
+    assert.doesNotThrow(() => formatWithUncertainty(5, 1e-300));
+    assert.deepEqual(formatWithUncertainty(5, 1e-300), { value: '5,0000', uncertainty: '1×10⁻³⁰⁰' });
+});
+
 test('calculateR2: perfect fit is 1', () => {
     assert.equal(calculateR2([1, 2, 3, 4], [1, 2, 3, 4]), 1);
 });

@@ -184,6 +184,20 @@ export function formatWithUncertainty(value, uncertainty) {
     // Determinar decimales necesarios
     const decimals = Math.max(0, -finalOrderOfMagnitude);
 
+    // Igual que en formatCoefficient: una incertidumbre realmente extrema (underflow
+    // de una propagación de errores, o una pendiente casi sin incertidumbre en un
+    // ajuste) pediría decenas de decimales fijos, ilegibles y por encima del límite
+    // que admite toFixed() (rompería acá sin ningún try/catch alrededor). Se cae a
+    // notación mantisa×10ⁿ para la incertidumbre, y se delega el valor a
+    // formatCoefficient (ya resuelve su propio caso extremo).
+    if (decimals > 20) {
+        const uncertaintyMantissa = uncertaintyRounded / Math.pow(10, finalOrderOfMagnitude);
+        return {
+            value: formatCoefficient(value, 4),
+            uncertainty: `${formatNumber(uncertaintyMantissa, 0)}×10${toSuperscript(finalOrderOfMagnitude)}`
+        };
+    }
+
     return {
         value: formatNumber(value, decimals),
         uncertainty: formatNumber(uncertaintyRounded, decimals)
