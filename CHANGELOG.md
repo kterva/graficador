@@ -11,11 +11,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Ajuste "Lineal por el origen" (y = mx)**: nuevo tipo de ajuste que fuerza la ordenada al origen a 0, para cuando la física del problema garantiza que y = 0 en x = 0 (ej. F = k·Δx). La incertidumbre de la pendiente se estima acotando, para cada punto con error, el rango de m compatible con su caja de error (no sólo los dos extremos, como en el ajuste lineal libre), y avisa si esos rangos son incompatibles entre sí.
 - **Comparar con pendiente esperada**: nueva herramienta de cálculo (junto a Tangente y Área) que, con una serie en ajuste "Lineal" o "Lineal por el origen", permite mover a mano un valor de m (por ejemplo una constante teórica conocida) y ver superpuesta la recta y = mx (siempre por el origen) junto con su R² contra los datos reales, para evaluar si esa pendiente "pura" los explica igual — tengan o no un corrimiento por error sistemático.
 
+### Cambiado
+- **Las bibliotecas de terceros se sirven desde el propio sitio (`vendor/`)** en lugar de descargarse de `cdnjs.cloudflare.com`: Chart.js 3.9.1, chartjs-plugin-zoom 1.2.1, Hammer.js 2.0.8, jsPDF 2.5.1 y jsPDF-AutoTable 3.5.31. Son los mismos archivos (su huella SRI coincide con la que se usaba) y sus licencias MIT están en `vendor/LICENSES.md`. El navegador ya no se conecta a Cloudflare al abrir el Graficador, y la CSP queda con `script-src 'self'`.
+
+### Eliminado
+- **Contador de visitas externo del pie** (`visitor-badge.laobi.icu`): enviaba la IP, el navegador y la página de origen de cada visitante a un tercero. Se quitó también de la CSP (`img-src`).
+
 ### Corregido
 - **La ecuación del ajuste ahora refleja las unidades de los ejes**: si los ejes tienen unidad (p. ej. "Tiempo (s)" / "Distancia (m)"), el ajuste lineal muestra siempre la pendiente y la ordenada con sus unidades físicas (`m = 2,0100 m/s`, `b = 0,0900 m`), no sólo cuando están activadas las líneas de incertidumbre. Los ajustes no lineales (cuadrático, cúbico, exponencial, logarítmico, potencial) llevan una nota `[y en m, x en s]`.
 - **Pendientes/coeficientes muy chicos ya no desaparecen de la ecuación**: un coeficiente como 0,0000062 se mostraba como `0,0000` (y así se exportaba) porque el redondeo a 4 decimales fijos lo dejaba en cero. Ahora, cuando eso pasaría, se muestran en su lugar las cifras significativas del valor (`y = 0,000006200x`). Afecta a todos los tipos de ajuste, no sólo al lineal.
 - **Ejes con valores muy chicos/grandes ya no muestran notación científica ilegible en cada tick** (ej. `9,0000000E-7`, ruido de punto flotante del formateador por defecto de Chart.js). Ahora, al estilo de una gráfica de física, el factor común se muestra una sola vez en la etiqueta del extremo del eje (`Y (×10⁻⁷)`, o `V (×10⁻⁷ m/s)` si el eje tiene unidad) y los ticks quedan como números simples (`6`, `7`, `8`…).
-- **Badge de visitas del pie roto por la CSP**: `img-src` no incluía el dominio del contador (`visitor-badge.laobi.icu`), así que el navegador bloqueaba la imagen silenciosamente y quedaba el ícono de "imagen rota". Agregado a la lista blanca.
 
 ## [1.6.1] - 2026-09-08
 

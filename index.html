@@ -9,7 +9,7 @@
       - script-src SIN 'unsafe-inline': ya no hay `<script>` ni manejadores `on*=`
         inline (todo pasa por la delegación de eventos, js/events.js). Un script
         inyectado —inline o desde otro host— queda bloqueado. Sólo se permiten
-        scripts propios y los 4 CDN de cdnjs (con SRI).
+        scripts propios y las bibliotecas de vendor/ (con SRI).
       - style-src mantiene 'unsafe-inline': el HTML usa cientos de `style=` y hay
         varios `<style>` inyectados por JS; la inyección de estilos es de mucho
         menor impacto que la de scripts.
@@ -19,9 +19,9 @@
     -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
-        script-src 'self' https://cdnjs.cloudflare.com;
+        script-src 'self';
         style-src 'self' 'unsafe-inline';
-        img-src 'self' data: blob: https://graficador.culturalibre.edu.uy https://visitor-badge.laobi.icu;
+        img-src 'self' data: blob: https://graficador.culturalibre.edu.uy;
         font-src 'self' data:;
         connect-src 'self' blob:;
         worker-src 'self' blob:;
@@ -57,21 +57,16 @@
     <meta name="twitter:image" content="https://graficador.culturalibre.edu.uy/assets/og-image.png">
 
     <!-- Chart.js y plugins -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"
-        integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"
-        integrity="sha512-UXumZrZNiOwnTcZSHLOfcTs0aos2MzBWHXOHOuB0J/R44QB0dwY5JgfbvljXcklVf65Gc4El6RjZ+lnwd2az2g=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.2.1/chartjs-plugin-zoom.min.js"
-        integrity="sha512-klQv6lz2YR+MecyFYMFRuU2eAl8IPRo6zHnsc9n142TJuJHS8CG0ix4Oq9na9ceeg1u5EkBfZsFcV3U7J51iew=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-        integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"
-        integrity="sha512-/cZZTKETbsuutvNXdPji/z8N+9e+LHq9D60JhcBCigq9I5a2VDEcLzml8PdVlVqzmWlVbhZCuTx+9CTi2xb30A=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="vendor/chart.min.js"
+        integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA=="></script>
+    <script src="vendor/hammer.min.js"
+        integrity="sha512-UXumZrZNiOwnTcZSHLOfcTs0aos2MzBWHXOHOuB0J/R44QB0dwY5JgfbvljXcklVf65Gc4El6RjZ+lnwd2az2g=="></script>
+    <script src="vendor/chartjs-plugin-zoom.min.js"
+        integrity="sha512-klQv6lz2YR+MecyFYMFRuU2eAl8IPRo6zHnsc9n142TJuJHS8CG0ix4Oq9na9ceeg1u5EkBfZsFcV3U7J51iew=="></script>
+    <script src="vendor/jspdf.umd.min.js"
+        integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA=="></script>
+    <script src="vendor/jspdf.plugin.autotable.min.js"
+        integrity="sha512-/cZZTKETbsuutvNXdPji/z8N+9e+LHq9D60JhcBCigq9I5a2VDEcLzml8PdVlVqzmWlVbhZCuTx+9CTi2xb30A=="></script>
 
     <!-- Estilos externos -->
     <link rel="stylesheet" href="css/styles.css">
@@ -846,9 +841,6 @@
             <p style="margin: 5px 0; font-size: 13px; color: #999;">
                 ¡Contribuciones y sugerencias son bienvenidas! 🚀 Escríbeme a <a
                     href="mailto:trujillo.leonardo@gmail.com" style="color: #3498db;">trujillo.leonardo@gmail.com</a>
-            </p>
-            <p style="margin: 10px 0 5px 0;">
-                <img src="https://visitor-badge.laobi.icu/badge?page_id=kterva.graficador" alt="Visitantes">
             </p>
         </footer>
     </div>

@@ -128,7 +128,8 @@ reproducir en el navegador para confirmar la causa antes de tocar código.
 
 - [x] 🟡 **E1 — Sin CSP.** ✅ `<meta http-equiv="Content-Security-Policy">` en
   `index.html`, **sin `script-src 'unsafe-inline'`** (ya no hay `<script>` ni `on*=`
-  inline). `script-src 'self' https://cdnjs.cloudflare.com`; `style-src` mantiene
+  inline). `script-src 'self'` (desde 2026-10-14 las bibliotecas se sirven desde `vendor/`; antes
+  `https://cdnjs.cloudflare.com`); `style-src` mantiene
   `'unsafe-inline'` (cientos de `style=` + `<style>` inyectados, impacto mucho menor);
   `connect-src 'self' blob:`; `object-src/base-uri/form-action/frame-ancestors`
   cerrados. Verificado en navegador: la app entera funciona sin violaciones de CSP.
