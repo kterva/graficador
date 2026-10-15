@@ -240,6 +240,13 @@ export function initChart() {
         }
     });
 
+    // La ayuda in-app y el manual publicado prometen "Doble clic: restablecer
+    // zoom" (ver index.html, tips de Controles de Vista), pero no había ningún
+    // listener que lo implementara — el plugin de zoom no lo trae por defecto.
+    canvas.addEventListener('dblclick', function() {
+        resetZoom();
+    });
+
     canvas.addEventListener('mouseleave', function() {
         hideCoordinatesTooltip();
     });
