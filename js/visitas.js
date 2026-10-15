@@ -44,10 +44,14 @@ export function textoVisitas(n) {
 }
 
 function conTiempoMaximo(promesa, ms) {
-    return Promise.race([
-        promesa,
-        new Promise((_, rechazar) => setTimeout(() => rechazar(new Error('tiempo agotado')), ms))
-    ]);
+    let id;
+    const limite = new Promise((_, rechazar) => {
+        id = setTimeout(() => rechazar(new Error('tiempo agotado')), ms);
+    });
+    // Limpiar el timer gane quien gane la carrera: si no, el temporizador queda
+    // pendiente (6s) y mantiene vivo el proceso/test aunque la promesa ya haya
+    // resuelto — se nota de más en la suite de tests (cada corrida se alarga 6s).
+    return Promise.race([promesa, limite]).finally(() => clearTimeout(id));
 }
 
 /**
