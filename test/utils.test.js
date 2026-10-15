@@ -105,6 +105,24 @@ test('formatCoefficient: behaves like formatNumber(value, 4) for values that do 
     assert.equal(formatCoefficient(1234.5), '1234,5000');
 });
 
+test('formatCoefficient: extremely small coefficients fall back to mantissa × 10ⁿ instead of throwing (bug: toFixed() digits > 100)', () => {
+    // magnitud -300: los decimales fijos necesarios (≈303) superan el máximo de
+    // 100 que admite toFixed() — antes del fix esto tiraba RangeError sin ningún
+    // try/catch alrededor en chart-manager.js, rompiendo updateChart() entero
+    // apenas una serie tuviera un coeficiente así de chico (underflow de un
+    // ajuste mal condicionado, o tipeado a mano).
+    assert.doesNotThrow(() => formatCoefficient(1e-300, 4));
+    assert.equal(formatCoefficient(1e-300, 4), '1,000×10⁻³⁰⁰');
+    assert.equal(formatCoefficient(-2.5e-250, 4), '-2,500×10⁻²⁵⁰');
+});
+
+test('formatCoefficient: just below the toFixed() limit still uses fixed decimals, not the mantissa fallback', () => {
+    // magnitud -16: neededDecimals = 4-1-(-16) = 19, todavía <= 20.
+    const r = formatCoefficient(1e-16, 4);
+    assert.doesNotMatch(r, /×10/);
+    assert.doesNotThrow(() => formatCoefficient(1e-16, 4));
+});
+
 test('getAxisScientificExponent: null for a normal-magnitude axis range', () => {
     assert.equal(getAxisScientificExponent([{ value: 0 }, { value: 0.5 }, { value: 1 }]), null);
 });

@@ -104,7 +104,19 @@ export function formatNumber(value, decimals) {
 export function formatCoefficient(value, decimals = 4) {
     if (value !== 0 && isFinite(value) && Math.abs(value) < Math.pow(10, -decimals) / 2) {
         const magnitude = Math.floor(Math.log10(Math.abs(value)));
-        decimals = decimals - 1 - magnitude;
+        const neededDecimals = decimals - 1 - magnitude;
+        // Un coeficiente realmente extremo (underflow de un ajuste mal condicionado,
+        // o tipeado a mano) pediría más de 100 decimales fijos, y toFixed() tira
+        // RangeError por encima de eso — rompería updateChart() entero, sin try/catch
+        // que lo contenga. Aun por debajo del límite, un numeral con decenas de ceros
+        // es ilegible y no aporta nada (ya se perdió la precisión de punto flotante
+        // bastante antes). Se cae a notación "mantisa × 10ⁿ", mismo estilo que usan
+        // los ejes con magnitudes extremas (ver axis_arrows_plugin.js).
+        if (neededDecimals > 20) {
+            const mantissa = value / Math.pow(10, magnitude);
+            return `${formatNumber(mantissa, decimals - 1)}×10${toSuperscript(magnitude)}`;
+        }
+        decimals = neededDecimals;
     }
     return formatNumber(value, decimals);
 }
