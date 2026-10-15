@@ -80,6 +80,15 @@ test('parseDecimal: accepts comma or dot as decimal separator', () => {
     assert.equal(parseDecimal(5), 5);
 });
 
+test('parseDecimal: disambiguates thousands vs. decimal separator when a value has both (bug: pasted from Excel/Sheets silently corrupted)', () => {
+    // US: ',' = miles, '.' = decimal (el que aparece más a la derecha)
+    assert.equal(parseDecimal('1,234.56'), 1234.56);
+    // EU: '.' = miles, ',' = decimal
+    assert.equal(parseDecimal('1.234,56'), 1234.56);
+    // sin parte decimal
+    assert.equal(parseDecimal('1,234.00'), 1234);
+});
+
 test('parseDecimal: empty/null/undefined is NaN', () => {
     assert.ok(Number.isNaN(parseDecimal('')));
     assert.ok(Number.isNaN(parseDecimal(null)));
@@ -180,6 +189,10 @@ test('parseTabular: semicolon + comma decimal (es-UY CSV)', () => {
 
 test('parseTabular: scientific notation on the first row is NOT mistaken for a header (R2)', () => {
     assert.deepEqual(parseTabular('1e3,2e3\n2e3,4e3'), [{ x: 1000, y: 2000 }, { x: 2000, y: 4000 }]);
+});
+
+test('parseTabular: thousands separator pasted from Excel/Sheets does not get silently truncated (bug: "1,234.56" read as 1,234)', () => {
+    assert.deepEqual(parseTabular('1,234.56\t2\n3\t4'), [{ x: 1234.56, y: 2 }, { x: 3, y: 4 }]);
 });
 
 test('parseTabular: non-numeric cells become empty strings, fully empty rows dropped', () => {

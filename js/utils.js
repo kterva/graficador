@@ -236,19 +236,38 @@ export function calculateR2(observed, predicted) {
  * Parsea un valor numérico aceptando tanto coma como punto como separador decimal.
  * La coma se convierte automáticamente a punto antes de parsear.
  *
+ * Si el valor trae AMBOS separadores (ej. pegado desde Excel/Sheets con miles:
+ * "1.234,56" formato EU o "1,234.56" formato US), el que aparece más a la derecha
+ * es el separador decimal y el otro se interpreta como separador de miles y se
+ * descarta — sin esto, "1,234.56" pegado desde una planilla se leía como 1,234
+ * (mil veces menos de lo esperado) en silencio, sin ningún error ni advertencia.
+ *
  * @param {string|number} value - Valor a parsear
  * @returns {number} Número parseado, o NaN si no es válido
  *
  * @example
  * parseDecimal('3,14')  // returns 3.14
  * parseDecimal('3.14')  // returns 3.14
+ * parseDecimal('1,234.56')  // returns 1234.56 (miles ',' + decimal '.')
+ * parseDecimal('1.234,56')  // returns 1234.56 (miles '.' + decimal ',')
  */
 export function parseDecimal(value) {
     if (value === null || value === undefined || value === '') return NaN;
     if (typeof value === 'number') return value;
-    // Normalizar: reemplazar coma por punto
-    const normalized = String(value).trim().replace(',', '.');
-    return parseFloat(normalized);
+
+    let str = String(value).trim();
+    const lastComma = str.lastIndexOf(',');
+    const lastDot = str.lastIndexOf('.');
+
+    if (lastComma !== -1 && lastDot !== -1) {
+        str = lastComma > lastDot
+            ? str.replace(/\./g, '').replace(',', '.')
+            : str.replace(/,/g, '');
+    } else {
+        str = str.replace(',', '.');
+    }
+
+    return parseFloat(str);
 }
 
 /**
