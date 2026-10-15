@@ -88,6 +88,14 @@ test('validateInputPrecision: handles uncertainties JS would print in scientific
     assert.equal(validateInputPrecision(3.14, 0.0000005, 'A'), null);
 });
 
+test('validateInputPrecision: an extremely tiny uncertainty does not throw (bug: toFixed() digits > 100)', () => {
+    // 1e-300 expande a ~300 decimales al contarlos como string, por encima del
+    // máximo de 100 que admite toFixed() — antes del fix esto rompía el cálculo
+    // con un RangeError crudo en vez de mostrar la advertencia.
+    assert.doesNotThrow(() => validateInputPrecision(1e-310, 1e-300, 'A'));
+    assert.ok(validateInputPrecision(1e-310, 1e-300, 'A').hasWarning);
+});
+
 test('validateAllInputs: collects warnings for both operands', () => {
     const warnings = validateAllInputs(3.14159, 0.123, 2.71828, 0.05);
     // A tiene incertidumbre mal expresada (2 cifras) y valor con más decimales que la incertidumbre;

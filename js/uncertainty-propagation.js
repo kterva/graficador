@@ -195,7 +195,12 @@ export function validateInputPrecision(value, uncertainty, label) {
     if (uncertainty === 0) return null; // Sin error, no hay restricción
 
     // Obtener número de decimales del error y del valor
-    const uncertaintyDecimals = countDecimals(uncertainty);
+    // Un valor/incertidumbre en notación científica con exponente muy negativo
+    // (ej. "1e-300" tipeado en el campo) se expande a un string con cientos de
+    // decimales (toPlainDecimalString), y toFixed() más abajo no admite más de
+    // 100 — se acota para no romper el cálculo (queda atrapado por el try/catch
+    // del handler, pero mostraría un RangeError crudo en vez de la advertencia).
+    const uncertaintyDecimals = Math.min(countDecimals(uncertainty), 100);
     const valueDecimals = countDecimals(value);
 
     // El valor no debería tener más decimales que el error
