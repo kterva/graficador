@@ -158,17 +158,6 @@
                     <canvas id="myChart"></canvas>
                 </div>
 
-                <div id="extrapolation-controls" style="margin-top: 15px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: #fafafa; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
-                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.95rem;">
-                        <input type="checkbox" id="extrapolateNegInfinity" data-on-change="updateChart">
-                        Extrapolar a -infinito
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.95rem;">
-                        <input type="checkbox" id="extrapolatePosInfinity" data-on-change="updateChart">
-                        Extrapolar a +infinito
-                    </label>
-                </div>
-
                 <!-- Panel de Configuración -->
 
 
@@ -179,6 +168,16 @@
                         <button class="btn btn-primary" data-on-click="zoomIn">🔍+ Acercar</button>
                         <button class="btn btn-primary" data-on-click="zoomOut">🔍- Alejar</button>
                         <button class="btn btn-primary" data-on-click="resetZoom">🔄 Restablecer</button>
+                    </div>
+                    <div id="extrapolation-controls" style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.95rem;">
+                            <input type="checkbox" id="extrapolateNegInfinity" data-on-change="updateChart">
+                            Extrapolar a -infinito
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.95rem;">
+                            <input type="checkbox" id="extrapolatePosInfinity" data-on-change="updateChart">
+                            Extrapolar a +infinito
+                        </label>
                     </div>
                 </div>
                 <div id="intersection-display"
