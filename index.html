@@ -13,8 +13,9 @@
       - style-src mantiene 'unsafe-inline': el HTML usa cientos de `style=` y hay
         varios `<style>` inyectados por JS; la inyección de estilos es de mucho
         menor impacto que la de scripts.
-      - connect-src 'self': aunque se ejecutara JS inyectado, no puede exfiltrar
-        datos a un servidor externo (fetch/XHR/WebSocket/beacon).
+      - connect-src 'self' + https://culturalibre.edu.uy: único destino externo permitido, el
+        contador de visitas propio (js/visitas.js); aunque se ejecutara JS inyectado, no puede
+        exfiltrar datos a ningún otro servidor (fetch/XHR/WebSocket/beacon).
       - object-src/base-uri/form-action/frame-ancestors cerrados.
     -->
     <meta http-equiv="Content-Security-Policy" content="
@@ -23,7 +24,7 @@
         style-src 'self' 'unsafe-inline';
         img-src 'self' data: blob: https://graficador.culturalibre.edu.uy;
         font-src 'self' data:;
-        connect-src 'self' blob:;
+        connect-src 'self' blob: https://culturalibre.edu.uy;
         worker-src 'self' blob:;
         object-src 'none';
         base-uri 'self';
@@ -838,6 +839,7 @@
                 </a>
             </p>
             <p id="footer-version" style="margin: 5px 0; font-size: 13px; color: #999;"></p>
+            <p id="footer-visitas" hidden style="margin: 5px 0; font-size: 13px; color: #999;"></p>
             <p style="margin: 5px 0; font-size: 13px; color: #999;">
                 ¡Contribuciones y sugerencias son bienvenidas! 🚀 Escríbeme a <a
                     href="mailto:trujillo.leonardo@gmail.com" style="color: #3498db;">trujillo.leonardo@gmail.com</a>

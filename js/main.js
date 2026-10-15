@@ -83,6 +83,7 @@ import {
 } from './export_manager.js';
 import { initEventDelegation, registerActions } from './events.js';
 import { ACTIONS } from './actions.js';
+import { iniciarVisitas } from './visitas.js';
 
 // ============================================
 // EXPONER FUNCIONES AL SCOPE GLOBAL
@@ -193,6 +194,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mostrar la versión de la app en el footer desde la única fuente de verdad (APP_VERSION)
     const footerVersion = document.getElementById('footer-version');
     if (footerVersion) footerVersion.textContent = `Versión ${APP_VERSION}`;
+
+    // Contador de visitas propio (sin terceros; respeta «No rastrear»). Ver js/visitas.js.
+    iniciarVisitas();
 
     // Crear primera serie automáticamente para que el usuario vea la tabla desde el inicio
     addSerie();
