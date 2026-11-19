@@ -21,6 +21,7 @@ import { togglePresentationMode } from './presentation-mode.js';
 import { copyShareURL, closeShareModal, copyShareURLAgain } from './share-manager.js';
 import { startTour } from './tour-guide.js';
 import { showNotification } from './notifications.js';
+import { toggleLanguage, t } from './i18n.js';
 import { deactivateModal } from './modal.js';
 import {
     addSerie, removeSerie, addRow, removeRow, updatePoint, updateSerieColor,
@@ -46,7 +47,8 @@ export const ACTIONS = {
     // --- Cabecera / menús ---
     toggleMobileMenu: () => toggleMobileMenu(),
     toggleToolsMenu: () => toggleToolsMenu(),
-    templatesComingSoon: () => showNotification('🧪 Plantillas: próximamente', 'info'),
+    templatesComingSoon: () => showNotification(t('🧪 Plantillas: próximamente'), 'info'),
+    toggleLanguage: () => toggleLanguage(),
 
     // --- Proyecto / exportación ---
     exportProject: () => exportProject(),

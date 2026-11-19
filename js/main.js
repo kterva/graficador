@@ -84,6 +84,7 @@ import {
 import { initEventDelegation, registerActions } from './events.js';
 import { ACTIONS } from './actions.js';
 import { iniciarVisitas } from './visitas.js';
+import { initI18n, onLanguageChange, t } from './i18n.js';
 
 // ============================================
 // EXPONER FUNCIONES AL SCOPE GLOBAL
@@ -193,7 +194,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Mostrar la versión de la app en el footer desde la única fuente de verdad (APP_VERSION)
     const footerVersion = document.getElementById('footer-version');
-    if (footerVersion) footerVersion.textContent = `Versión ${APP_VERSION}`;
+    // Idioma: se inicia antes de pintar nada; lo que se pinte después lo traduce el observador de i18n.js
+    // y lo armado con t() se repinta con el evento de cambio de idioma.
+    const paintFooterVersion = () => {
+        if (footerVersion) footerVersion.textContent = t('Versión {v}', { v: APP_VERSION });
+    };
+    paintFooterVersion();
+    onLanguageChange(paintFooterVersion);
+    initI18n();
 
     // Contador de visitas propio (sin terceros; respeta «No rastrear»). Ver js/visitas.js.
     iniciarVisitas();
