@@ -13,7 +13,7 @@
       - style-src mantiene 'unsafe-inline': el HTML usa cientos de `style=` y hay
         varios `<style>` inyectados por JS; la inyección de estilos es de mucho
         menor impacto que la de scripts.
-      - connect-src 'self' + https://culturalibre.edu.uy: único destino externo permitido, el
+      - connect-src 'self' + https://culturalibre.uy: único destino externo permitido, el
         contador de visitas propio (js/visitas.js); aunque se ejecutara JS inyectado, no puede
         exfiltrar datos a ningún otro servidor (fetch/XHR/WebSocket/beacon).
       - object-src/base-uri/form-action/frame-ancestors cerrados.
@@ -24,7 +24,7 @@
         style-src 'self' 'unsafe-inline';
         img-src 'self' data: blob: https://graficador.culturalibre.uy;
         font-src 'self' data:;
-        connect-src 'self' blob: https://culturalibre.edu.uy;
+        connect-src 'self' blob: https://culturalibre.uy;
         worker-src 'self' blob:;
         object-src 'none';
         base-uri 'self';
@@ -822,8 +822,8 @@
                 <strong>Graficador de Funciones</strong> | Desarrollado por <strong>Leonardo Trujillo</strong>
             </p>
             <p style="margin: 5px 0; font-size: 14px;">
-                📖 <a href="https://culturalibre.edu.uy/graficador/manual/" target="_blank" rel="noopener" style="color: #3498db; text-decoration: none;">Manual</a> |
-                📜 Software libre bajo licencia <a href="https://culturalibre.edu.uy/licencia/" target="_blank" rel="noopener" style="color: #3498db; text-decoration: none;">GPL v3 o posterior</a> |
+                📖 <a href="https://culturalibre.uy/graficador/manual/" target="_blank" rel="noopener" style="color: #3498db; text-decoration: none;">Manual</a> |
+                📜 Software libre bajo licencia <a href="https://culturalibre.uy/licencia/" target="_blank" rel="noopener" style="color: #3498db; text-decoration: none;">GPL v3 o posterior</a> |
                 <a href="https://github.com/kterva/graficador" target="_blank"
                     style="color: #3498db; text-decoration: none;">
                     🔗 Ver código fuente en GitHub

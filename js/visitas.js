@@ -2,7 +2,7 @@
  * Contador de visitas propio (sin servicios de terceros).
  *
  * Al abrir el Graficador se avisa a un pequeño servicio en el servidor de Cultura Libre
- * (plugin «Contador de visitas», en culturalibre.edu.uy) que suma una visita y devuelve el total,
+ * (plugin «Contador de visitas», en culturalibre.uy) que suma una visita y devuelve el total,
  * que se muestra en el pie. No usa cookies ni identificadores; el servidor no guarda la IP.
  *
  * Reglas de privacidad:
@@ -13,7 +13,7 @@
  *   - Si el servicio no responde, no pasa nada: el Graficador funciona igual y el pie no muestra el número.
  */
 
-export const VISITAS_API = 'https://culturalibre.edu.uy/wp-json/contador/v1/';
+export const VISITAS_API = 'https://culturalibre.uy/wp-json/contador/v1/';
 export const VISITAS_SITIO = 'graficador';
 const TIEMPO_MAXIMO_MS = 6000;
 
