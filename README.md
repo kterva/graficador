@@ -351,6 +351,14 @@ Una explicación breve de la licencia, con enlaces a las fuentes en gnu.org: htt
 - [jsPDF](https://github.com/parallax/jsPDF) - Generación de PDF
 - Comunidad de código abierto
 
+## 💛 Apoyar el proyecto
+
+El Graficador es software libre, gratuito y sin publicidad ni rastreo. Si te resulta útil en tus clases o en tu laboratorio, podés ayudar a que siga mejorando:
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-kterva-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/kterva)
+
+También ayuda mucho darle una ⭐ al repositorio, avisar de errores o contarle a otro docente que existe.
+
 ## 📧 Contacto
 
 - **Repositorio:** [github.com/kterva/graficador](https://github.com/kterva/graficador)
