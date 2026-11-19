@@ -1,5 +1,7 @@
 # 📊 Graficador Científico
 
+🌐 [English](README.en.md) · **Español**
+
 Aplicación web interactiva para análisis de datos experimentales con ajustes de regresión, propagación de incertidumbre y etiquetado de unidades. Ideal para estudiantes, científicos e ingenieros.
 
 **▶️ Probalo ahora, sin instalar nada: [graficador.culturalibre.uy](https://graficador.culturalibre.uy)**
