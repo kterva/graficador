@@ -10,6 +10,7 @@
  */
 
 import { COLORS } from './utils.js';
+import { t } from './i18n.js';
 
 /**
  * Estado global de la aplicación
@@ -116,7 +117,7 @@ export function sanitizeImportedSeries(rawSeries) {
             serie.id = (Number.isInteger(id) && id >= 0 && !usedIds.has(id)) ? id : nextFallbackId();
             usedIds.add(serie.id);
 
-            serie.name = (typeof serie.name === 'string' && serie.name.trim()) ? serie.name : `Serie ${serie.id}`;
+            serie.name = (typeof serie.name === 'string' && serie.name.trim()) ? serie.name : t('Serie {n}', { n: serie.id });
             serie.color = (typeof serie.color === 'string' && serie.color) ? serie.color : COLORS[index % COLORS.length];
             serie.fitType = typeof serie.fitType === 'string' ? serie.fitType : 'none';
 

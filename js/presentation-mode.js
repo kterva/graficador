@@ -11,6 +11,7 @@
 import { AppState } from './state.js';
 import { updateChart } from './chart-manager.js';
 import { showNotification } from './notifications.js';
+import { t } from './i18n.js';
 
 /**
  * Alterna el estado del modo presentación
@@ -22,7 +23,7 @@ export function togglePresentationMode() {
 
     if (isPresentation) {
         // Entrar en modo presentación
-        showNotification('📺 Modo presentación activado. Pan y Zoom habilitados. ESC para salir.', 'info');
+        showNotification(t('📺 Modo presentación activado. Pan y Zoom habilitados. ESC para salir.'), 'info');
 
         // Intentar poner el navegador en pantalla completa
         if (document.documentElement.requestFullscreen) {
@@ -188,7 +189,7 @@ if (!document.getElementById('presentation-styles')) {
         btn.id = 'exit-presentation-btn';
         btn.className = 'exit-presentation-btn';
         btn.innerHTML = '×';
-        btn.title = 'Salir del modo presentación (ESC)';
+        btn.title = t('Salir del modo presentación (ESC)');
         btn.onclick = togglePresentationMode;
         document.body.appendChild(btn);
     }

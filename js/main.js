@@ -84,7 +84,7 @@ import {
 import { initEventDelegation, registerActions } from './events.js';
 import { ACTIONS } from './actions.js';
 import { iniciarVisitas } from './visitas.js';
-import { initI18n, onLanguageChange, t } from './i18n.js';
+import { initI18n, onLanguageChange, t, variants, templateParams } from './i18n.js';
 
 // ============================================
 // EXPONER FUNCIONES AL SCOPE GLOBAL
@@ -201,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     paintFooterVersion();
     onLanguageChange(paintFooterVersion);
+    onLanguageChange(syncLanguageDefaults);
     initI18n();
 
     // Contador de visitas propio (sin terceros; respeta «No rastrear»). Ver js/visitas.js.
@@ -225,6 +226,29 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('🔧 Modo Desarrollo Activado');
     }
 });
+
+/**
+ * Al cambiar de idioma: los valores por defecto que la app puso sola (título de la gráfica,
+ * «Serie N») siguen al idioma; los que el usuario editó no se tocan. Luego se repinta lo que
+ * se arma por código (tarjetas de series, leyenda, ecuaciones, paneles de cálculo).
+ */
+function syncLanguageDefaults() {
+    const DEFAULT_TITLE = 'Gráfica de Datos';
+    const titleEl = document.getElementById('chartTitle');
+    if (titleEl && variants(DEFAULT_TITLE).includes(titleEl.value)) titleEl.value = t(DEFAULT_TITLE);
+    if (AppState.config && variants(DEFAULT_TITLE).includes(AppState.config.title)) {
+        AppState.config.title = t(DEFAULT_TITLE);
+    }
+    for (const serie of AppState.series) {
+        const params = templateParams(serie.name, 'Serie {n}');
+        if (params) serie.name = t('Serie {n}', params);
+    }
+    if (AppState.series.length > 0) renderSeries();
+    if (AppState.chart) {
+        updateChartConfig();
+        updateChart();
+    }
+}
 
 /**
  * Configura event listeners globales

@@ -15,6 +15,7 @@ import { updateChartConfig } from './chart_config.js';
 import { PROJECT_FILE_FORMAT_VERSION } from './utils.js';
 import { showNotification } from './notifications.js';
 import { activateModal, deactivateModal } from './modal.js';
+import { t } from './i18n.js';
 
 /**
  * Genera una URL compartible con el estado actual
@@ -115,12 +116,12 @@ export function loadFromURL() {
         updateChart();
 
         // Mostrar notificación
-        showNotification('✓ Datos cargados desde URL compartida', 'success');
+        showNotification(t('✓ Datos cargados desde URL compartida'), 'success');
 
         return true;
     } catch (error) {
         console.error('Error al cargar desde URL:', error);
-        showNotification('✗ Error al cargar datos de la URL', 'error');
+        showNotification(t('✗ Error al cargar datos de la URL'), 'error');
         return false;
     }
 }
@@ -141,12 +142,12 @@ export async function copyShareURL() {
 
         if (url.length > SHARE_URL_WARN_LENGTH) {
             showNotification(
-                `⚠️ El link es muy largo (${(url.length / 1024).toFixed(1)} KB) y puede truncarse al abrirlo. ` +
-                `Para proyectos grandes usá "Guardar" y compartí el archivo .json.`,
+                t('⚠️ El link es muy largo ({kb} KB) y puede truncarse al abrirlo.', { kb: (url.length / 1024).toFixed(1) }) + ' ' +
+                t('Para proyectos grandes usá "Guardar" y compartí el archivo .json.'),
                 'error'
             );
         } else {
-            showNotification('✓ URL copiada al portapapeles', 'success');
+            showNotification(t('✓ URL copiada al portapapeles'), 'success');
         }
 
         // Mostrar modal con la URL
@@ -154,7 +155,7 @@ export async function copyShareURL() {
 
     } catch (error) {
         console.error('Error al copiar URL:', error);
-        showNotification('✗ Error al copiar URL', 'error');
+        showNotification(t('✗ Error al copiar URL'), 'error');
     }
 }
 
@@ -238,7 +239,7 @@ export function closeShareModal() {
 export function copyShareURLAgain() {
     const urlText = document.getElementById('shareURLText').textContent;
     navigator.clipboard.writeText(urlText).then(() => {
-        showNotification('✓ URL copiada', 'success');
+        showNotification(t('✓ URL copiada'), 'success');
     });
 }
 

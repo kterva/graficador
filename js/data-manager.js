@@ -10,7 +10,8 @@
  */
 
 import { AppState, getNextColor, findSerieById } from './state.js';
-import { parseDecimal, formatNumber, sanitizeCSVField, parseTabular } from './utils.js';
+import { parseDecimal, formatNumber, sanitizeCSVField, parseTabular, csvDelimiter } from './utils.js';
+import { t } from './i18n.js';
 
 /**
  * Agrega una nueva serie de datos
@@ -22,7 +23,7 @@ export function addSerie() {
 
     const serie = {
         id: id,
-        name: `Serie ${id}`,
+        name: t('Serie {n}', { n: id }),
         color: color,
         data: [{ x: '', y: '' }],
         fitType: 'none',
@@ -146,18 +147,19 @@ export function exportCSV(serieId) {
     if (!serie) return false;
 
     // Mismo formato que la exportación combinada (export_manager.downloadAllCSV):
-    // delimitador ';', campos saneados contra inyección de fórmulas, coma decimal,
+    // delimitador (';' en español, ',' en inglés), campos saneados contra inyección de fórmulas,
     // y descarga por Blob (no `data:` URI).
     const labelX = document.getElementById('labelX')?.value || 'X';
     const labelY = document.getElementById('labelY')?.value || 'Y';
 
-    let csv = `${sanitizeCSVField(labelX)};${sanitizeCSVField(labelY)}\n`;
+    const sep = csvDelimiter();
+    let csv = `${sanitizeCSVField(labelX)}${sep}${sanitizeCSVField(labelY)}\n`;
 
     serie.data.forEach(p => {
         if (p.x !== '' && p.y !== '') {
             const x = sanitizeCSVField(formatNumber(parseDecimal(p.x)));
             const y = sanitizeCSVField(formatNumber(parseDecimal(p.y)));
-            csv += `${x};${y}\n`;
+            csv += `${x}${sep}${y}\n`;
         }
     });
 

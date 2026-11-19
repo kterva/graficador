@@ -12,6 +12,17 @@ import { AppState } from './state.js';
 import { errorBarsPlugin, bullseyePointsPlugin } from './chart-plugins.js';
 import { calculateFit, calculateDerivative, calculateIntegral, getRegressionCoeffs } from './calculations.js';
 import { extractUnit, formatWithUncertainty, parseDecimal, formatNumber, getAxisScientificExponent, toSuperscript, numericPoints, calculateR2, escapeHTML } from './utils.js';
+import { t } from './i18n.js';
+
+/**
+ * ¿Es una serie auxiliar del gráfico (caja de error, tangente, área…) y no una del usuario?
+ * Se reconoce por la etiqueta, en español o en el idioma activo, para que cambiar de idioma
+ * no rompa el reconocimiento de las series que ya están dibujadas.
+ */
+const INTERNAL_LABELS_ES = ['Caja Error', 'Tangente', 'Área', 'Pendiente', 'Punto Tangente', 'Incertidumbre'];
+function isInternalLabel(label) {
+    return INTERNAL_LABELS_ES.some((es) => label.includes(es) || label.includes(t(es)));
+}
 
 // Los plugins se registran en initChart() (no en la evaluación del módulo): así este
 // módulo se puede importar en Node —p.ej. desde los tests o export_manager— sin que
@@ -220,12 +231,7 @@ export function initChart() {
         const dataset = AppState.chart.data.datasets[datasetIndex];
         const label = dataset.label || '';
 
-        const esInterno = label.includes('Caja Error')
-            || label.includes('Tangente')
-            || label.includes('Área')
-            || label.includes('Pendiente')
-            || label.includes('Punto Tangente')
-            || label.includes('Incertidumbre');
+        const esInterno = isInternalLabel(label);
 
         const esLineaAjuste = dataset.type === 'line' && !esInterno;
         const esPuntoUsuario = dataset.showLine === false && !esInterno;
@@ -565,7 +571,7 @@ export function updateChart(animationMode) {
 
                 datasets.push({
                     type: 'line',
-                    label: `Pendiente Máxima (m=${formattedMax.value}${slopeUnit})`,
+                    label: t('Pendiente Máxima (m={v}{u})', { v: formattedMax.value, u: slopeUnit }),
                     data: fit.maxSlopePoints,
                     borderColor: '#dc3545',  // Rojo
                     backgroundColor: 'transparent',
@@ -578,7 +584,7 @@ export function updateChart(animationMode) {
                 });
                 datasets.push({
                     type: 'line',
-                    label: `Pendiente Mínima (m=${formattedMin.value}${slopeUnit})`,
+                    label: t('Pendiente Mínima (m={v}{u})', { v: formattedMin.value, u: slopeUnit }),
                     data: fit.minSlopePoints,
                     borderColor: '#007bff',  // Azul
                     backgroundColor: 'transparent',
@@ -610,7 +616,7 @@ export function updateChart(animationMode) {
 
                         datasets.push({
                             type: 'line',
-                            label: `Caja Error ${idx === 0 ? 'Inicial' : 'Final'}`,
+                            label: idx === 0 ? t('Caja Error Inicial') : t('Caja Error Final'),
                             data: boxData,
                             borderColor: 'rgba(100, 100, 100, 0.5)',
                             backgroundColor: 'rgba(100, 100, 100, 0.1)',
@@ -644,7 +650,7 @@ export function updateChart(animationMode) {
                     if (!Number.isFinite(slope) || !Number.isFinite(y0)) {
                         // Fuera del dominio (ej. x ≤ 0 en logarítmico/potencial)
                         if (tangentDisplay) {
-                            tangentDisplay.innerHTML = `<span style="color:#e67e22;">x = ${formatNumber(tx, 4)} está fuera del dominio de este ajuste.</span>`;
+                            tangentDisplay.innerHTML = `<span style="color:#e67e22;">${t('x = {x} está fuera del dominio de este ajuste.', { x: formatNumber(tx, 4) })}</span>`;
                         }
                     } else {
                     let minX = AppState.chart.scales.x ? AppState.chart.scales.x.min : validData[0].x;
@@ -668,7 +674,7 @@ export function updateChart(animationMode) {
 
                     datasets.push({
                         type: 'line',
-                        label: 'Tangente',
+                        label: t('Tangente'),
                         data: [{ x: x1, y: y1 }, { x: x2, y: y2 }],
                         borderColor: '#e74c3c',
                         borderWidth: 2,
@@ -680,7 +686,7 @@ export function updateChart(animationMode) {
 
                     datasets.push({
                         type: 'scatter',
-                        label: 'Punto Tangente',
+                        label: t('Punto Tangente'),
                         data: [{ x: AppState.tools.tangentX, y: y0 }],
                         backgroundColor: '#e74c3c',
                         pointRadius: 6,
@@ -695,7 +701,7 @@ export function updateChart(animationMode) {
                         tangentDisplay.innerHTML = `
                             <strong>x = ${formatNumber(tx, 4)}${xUnit ? ' ' + xUnit : ''}</strong><br>
                             y = ${formatNumber(y0, 4)}${yUnit ? ' ' + yUnit : ''}<br>
-                            <strong>Pendiente (dy/dx) = ${formatNumber(slope, 4)}${derivativeUnit}</strong>
+                            <strong>${t('Pendiente (dy/dx) = {v}', { v: formatNumber(slope, 4) + derivativeUnit })}</strong>
                         `;
                     }
                     } // fin else (tangente dentro del dominio)
@@ -718,7 +724,7 @@ export function updateChart(animationMode) {
 
                     datasets.push({
                         type: 'line',
-                        label: 'Área',
+                        label: t('Área'),
                         data: areaPoints,
                         borderColor: 'transparent',
                         backgroundColor: 'rgba(108, 92, 231, 0.3)',
@@ -738,11 +744,11 @@ export function updateChart(animationMode) {
 
                         // R8: e^(bx) puede desbordar a Infinity con un intervalo/exponente grande.
                         if (!Number.isFinite(area)) {
-                            areaDisplay.innerHTML = `<span style="color:#e67e22;">El área en [${formattedX1}, ${formattedX2}] es demasiado grande para calcularla (desbordamiento numérico).</span>`;
+                            areaDisplay.innerHTML = `<span style="color:#e67e22;">${t('El área en [{x1}, {x2}] es demasiado grande para calcularla (desbordamiento numérico).', { x1: formattedX1, x2: formattedX2 })}</span>`;
                         } else {
                             areaDisplay.innerHTML = `
-                                <strong>Intervalo: [${formattedX1}, ${formattedX2}]${xUnit ? ' ' + xUnit : ''}</strong><br>
-                                <strong>Área (∫y dx) = ${formatNumber(area, 4)}${integralUnit}</strong>
+                                <strong>${t('Intervalo: [{x1}, {x2}]', { x1: formattedX1, x2: formattedX2 })}${xUnit ? ' ' + xUnit : ''}</strong><br>
+                                <strong>${t('Área (∫y dx) = {v}', { v: formatNumber(area, 4) + integralUnit })}</strong>
                             `;
                         }
                     }
@@ -762,7 +768,7 @@ export function updateChart(animationMode) {
 
                     datasets.push({
                         type: 'line',
-                        label: `Pendiente esperada (m=${formatNumber(m, 4)})`,
+                        label: t('Pendiente esperada (m={m})', { m: formatNumber(m, 4) }),
                         data: [{ x: minXs, y: m * minXs }, { x: maxXs, y: m * maxXs }],
                         borderColor: '#16a34a',
                         backgroundColor: 'transparent',
@@ -787,15 +793,15 @@ export function updateChart(animationMode) {
                         if (autoSlope !== null && autoSlope !== undefined) {
                             if (Math.abs(autoSlope) > 1e-12) {
                                 const diffPct = Math.abs((m - autoSlope) / autoSlope) * 100;
-                                comparisonLine = `Ajuste automático: m = ${formatNumber(autoSlope, 4)}${slopeUnit} (diferencia ${formatNumber(diffPct, 1)}%)`;
+                                comparisonLine = t('Ajuste automático: m = {v} (diferencia {d}%)', { v: formatNumber(autoSlope, 4) + slopeUnit, d: formatNumber(diffPct, 1) });
                             } else {
-                                comparisonLine = `Ajuste automático: m = ${formatNumber(autoSlope, 4)}${slopeUnit}`;
+                                comparisonLine = t('Ajuste automático: m = {v}', { v: formatNumber(autoSlope, 4) + slopeUnit });
                             }
                         }
 
                         slopeCompareDisplay.innerHTML = `
-                            <strong>m esperada = ${formatNumber(m, 4)}${slopeUnit}</strong><br>
-                            R² de esa recta (y = mx) contra "${escapeHTML(serie.name)}" = ${formatNumber(r2Compare, 4)}<br>
+                            <strong>${t('m esperada = {v}', { v: formatNumber(m, 4) + slopeUnit })}</strong><br>
+                            ${t('R² de esa recta (y = mx) contra "{name}" = {v}', { name: escapeHTML(serie.name), v: formatNumber(r2Compare, 4) })}<br>
                             ${comparisonLine}
                         `;
                     }

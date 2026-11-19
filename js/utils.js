@@ -8,6 +8,8 @@
  * @module utils
  */
 
+import { t, getLang } from './i18n.js';
+
 /**
  * Paleta de colores para las series
  * @type {string[]}
@@ -74,15 +76,25 @@ export function escapeHTML(value) {
  *
  * @param {number} value - Número a formatear
  * @param {number} [decimals] - Cantidad de decimales (usa toFixed); si se omite, usa la representación por defecto de JS
- * @returns {string} Número formateado con coma decimal
+ * @returns {string} Número formateado: coma decimal en español (por defecto), punto en inglés
  *
  * @example
- * formatNumber(3.14159, 2) // returns "3,14"
- * formatNumber(0.5) // returns "0,5"
+ * formatNumber(3.14159, 2) // returns "3,14"   (en inglés: "3.14")
+ * formatNumber(0.5) // returns "0,5"            (en inglés: "0.5")
  */
 export function formatNumber(value, decimals) {
     const str = typeof decimals === 'number' ? value.toFixed(decimals) : String(value);
-    return str.replace('.', ',');
+    return getLang() === 'es' ? str.replace('.', ',') : str;
+}
+
+/**
+ * Delimitador de columnas del CSV exportado: ';' en español (los números llevan coma
+ * decimal, y así lo espera Excel con configuración regional es-UY) y ',' en inglés
+ * (punto decimal, el formato que espera Excel con configuración regional en inglés).
+ * importar CSV reconoce ambos.
+ */
+export function csvDelimiter() {
+    return getLang() === 'es' ? ';' : ',';
 }
 
 /**
@@ -333,7 +345,7 @@ export function showDecimalWarning(input) {
 
     const warning = document.createElement('div');
     warning.id = 'decimal-warning';
-    warning.textContent = '💡 Usá coma (,) como separador decimal';
+    warning.textContent = t('💡 Usá coma (,) como separador decimal');
     warning.style.cssText = `
         position: fixed;
         background: #fff3cd;

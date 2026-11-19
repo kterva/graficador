@@ -9,6 +9,7 @@ import { updateChartConfig } from './chart_config.js';
 import { PROJECT_FILE_FORMAT_VERSION } from './utils.js';
 import { showNotification } from './notifications.js';
 import { confirmDialog } from './modal.js';
+import { t } from './i18n.js';
 
 /**
  * Exporta el estado actual del proyecto a un archivo JSON
@@ -63,14 +64,14 @@ export function importProject(input) {
 
             // Validación básica
             if (!projectData.series || !Array.isArray(projectData.series)) {
-                throw new Error("El archivo no tiene un formato de proyecto válido.");
+                throw new Error(t('El archivo no tiene un formato de proyecto válido.'));
             }
 
             // Confirmar si hay datos existentes
             if (AppState.series.length > 0) {
                 const ok = await confirmDialog({
-                    message: 'Cargar un proyecto reemplaza todos los datos actuales. ¿Continuar?',
-                    confirmText: 'Cargar', danger: true
+                    message: t('Cargar un proyecto reemplaza todos los datos actuales. ¿Continuar?'),
+                    confirmText: t('Cargar'), danger: true
                 });
                 if (!ok) {
                     fileInput.value = '';
@@ -101,10 +102,10 @@ export function importProject(input) {
             renderSeries();
             updateChart();
 
-            showNotification('✓ Proyecto cargado', 'success');
+            showNotification(t('✓ Proyecto cargado'), 'success');
         } catch (error) {
             console.error("Error al importar proyecto:", error);
-            showNotification('Error al cargar el proyecto: ' + error.message, 'error');
+            showNotification(t('Error al cargar el proyecto: {msg}', { msg: error.message }), 'error');
         }
         fileInput.value = ''; // Reset input para permitir cargar el mismo archivo de nuevo
     };

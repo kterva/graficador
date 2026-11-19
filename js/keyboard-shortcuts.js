@@ -13,6 +13,7 @@
 
 import { showNotification } from './notifications.js';
 import { activateModal, deactivateModal, hasOpenModal } from './modal.js';
+import { t } from './i18n.js';
 
 const showShortcutNotification = (message) => showNotification(`⌨️ ${message}`, 'info', 2000);
 
@@ -46,7 +47,7 @@ function handleKeyboardShortcut(event) {
         event.preventDefault();
         if (typeof window.addSerie === 'function') {
             window.addSerie();
-            showShortcutNotification('Nueva serie agregada');
+            showShortcutNotification(t('Nueva serie agregada'));
         }
     }
 
@@ -55,7 +56,7 @@ function handleKeyboardShortcut(event) {
         event.preventDefault();
         if (typeof window.exportProject === 'function') {
             window.exportProject();
-            showShortcutNotification('Proyecto guardado');
+            showShortcutNotification(t('Proyecto guardado'));
         }
     }
 
@@ -67,7 +68,7 @@ function handleKeyboardShortcut(event) {
             exportBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
             exportBtn.style.animation = 'pulse 0.5s';
         }
-        showShortcutNotification('Menú de exportación');
+        showShortcutNotification(t('Menú de exportación'));
     }
 
     // Ctrl/Cmd + H: Mostrar ayuda de atajos

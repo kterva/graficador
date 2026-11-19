@@ -12,9 +12,11 @@ import { AppState } from './state.js';
 import { addSerie as addSerieData, removeSerie as removeSerieData, addRow as addRowData, removeRow as removeRowData, updatePoint as updatePointData, updateSerieColor as updateSerieColorData, updateFitType as updateFitTypeData, clearTable as clearTableData, exportCSV as exportCSVData, importCSVFile } from './data-manager.js';
 import { updateChart, getDataRange, resetZoom, getSlopeRange } from './chart-manager.js';
 import { propagateUncertainty, formatPropagationResult, validateAllInputs, formatWarnings } from './uncertainty-propagation.js';
+import { getLang } from './i18n.js';
 import { showDecimalWarning, normalizeDecimalInput, escapeHTML, parseDecimal, formatNumber, parseTabular } from './utils.js';
 import { showNotification } from './notifications.js';
 import { confirmDialog, activateModal, deactivateModal } from './modal.js';
+import { t } from './i18n.js';
 
 // Debounce para updateChart: evita recalcular en cada tecla mientras se escribe un número
 let _chartUpdateTimer = null;
@@ -597,7 +599,8 @@ export function updatePoint(serieId, index, axis, value) {
 export function handleDecimalInput(event) {
     const input = event.target;
     const val = input.value;
-    if (val.includes('.')) {
+    // El aviso pide coma decimal (costumbre en Uruguay); en inglés el punto es lo normal.
+    if (getLang() === 'es' && val.includes('.')) {
         showDecimalWarning(input);
     }
 }
@@ -637,8 +640,8 @@ export function importCSV(serieId) {
  */
 export async function clearTable(serieId) {
     const ok = await confirmDialog({
-        message: '¿Borrar todos los datos de esta serie?',
-        confirmText: 'Borrar', danger: true
+        message: t('¿Borrar todos los datos de esta serie?'),
+        confirmText: t('Borrar'), danger: true
     });
     if (!ok) return;
     clearTableData(serieId);
@@ -651,8 +654,8 @@ export async function clearTable(serieId) {
  */
 export async function clearAllData() {
     const ok = await confirmDialog({
-        message: '⚠️ Esto BORRA todo el proyecto.\nSe pierden todas las series y la configuración.',
-        confirmText: 'Borrar todo', danger: true
+        message: t('⚠️ Esto BORRA todo el proyecto.') + '\n' + t('Se pierden todas las series y la configuración.'),
+        confirmText: t('Borrar todo'), danger: true
     });
     if (!ok) return;
 
@@ -698,24 +701,24 @@ export function calculateErrorPropagation() {
 
     // Validar inputs
     if (isNaN(valueA) || isNaN(deltaA) || isNaN(valueB) || isNaN(deltaB)) {
-        showNotification('Ingresá todos los valores numéricos', 'error');
+        showNotification(t('Ingresá todos los valores numéricos'), 'error');
         return;
     }
 
     if (deltaA < 0 || deltaB < 0) {
-        showNotification('Los errores deben ser valores positivos', 'error');
+        showNotification(t('Los errores deben ser valores positivos'), 'error');
         return;
     }
 
     if (operation === 'quotient' && valueB === 0) {
-        showNotification('No se puede dividir por cero', 'error');
+        showNotification(t('No se puede dividir por cero'), 'error');
         return;
     }
 
     // R5: el método de error relativo (δP/P = δA/A + δB/B) divide por A y por B;
     // con un operando en 0 daría "± Infinity". Ese caso queda fuera del método.
     if ((operation === 'product' || operation === 'quotient') && (valueA === 0 || valueB === 0)) {
-        showNotification('El método de error relativo no aplica cuando A o B valen 0.', 'error');
+        showNotification(t('El método de error relativo no aplica cuando A o B valen 0.'), 'error');
         return;
     }
 
@@ -739,7 +742,7 @@ export function calculateErrorPropagation() {
         resultDiv.innerHTML = html;
         resultDiv.style.display = 'block';
     } catch (error) {
-        showNotification('Error en el cálculo: ' + error.message, 'error');
+        showNotification(t('Error en el cálculo: {msg}', { msg: error.message }), 'error');
     }
 }
 
@@ -826,7 +829,7 @@ export function updateAxisUnit(axis, newUnit) {
 
     }).catch(error => {
         console.error('Error al cargar módulo de unidades:', error);
-        showNotification('Error al actualizar la unidad', 'error');
+        showNotification(t('Error al actualizar la unidad'), 'error');
     });
 }
 
@@ -1088,7 +1091,7 @@ export function analyzeDimension() {
     const expression = document.getElementById('dimExpression').value.trim();
 
     if (!expression) {
-        showNotification('Ingresá una expresión', 'error');
+        showNotification(t('Ingresá una expresión'), 'error');
         return;
     }
 
@@ -1100,7 +1103,7 @@ export function analyzeDimension() {
             const dimension = parseExpression(expression);
 
             if (!dimension) {
-                showNotification('No se pudo analizar la expresión. Revisá la sintaxis (sólo *, /, ^).', 'error');
+                showNotification(t('No se pudo analizar la expresión. Revisá la sintaxis (sólo *, /, ^).'), 'error');
                 return;
             }
 
@@ -1113,10 +1116,10 @@ export function analyzeDimension() {
             dimValue.textContent = dimension.toString();
 
             const magnitude = identifyMagnitude(dimension);
-            dimMagnitude.textContent = magnitude || 'Magnitud no identificada';
+            dimMagnitude.textContent = magnitude || t('Magnitud no identificada');
 
             const units = suggestUnitsForDimension(dimension);
-            dimUnits.textContent = units.length > 0 ? units.join(', ') : 'No hay unidades del S.I. para esta dimensión';
+            dimUnits.textContent = units.length > 0 ? units.join(', ') : t('No hay unidades del S.I. para esta dimensión');
 
             resultDiv.style.display = 'block';
 
@@ -1124,7 +1127,7 @@ export function analyzeDimension() {
             resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } catch (error) {
             console.error('Error al analizar dimensión:', error);
-            showNotification('Error al analizar la expresión: ' + error.message, 'error');
+            showNotification(t('Error al analizar la expresión: {msg}', { msg: error.message }), 'error');
         }
     }).catch(err => console.error("Error cargando units.js", err));
 }
@@ -1197,6 +1200,6 @@ export function handleTablePaste(event, serieId) {
     renderTable(serieId);
     updateChart();
 
-    const plural = serie.data.length !== 1 ? 's' : '';
-    showNotification(`✓ ${serie.data.length} fila${plural} pegada${plural} (X, Y)`, 'success');
+    const n = serie.data.length;
+    showNotification(n === 1 ? t('✓ {n} fila pegada (X, Y)', { n }) : t('✓ {n} filas pegadas (X, Y)', { n }), 'success');
 }

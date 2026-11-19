@@ -3,7 +3,8 @@
 // ============================================
 
 import { AppState } from './state.js';
-import { parseDecimal, formatNumber, sanitizeCSVField, numericPoints } from './utils.js';
+import { parseDecimal, formatNumber, sanitizeCSVField, numericPoints, csvDelimiter } from './utils.js';
+import { t } from './i18n.js';
 
 // Re-exportado por compatibilidad: la implementación vive ahora en utils.js y la
 // comparten este módulo y data-manager.js (export CSV por serie).
@@ -144,7 +145,7 @@ export async function downloadChartJPG() {
             if (plainEquation) {
                 ctx.font = '11px Arial';
                 ctx.fillStyle = '#000000';
-                ctx.fillText(`Ecuación: ${plainEquation}`, 20, yPos);
+                ctx.fillText(t('Ecuación: {eq}', { eq: plainEquation }), 20, yPos);
                 yPos += 15;
                 if (serie.r2 !== null && serie.r2 !== undefined) {
                     ctx.fillText(`R² = ${formatNumber(parseDecimal(serie.r2), 4)}`, 20, yPos);
@@ -230,7 +231,7 @@ export async function downloadChartPDF() {
 
     // Título PDF (Solo en el documento fuera de la imagen)
     doc.setFontSize(16);
-    const title = chart.options.plugins.title?.text || 'Gráfica de Datos';
+    const title = chart.options.plugins.title?.text || t('Gráfica de Datos');
     doc.text(title, margin, margin + 5);
 
     const canvas = document.getElementById('myChart');
@@ -288,7 +289,7 @@ export async function downloadChartPDF() {
             const plainEquation = getPlainEquation(serie.equation);
             if (plainEquation) {
                 doc.setFontSize(9);
-                doc.text(`Ecuación: ${plainEquation}`, margin, currentY);
+                doc.text(t('Ecuación: {eq}', { eq: plainEquation }), margin, currentY);
                 currentY += 5;
                 if (serie.r2 !== null && serie.r2 !== undefined) {
                     doc.text(`R² = ${formatNumber(parseDecimal(serie.r2), 4)}`, margin, currentY);
@@ -359,6 +360,7 @@ export async function downloadAllCSV() {
     const labelX = document.getElementById('labelX')?.value || 'X';
     const labelY = document.getElementById('labelY')?.value || 'Y';
 
+    const sep = csvDelimiter();
     const colX = sanitizeCSVField(labelX);
     const colY = sanitizeCSVField(labelY);
 
@@ -373,18 +375,18 @@ export async function downloadAllCSV() {
 
         const plainEquation = getPlainEquation(serie.equation);
         if (plainEquation) {
-            csv += `# Ecuación: ${sanitizeCSVField(plainEquation)}\n`;
+            csv += `# ${t('Ecuación: {eq}', { eq: sanitizeCSVField(plainEquation) })}\n`;
             if (serie.r2 !== null && serie.r2 !== undefined) {
                 csv += `# R² = ${formatNumber(parseDecimal(serie.r2), 4)}\n`;
             }
         }
 
-        csv += `${colX};${colY}\n`;
+        csv += `${colX}${sep}${colY}\n`;
 
         validPoints.forEach(p => {
             const x = sanitizeCSVField(formatValue(p.x, 0));
             const y = sanitizeCSVField(formatValue(p.y, 0));
-            csv += `${x};${y}\n`;
+            csv += `${x}${sep}${y}\n`;
         });
     });
 

@@ -61,6 +61,33 @@ export function t(key, params) {
     return out;
 }
 
+/** Todas las formas de un texto: el original en español y su traducción a cada idioma. */
+export function variants(key) {
+    const out = [key];
+    for (const dict of Object.values(DICTIONARIES)) {
+        if (Object.prototype.hasOwnProperty.call(dict, key)) out.push(dict[key]);
+    }
+    return out;
+}
+
+/**
+ * Si `text` es la plantilla `key` (en cualquier idioma) con sus {parámetros} rellenados,
+ * devuelve esos parámetros como strings; si no, null.
+ * Sirve para reconocer valores por defecto sin editar: templateParams('Series 3', 'Serie {n}') → { n: '3' }.
+ */
+export function templateParams(text, key) {
+    for (const v of variants(key)) {
+        const names = [];
+        const pattern = v.replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\{(\w+)\}/g, (m, name) => {
+            names.push(name);
+            return '(.+?)';
+        });
+        const m = new RegExp(`^${pattern}$`).exec(String(text));
+        if (m) return Object.fromEntries(names.map((name, i) => [name, m[i + 1]]));
+    }
+    return null;
+}
+
 /** Traducción de un texto con espacios arbitrarios; conserva los de los bordes. */
 function translateSpaced(raw) {
     const dict = DICTIONARIES[current];

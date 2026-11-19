@@ -14,6 +14,8 @@
  * @module modal
  */
 
+import { t } from './i18n.js';
+
 const FOCUSABLE = [
     'a[href]', 'button:not([disabled])', 'input:not([disabled])',
     'select:not([disabled])', 'textarea:not([disabled])', '[tabindex]:not([tabindex="-1"])'
@@ -132,7 +134,7 @@ export function deactivateModal(el) {
  * @param {boolean} [opts.danger=false] - Estilo rojo para el botón de confirmar
  * @returns {Promise<boolean>} true si el usuario confirma
  */
-export function confirmDialog({ message, confirmText = 'Confirmar', cancelText = 'Cancelar', danger = false } = {}) {
+export function confirmDialog({ message, confirmText = t('Confirmar'), cancelText = t('Cancelar'), danger = false } = {}) {
     return new Promise((resolve) => {
         const overlay = document.createElement('div');
         overlay.className = 'app-confirm-overlay';

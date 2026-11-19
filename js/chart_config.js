@@ -6,6 +6,7 @@
 import { AppState } from './state.js';
 import { linearRegression } from './regression.js';
 import { escapeHTML, parseDecimal, formatNumber, numericPoints } from './utils.js';
+import { t } from './i18n.js';
 
 export function toggleConfigPanel() {
     const content = document.getElementById('config-panel-content');
@@ -148,7 +149,7 @@ export function resetChartConfigPanel() {
     const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
     const setChk = (id, v) => { const el = document.getElementById(id); if (el) el.checked = v; };
 
-    setVal('chartTitle', 'Gráfica de Datos');
+    setVal('chartTitle', t('Gráfica de Datos'));
     setVal('labelX', 'X');
     setVal('labelY', 'Y');
     setVal('prefixX', '');
