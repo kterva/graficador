@@ -4,7 +4,7 @@ import {
     noRastrear, esEntornoLocal, debeContar, textoVisitas, iniciarVisitas, VISITAS_API
 } from '../js/visitas.js';
 
-const WEB = { hostname: 'graficador.culturalibre.edu.uy', protocol: 'https:' };
+const WEB = { hostname: 'graficador.culturalibre.uy', protocol: 'https:' };
 const NAV = {}; const WIN = {};
 const elFalso = () => ({ textContent: '', hidden: true });
 const respuesta = (obj, ok = true) => ({ ok, json: async () => obj });

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://graficador.culturalibre.edu.uy/sitemap.xml
+Sitemap: https://graficador.culturalibre.uy/sitemap.xml

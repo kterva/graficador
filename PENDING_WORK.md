@@ -25,7 +25,7 @@
 ## Estado / contexto
 
 App web *vanilla* (ES Modules, sin bundler), sitio estático servido por GitHub Pages
-(`graficador.culturalibre.edu.uy`). Dependencias solo por CDN con SRI (Chart.js 3.9,
+(`graficador.culturalibre.uy`). Dependencias solo por CDN con SRI (Chart.js 3.9,
 hammer.js, plugin zoom, jsPDF + autotable). ~9.500 líneas.
 
 Flujo de módulos:

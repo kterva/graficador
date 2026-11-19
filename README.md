@@ -2,7 +2,7 @@
 
 Aplicación web interactiva para análisis de datos experimentales con ajustes de regresión, propagación de incertidumbre y etiquetado de unidades. Ideal para estudiantes, científicos e ingenieros.
 
-**▶️ Probalo ahora, sin instalar nada: [graficador.culturalibre.edu.uy](https://graficador.culturalibre.edu.uy)**
+**▶️ Probalo ahora, sin instalar nada: [graficador.culturalibre.uy](https://graficador.culturalibre.uy)**
 
 ![Version](https://img.shields.io/badge/version-1.6.1-blue)
 ![License](https://img.shields.io/badge/license-GPL%20v3%2B-blue)
